@@ -1,15 +1,13 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class CadastroPage extends StatefulWidget {
+  const CadastroPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<CadastroPage> createState() => _CadastroPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _CadastroPageState extends State<CadastroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
           children: <Widget>[
             SizedBox(height: 100),
             Text(
-              'Faça Login',
+              'Cadastre-se',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
@@ -34,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Não possui login?',
+                  'Já Possui uma conta?',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,
@@ -42,10 +40,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/cadastro');
+                    Navigator.pushNamed(context, '/login');
                   },
                   child: Text(
-                    'Cadastre-se',
+                    'Login',
                     style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
@@ -55,6 +53,25 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
             SizedBox(height: 80),
+            SizedBox(
+              width: 300,
+              height: 48,
+              child: TextFormField(
+                autofocus: true,
+                keyboardType: TextInputType.name,
+                decoration: InputDecoration(
+                  labelText: 'Nome completo',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 30),
             SizedBox(
               width: 300,
               height: 48,
@@ -91,17 +108,20 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Esqueci minha senha',
-                  style: TextStyle(
-                    color: Color(0xFF266B70),
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
+            SizedBox(height: 30),
+            SizedBox(
+              width: 300,
+              height: 48,
+              child: TextFormField(
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar senha',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
@@ -120,9 +140,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 child: Text(
-                  'Login',
+                  'Cadastrar',
                   style: TextStyle(
-                      fontFamily: 'Poppins', fontSize: 18, color: Colors.black),
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             )
