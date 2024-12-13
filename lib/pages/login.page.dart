@@ -95,7 +95,9 @@ class _LoginPageState extends State<LoginPage> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/senha');
+                },
                 child: Text(
                   'Esqueci minha senha',
                   style: TextStyle(
@@ -108,8 +110,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             SizedBox(height: 45),
             SizedBox(
-              width: 150,
-              height: 40,
+              width: MediaQuery.of(context).size.width * 0.4,
               child: OutlinedButton(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(

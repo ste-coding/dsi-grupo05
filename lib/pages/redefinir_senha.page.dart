@@ -1,13 +1,15 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 
-class CadastroPage extends StatefulWidget {
-  const CadastroPage({super.key});
+class RedefinirPage extends StatefulWidget {
+  const RedefinirPage({super.key});
 
   @override
-  State<CadastroPage> createState() => _CadastroPageState();
+  State<RedefinirPage> createState() => _RedefinirPageState();
 }
 
-class _CadastroPageState extends State<CadastroPage> {
+class _RedefinirPageState extends State<RedefinirPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +21,7 @@ class _CadastroPageState extends State<CadastroPage> {
           children: <Widget>[
             SizedBox(height: 100),
             Text(
-              'Cadastre-se',
+              'Redefinir senha',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
@@ -32,7 +34,7 @@ class _CadastroPageState extends State<CadastroPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Já Possui uma conta?',
+                  'Já possui uma conta?',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,
@@ -58,28 +60,9 @@ class _CadastroPageState extends State<CadastroPage> {
               height: 48,
               child: TextFormField(
                 autofocus: true,
-                keyboardType: TextInputType.name,
+                obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Nome completo',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
-            SizedBox(
-              width: 300,
-              height: 48,
-              child: TextFormField(
-                autofocus: true,
-                keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Nova senha',
                   labelStyle: TextStyle(color: Colors.black),
                   filled: true,
                   fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
@@ -97,25 +80,7 @@ class _CadastroPageState extends State<CadastroPage> {
               child: TextFormField(
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Senha',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
-            SizedBox(
-              width: 300,
-              height: 48,
-              child: TextFormField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Confirmar senha',
+                  labelText: 'Repetir senha',
                   labelStyle: TextStyle(color: Colors.black),
                   filled: true,
                   fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
@@ -134,17 +99,15 @@ class _CadastroPageState extends State<CadastroPage> {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Color(0xFF266B70), width: 2),
                   padding: EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Color(0xFF266B70),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: Text(
-                  'Cadastrar',
+                  'Redefinir senha',
                   style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
+                      fontFamily: 'Poppins', fontSize: 18, color: Colors.white),
                 ),
               ),
             )

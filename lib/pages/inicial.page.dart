@@ -47,7 +47,7 @@ class _InicialPageState extends State<InicialPage> {
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,
-                      color: Color(0xFFCECECE),
+                      color: Color.fromARGB(255, 40, 40, 41),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -57,8 +57,7 @@ class _InicialPageState extends State<InicialPage> {
                     child: Column(
                       children: [
                         SizedBox(
-                          width: 300,
-                          height: 46,
+                          width: MediaQuery.of(context).size.width * 0.6,
                           child: OutlinedButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/login');
@@ -70,36 +69,42 @@ class _InicialPageState extends State<InicialPage> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text(
-                              'Login',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 20,
-                                color: Colors.white,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
                         ),
                         SizedBox(height: 30),
                         SizedBox(
-                          width: 300,
-                          height: 46,
+                          width: MediaQuery.of(context).size.width * 0.6,
                           child: OutlinedButton(
                             onPressed: () {
                               Navigator.pushNamed(context, '/cadastro');
                             },
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(color: Color(0xFF266B70)),
+                              backgroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: Text(
-                              'Cadastrar',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 20,
-                                color: Colors.black,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Cadastre-se',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
                           ),
