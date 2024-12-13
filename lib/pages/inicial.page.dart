@@ -104,6 +104,32 @@ class _InicialPageState extends State<InicialPage> {
                             ),
                           ),
                         ),
+                        SizedBox(height: 50),
+                        SizedBox(
+                          width: 300,
+                          height: 46,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/menu');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide.none,
+                              backgroundColor: Color.fromARGB(255, 255, 166, 0),
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text(
+                              'MENU (temporário)',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        
                       ],
                     ),
                   ),

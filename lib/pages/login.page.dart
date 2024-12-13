@@ -111,7 +111,8 @@ class _LoginPageState extends State<LoginPage> {
               width: 150,
               height: 40,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () { 
+                },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Color(0xFF266B70), width: 2),
                   padding: EdgeInsets.symmetric(vertical: 16),
@@ -122,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text(
                   'Login',
                   style: TextStyle(
-                      fontFamily: 'Poppins', fontSize: 18, color: Colors.black),
+                      fontFamily: 'Poppins', fontSize: 18, color: const Color.fromARGB(255, 0, 0, 0)),
                 ),
               ),
             )
