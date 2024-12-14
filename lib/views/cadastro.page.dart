@@ -180,10 +180,25 @@ class CadastroPage extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        User? user = await _authController.registerWithEmailPassword(
-                            _emailController.text, _passwordController.text, _cpfController.text, _nomeController.text);
-                        if (user != null) {
-                          Navigator.pushReplacementNamed(context, '/inicial');
+                        bool isCpfRegistered = await _authController.isCpfRegistered(_cpfController.text);
+                        if (isCpfRegistered) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('CPF já cadastrado.')),
+                          );
+                        } else {
+                          User? user = await _authController.registerWithEmailPassword(
+                            _emailController.text, 
+                            _passwordController.text, 
+                            _cpfController.text, 
+                            _nomeController.text
+                          );
+                          if (user != null) {
+                            Navigator.pushReplacementNamed(context, '/inicial');
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Falha no cadastro.')),
+                            );
+                          }
                         }
                       }
                     },

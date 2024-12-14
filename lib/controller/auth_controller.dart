@@ -26,4 +26,18 @@ class AuthController {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  Future<void> resetPasswordWithEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  Future<bool> isCpfRegistered(String cpf) async {
+    final querySnapshot = await _firestore.collection('users').where('cpf', isEqualTo: cpf).get();
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<bool> isEmailRegistered(String email) async {
+    final querySnapshot = await _firestore.collection('users').where('email', isEqualTo: email).get();
+    return querySnapshot.docs.isNotEmpty;
+  }
 }
