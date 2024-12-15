@@ -89,12 +89,21 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(height: 50),
+            SizedBox(height: 10),
             Text(
               'Minha Viagem',
               style: TextStyle(

@@ -141,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                       User? user = await _authController.signInWithEmailPassword(
                           _emailController.text, _passwordController.text);
                       if (user != null) {
-                        Navigator.pushReplacementNamed(context, '/inicial');
+                        Navigator.pushReplacementNamed(context, '/menu');
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Falha no login')),
