@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/services/firestore.dart';
+
 
 class ItinerarioPage extends StatefulWidget {
   const ItinerarioPage({super.key});
@@ -10,6 +12,7 @@ class ItinerarioPage extends StatefulWidget {
 }
 
 class _ItinerarioPageState extends State<ItinerarioPage> {
+  final FirestoreService firestoreService = FirestoreService();
   final List<Map<String, String>> _atividades = [];
   final _tituloController = TextEditingController();
   final _horarioController = TextEditingController();
