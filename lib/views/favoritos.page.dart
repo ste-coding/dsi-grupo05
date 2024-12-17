@@ -137,14 +137,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
                                 IconButton(
                                   onPressed: () => openNoteBox(docID: docID),
                                   icon: Icon(Icons.edit),
-                                ),
-
-                                // botao de excluir
-                                IconButton(
-                                  onPressed: () => firestoreService.deleteNote(docID),
-                                  icon: Icon(Icons.delete),
-                                ),
-                              ],
+                                ),                              ],
                             ),
                           ),
                         );
