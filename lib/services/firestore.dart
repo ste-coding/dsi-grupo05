@@ -1,26 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreService {
   
-  // pegar coleção de anotações
-  final CollectionReference notes =
-  FirebaseFirestore.instance.collection('favoritos');
+  String get userId => FirebaseAuth.instance.currentUser!.uid;
 
-  // CRIAR: add anotação
-  Future<void> addNote(String note){
+  CollectionReference get notes {
+    return FirebaseFirestore.instance.collection('users').doc(userId).collection('favoritos');
+  }
+
+  // CRIAR: adicionar anotação
+  Future<void> addNote(String note) {
     return notes.add({
       'note': note,
       'timestamp': Timestamp.now(),
     });
   }
 
-  // LER: pegar anotação do banco de dados 
+  // LER: pegar as anotações do banco de dados do usuário
   Stream<QuerySnapshot> getNotesStream() {
-    final notesStream =
-     notes.orderBy('timestamp', descending: true).snapshots();
+    final notesStream=
+      notes.orderBy('timestamp', descending: true).snapshots();
 
-     return notesStream;
-
+    return notesStream;
   }
 
   // ATUALIZAR: atualizar a anotação, dado o id
@@ -31,11 +33,8 @@ class FirestoreService {
     });
   }
 
-
-
   // REMOVER: remover a anotação, dado o id
-  Future<void> deleteNote(String docID){
+  Future<void> deleteNote(String docID) {
     return notes.doc(docID).delete();
   }
-
 }

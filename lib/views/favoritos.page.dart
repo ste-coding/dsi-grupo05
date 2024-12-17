@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FavoritosPage extends StatefulWidget {
   const FavoritosPage({super.key});
@@ -97,7 +98,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
             // Lista de boxes de localizações usando o StreamBuilder
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: firestoreService.getNotesStream(),
+                stream: firestoreService.getNotesStream(), 
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List notesList = snapshot.data!.docs;
