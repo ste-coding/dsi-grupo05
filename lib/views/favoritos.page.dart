@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore.dart';
+import 'package:flutter_application_1/views/localizacoes.page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class FavoritosPage extends StatefulWidget {
   const FavoritosPage({super.key});
@@ -12,63 +12,73 @@ class FavoritosPage extends StatefulWidget {
 
 class _FavoritosPageState extends State<FavoritosPage> {
   final FirestoreService firestoreService = FirestoreService();
-  String buttonText = 'Adicionar Localização';
-
-  // controlador de texto
   final TextEditingController textController = TextEditingController();
 
-  // caixa de dialogo para adicionar local
-  void openNoteBox({String? docID}) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: TextField(
-          controller: textController,
-        ),
-        actions: [
-          // botão para salvar
-          ElevatedButton(
-            onPressed: () {
-              // add firestore
-              if (docID == null) {
-                firestoreService.addNote(textController.text);
-              } else {
-                firestoreService.updateNote(docID, textController.text);
-              }
+  // Método para abrir a caixa de diálogo para adicionar/editar localização
+void openNoteBox() async {
+  final selectedLocation = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const LocationOptionsPage()),
+  );
 
-              // limpar caixa
-              textController.clear();
+  if (selectedLocation != null) {
+    final existingNotes = await firestoreService.getNotesStream().first;
+    bool locationExists = existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
 
-              // tirar caixa da tela
-              Navigator.pop(context);
-            },
-            child: Text("Salvar"),
-          ),
-        ],
-      ),
-    );
+    if (locationExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Esta localização já foi salva!')),
+      );
+    } else {
+      firestoreService.addNote(selectedLocation); // SALVA NO FIRESTORE
+    }
   }
+}
+
+
+void editNote({required String docID, String? currentLocation}) async {
+  final selectedLocation = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => LocationOptionsPage(initialLocation: currentLocation)),
+  );
+
+  if (selectedLocation != null && selectedLocation != currentLocation) {
+    final existingNotes = await firestoreService.getNotesStream().first;
+    bool locationExists = existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
+
+    if (locationExists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Localização já cadastrada!')),
+      );
+    } else {
+      // Atualiza a nota no Firestore se a localização não existir
+      firestoreService.updateNote(docID, selectedLocation); // ATUALIZA NO FIRESTORE
+    }
+  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFDFEAF1),
+      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
           },
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(16.0),                            //FAVORTIOS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'Favoritos',
               style: TextStyle(
                 fontFamily: 'Poppins',
@@ -76,29 +86,32 @@ class _FavoritosPageState extends State<FavoritosPage> {
                 fontSize: 35,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),                                //TEXTO 1
             Text(
               'Visualize ou edite sua lista de desejos',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 color: Colors.grey[600],
+                fontWeight: FontWeight.normal,
               ),
             ),
-            SizedBox(height: 50),
-            Text(
-              'Localizações salvas',
+            const SizedBox(height: 50),
+            const Text(
+              'Localizações salvas',                                //TEXTO 2
               style: TextStyle(
+                color: Colors.black,
                 fontFamily: 'Poppins',
                 fontSize: 20,
+                fontWeight: FontWeight.normal,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-            // Lista de boxes de localizações usando o StreamBuilder
-            Expanded(
+            // Lista de localizações salvas
+            Expanded(                         
               child: StreamBuilder<QuerySnapshot>(
-                stream: firestoreService.getNotesStream(), 
+                stream: firestoreService.getNotesStream(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List notesList = snapshot.data!.docs;
@@ -106,11 +119,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
                     return ListView.builder(
                       itemCount: notesList.length,
                       itemBuilder: (context, index) {
-                        // localizações salvas
                         DocumentSnapshot document = notesList[index];
                         String docID = document.id;
-
-                        // pegar nota de cada doc
                         Map<String, dynamic> data = document.data() as Map<String, dynamic>;
                         String noteText = data['note'];
 
@@ -120,74 +130,58 @@ class _FavoritosPageState extends State<FavoritosPage> {
                           onDismissed: (direction) {
                             firestoreService.deleteNote(docID);
                           },
-                          background: Container(
+                          background: Container(                                  // DELETAR
                             color: Colors.red,
                             alignment: Alignment.centerRight,
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Icon(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(
                               Icons.delete,
                               color: Colors.white,
                             ),
                           ),
-                          child: ListTile(
-                            title: Text(noteText),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // botao de edição
-                                IconButton(
-                                  onPressed: () => openNoteBox(docID: docID),
-                                  icon: Icon(Icons.edit),
-                                ),
-
-                                // botao de excluir
-                                IconButton(
-                                  onPressed: () => firestoreService.deleteNote(docID),
-                                  icon: Icon(Icons.delete),
-                                ),
-                              ],
+                          child: GestureDetector(                                                             //EDITAR 
+                            onTap: ()=> editNote(docID: docID, currentLocation: noteText),
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: 12),
+                            padding:
+                              EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.black),
                             ),
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(noteText),
+                                const Icon(
+                                  Icons.favorite,
+                                  color: const Color(0xFF266B70),
+                                  size: 20.0,
+                                )
+                              ],),
+                          ),
                           ),
                         );
                       },
                     );
                   } else {
-                    return const Text("Não há nada salvo");
+                    return const Center(child: Text("Não há nada salvo"));
                   }
                 },
               ),
             ),
-
-            // Botão para adicionar localizações
-            Center(
-              child: SizedBox(
-                width: 250,
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: openNoteBox,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Color.fromARGB(255, 255, 255, 255), width: 2),
-                    backgroundColor: Color(0xFF266B70),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    buttonText,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
           ],
         ),
       ),
+
+      // Botão circular no canto inferior direito
+      floatingActionButton: FloatingActionButton(                                     //CRIAR NOVO FAVORITO
+        onPressed: () => openNoteBox(),
+        backgroundColor: const Color(0xFF266B70),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

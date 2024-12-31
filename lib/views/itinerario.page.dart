@@ -112,18 +112,17 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
               style: TextStyle(
                 color: Colors.black,
                 fontFamily: 'Poppins',
-                fontSize: 32,
-                fontWeight: FontWeight.normal,
+                fontSize: 35,
+                fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 8),
             Text(
               'Visualize ou edite seu itinerário',
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.grey[600],
                 fontFamily: 'Poppins',
                 fontSize: 16,
-                fontWeight: FontWeight.normal,
               ),
             ),
             SizedBox(height: 32),
@@ -132,7 +131,7 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
               style: TextStyle(
                 color: Colors.black,
                 fontFamily: 'Poppins',
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.normal,
               ),
             ),
@@ -196,6 +195,8 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                         child: Icon(Icons.delete, color: Colors.white),
                       ),
                     ),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/locations', (route) => false),
                     child: Container(
                       margin: EdgeInsets.only(bottom: 12),
                       padding:
@@ -242,6 +243,7 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                           ),
                         ],
                       ),
+                    ),
                     ),
                   );
                 },
