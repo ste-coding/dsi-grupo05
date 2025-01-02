@@ -15,49 +15,51 @@ class _FavoritosPageState extends State<FavoritosPage> {
   final TextEditingController textController = TextEditingController();
 
   // Método para abrir a caixa de diálogo para adicionar/editar localização
-void openNoteBox() async {
-  final selectedLocation = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const LocationOptionsPage()),
-  );
+  void openNoteBox() async {
+    final selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LocationOptionsPage()),
+    );
 
-  if (selectedLocation != null) {
-    final existingNotes = await firestoreService.getNotesStream().first;
-    bool locationExists = existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
+    if (selectedLocation != null) {
+      final existingNotes = await firestoreService.getNotesStream().first;
+      bool locationExists =
+          existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
 
-    if (locationExists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Esta localização já foi salva!')),
-      );
-    } else {
-      firestoreService.addNote(selectedLocation); // SALVA NO FIRESTORE
+      if (locationExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Esta localização já foi salva!')),
+        );
+      } else {
+        firestoreService.addNote(selectedLocation); // SALVA NO FIRESTORE
+      }
     }
   }
-}
 
+  void editNote({required String docID, String? currentLocation}) async {
+    final selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) =>
+              LocationOptionsPage(initialLocation: currentLocation)),
+    );
 
-void editNote({required String docID, String? currentLocation}) async {
-  final selectedLocation = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => LocationOptionsPage(initialLocation: currentLocation)),
-  );
+    if (selectedLocation != null && selectedLocation != currentLocation) {
+      final existingNotes = await firestoreService.getNotesStream().first;
+      bool locationExists =
+          existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
 
-  if (selectedLocation != null && selectedLocation != currentLocation) {
-    final existingNotes = await firestoreService.getNotesStream().first;
-    bool locationExists = existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
-
-    if (locationExists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Localização já cadastrada!')),
-      );
-    } else {
-      // Atualiza a nota no Firestore se a localização não existir
-      firestoreService.updateNote(docID, selectedLocation); // ATUALIZA NO FIRESTORE
+      if (locationExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Localização já cadastrada!')),
+        );
+      } else {
+        // Atualiza a nota no Firestore se a localização não existir
+        firestoreService.updateNote(
+            docID, selectedLocation); // ATUALIZA NO FIRESTORE
+      }
     }
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +70,13 @@ void editNote({required String docID, String? currentLocation}) async {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
+            Navigator.pushNamedAndRemoveUntil(
+                context, '/menu', (route) => false);
           },
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),                            //FAVORTIOS
+        padding: const EdgeInsets.all(16.0), //FAVORTIOS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -86,7 +89,7 @@ void editNote({required String docID, String? currentLocation}) async {
                 fontSize: 35,
               ),
             ),
-            const SizedBox(height: 8),                                //TEXTO 1
+            const SizedBox(height: 8), //TEXTO 1
             Text(
               'Visualize ou edite sua lista de desejos',
               style: TextStyle(
@@ -98,7 +101,7 @@ void editNote({required String docID, String? currentLocation}) async {
             ),
             const SizedBox(height: 50),
             const Text(
-              'Localizações salvas',                                //TEXTO 2
+              'Localizações salvas', //TEXTO 2
               style: TextStyle(
                 color: Colors.black,
                 fontFamily: 'Poppins',
@@ -109,7 +112,7 @@ void editNote({required String docID, String? currentLocation}) async {
             const SizedBox(height: 20),
 
             // Lista de localizações salvas
-            Expanded(                         
+            Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: firestoreService.getNotesStream(),
                 builder: (context, snapshot) {
@@ -121,16 +124,18 @@ void editNote({required String docID, String? currentLocation}) async {
                       itemBuilder: (context, index) {
                         DocumentSnapshot document = notesList[index];
                         String docID = document.id;
-                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                        Map<String, dynamic> data =
+                            document.data() as Map<String, dynamic>;
                         String noteText = data['note'];
 
                         return Dismissible(
                           key: Key(docID),
-                          direction: DismissDirection.startToEnd,
+                          direction: DismissDirection.endToStart,
                           onDismissed: (direction) {
                             firestoreService.deleteNote(docID);
                           },
-                          background: Container(                                  // DELETAR
+                          background: Container(
+                            // DELETAR
                             color: Colors.red,
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -139,28 +144,32 @@ void editNote({required String docID, String? currentLocation}) async {
                               color: Colors.white,
                             ),
                           ),
-                          child: GestureDetector(                                                             //EDITAR 
-                            onTap: ()=> editNote(docID: docID, currentLocation: noteText),
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: 12),
-                            padding:
-                              EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                            decoration: BoxDecoration(
+                          child: GestureDetector(
+                            //EDITAR
+                            onTap: () => editNote(
+                                docID: docID, currentLocation: noteText),
+                            child: Container(
+                              margin: EdgeInsets.only(bottom: 12),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 20, horizontal: 16),
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.black),
+                              ),
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(noteText),
+                                  const Icon(
+                                    Icons.favorite,
+                                    color: const Color(0xFF266B70),
+                                    size: 20.0,
+                                  )
+                                ],
+                              ),
                             ),
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(noteText),
-                                const Icon(
-                                  Icons.favorite,
-                                  color: const Color(0xFF266B70),
-                                  size: 20.0,
-                                )
-                              ],),
-                          ),
                           ),
                         );
                       },
@@ -176,7 +185,8 @@ void editNote({required String docID, String? currentLocation}) async {
       ),
 
       // Botão circular no canto inferior direito
-      floatingActionButton: FloatingActionButton(                                     //CRIAR NOVO FAVORITO
+      floatingActionButton: FloatingActionButton(
+        //CRIAR NOVO FAVORITO
         onPressed: () => openNoteBox(),
         backgroundColor: const Color(0xFF266B70),
         child: const Icon(Icons.add, color: Colors.white),

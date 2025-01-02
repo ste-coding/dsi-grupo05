@@ -1,6 +1,5 @@
-// ignore_for_file: use_key_in_widget_constructors, unused_import, duplicate_import
-
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/views/criar_itinerario.page.dart';
 import 'package:flutter_application_1/views/favoritos.page.dart';
 import 'package:flutter_application_1/views/itinerario.page.dart';
 import 'package:flutter_application_1/views/login.page.dart';
@@ -38,6 +37,18 @@ class MyApp extends StatelessWidget {
         '/itinerario': (context) => ItinerarioPage(),
         '/favoritos': (context) => FavoritosPage(),
         '/locations': (context) => LocationOptionsPage(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/criarIT') {
+          final onSalvarItinerario =
+              settings.arguments as Function(Map<String, String>)?;
+          return MaterialPageRoute(
+            builder: (context) => CriarItinerarioPage(
+              onSalvarItinerario: onSalvarItinerario!,
+            ),
+          );
+        }
+        return null; // Caso nenhuma rota seja encontrada
       },
     );
   }

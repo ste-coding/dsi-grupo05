@@ -83,7 +83,8 @@ class _LoginPageState extends State<LoginPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor, insira seu email';
-                    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                        .hasMatch(value)) {
                       return 'Por favor, insira um email válido';
                     }
                     return null;
@@ -138,8 +139,9 @@ class _LoginPageState extends State<LoginPage> {
                 child: OutlinedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      User? user = await _authController.signInWithEmailPassword(
-                          _emailController.text, _passwordController.text);
+                      User? user =
+                          await _authController.signInWithEmailPassword(
+                              _emailController.text, _passwordController.text);
                       if (user != null) {
                         Navigator.pushReplacementNamed(context, '/menu');
                       } else {
@@ -159,7 +161,10 @@ class _LoginPageState extends State<LoginPage> {
                   child: Text(
                     'Login',
                     style: TextStyle(
-                        fontFamily: 'Poppins', fontSize: 18, color: Colors.black),
+                      fontFamily: 'Poppins',
+                      fontSize: 18,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               )
