@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreService {
-  
+
   String get userId => FirebaseAuth.instance.currentUser!.uid;
 
   CollectionReference get notes {
@@ -19,7 +19,7 @@ class FirestoreService {
 
   // LER: pegar as anotações do banco de dados do usuário
   Stream<QuerySnapshot> getNotesStream() {
-    final notesStream=
+    final notesStream =
       notes.orderBy('timestamp', descending: true).snapshots();
 
     return notesStream;
@@ -36,5 +36,19 @@ class FirestoreService {
   // REMOVER: remover a anotação, dado o id
   Future<void> deleteNote(String docID) {
     return notes.doc(docID).delete();
+  }
+
+  CollectionReference get touristSpots {
+    return FirebaseFirestore.instance.collection('ponto_turistico');
+  }
+
+  Stream<QuerySnapshot> getTouristSpotsStream({DocumentSnapshot? lastVisible}) {
+    Query query = touristSpots.orderBy('name').limit(10);
+    
+    if (lastVisible != null) {
+      query = query.startAfterDocument(lastVisible);
+    }
+    
+    return query.snapshots();
   }
 }
