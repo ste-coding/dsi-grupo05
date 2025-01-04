@@ -36,7 +36,16 @@ class TouristSpotCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          
+          Container(
+            height: 150,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/mock_image.jpg'), // Mock da imagem
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
