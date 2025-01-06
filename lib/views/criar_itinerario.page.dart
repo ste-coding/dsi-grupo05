@@ -5,6 +5,7 @@ class CriarItinerarioPage extends StatelessWidget {
   final TextEditingController _horarioController = TextEditingController();
   final TextEditingController _localizacaoController = TextEditingController();
   final TextEditingController _tituloController = TextEditingController();
+  final TextEditingController _observacoesController = TextEditingController(); // Controller para observações
   final Function(Map<String, String>) onSalvarItinerario;
   final Map<String, String>? itinerarioExistente; // Para editar
 
@@ -21,6 +22,7 @@ class CriarItinerarioPage extends StatelessWidget {
       _tituloController.text = itinerarioExistente!['titulo'] ?? '';
       _horarioController.text = itinerarioExistente!['horario'] ?? '';
       _localizacaoController.text = itinerarioExistente!['localizacao'] ?? '';
+      _observacoesController.text = itinerarioExistente!['observacoes'] ?? ''; // Preenchendo o campo de observações
     }
 
     return Scaffold(
@@ -120,14 +122,37 @@ class CriarItinerarioPage extends StatelessWidget {
                     return null;
                   },
                 ),
+                SizedBox(height: 20),
+                // Novo campo de Observações
+                TextFormField(
+                  controller: _observacoesController,
+                  decoration: InputDecoration(
+                    labelText: 'Observações',
+                    labelStyle: TextStyle(color: Colors.black),
+                    filled: true,
+                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value != null && value.length > 500) {
+                      return 'Observações devem ter no máximo 500 caracteres';
+                    }
+                    return null;
+                  },
+                ),
                 SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
+                      // Incluindo o campo de observações ao salvar ou editar
                       final novoItinerario = {
                         'titulo': _tituloController.text,
                         'horario': _horarioController.text,
                         'localizacao': _localizacaoController.text,
+                        'observacoes': _observacoesController.text, // Adicionando observações
                       };
                       onSalvarItinerario(
                           novoItinerario); // Salva ou atualiza o itinerário
