@@ -51,4 +51,44 @@ class FirestoreService {
     
     return query.snapshots();
   }
+
+
+  // Referência ao documento do viajante
+  DocumentReference get viajanteRef {
+    return FirebaseFirestore.instance.collection('viajantes').doc(userId);
+  }
+
+  // Referência à subcoleção de itinerários
+  CollectionReference get itinerarios {
+    return viajanteRef.collection('itinerarios');
+  }
+
+  // CRUD para Itinerários
+  Future<void> addItinerario(Map<String, String> itinerario) {
+    return itinerarios.add({
+      'titulo': itinerario['titulo'],
+      'horario': itinerario['horario'],
+      'localizacao': itinerario['localizacao'],
+      'observacoes': itinerario['observacoes'] ?? '',
+      'timestamp': Timestamp.now(),
+    });
+  }
+
+  Stream<QuerySnapshot> getItinerariosStream() {
+    return itinerarios.orderBy('timestamp', descending: true).snapshots();
+  }
+
+  Future<void> updateItinerario(String docID, Map<String, String> newItinerario) {
+    return itinerarios.doc(docID).update({
+      'titulo': newItinerario['titulo'],
+      'horario': newItinerario['horario'],
+      'localizacao': newItinerario['localizacao'],
+      'observacoes': newItinerario['observacoes'] ?? '',
+      'timestamp': Timestamp.now(),
+    });
+  }
+
+  Future<void> deleteItinerario(String docID) {
+    return itinerarios.doc(docID).delete();
+  }
 }
