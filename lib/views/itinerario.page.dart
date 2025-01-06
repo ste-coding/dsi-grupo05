@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'criar_itinerario.page.dart';
+import '../services/firestore.dart';
 
 class ItinerarioPage extends StatefulWidget {
   const ItinerarioPage({super.key});
@@ -9,21 +11,22 @@ class ItinerarioPage extends StatefulWidget {
 }
 
 class _ItinerarioPageState extends State<ItinerarioPage> {
-  final List<Map<String, String>> _itinerarios = [];
+  final FirestoreService _firestoreService = FirestoreService();
 
+  // Função para adicionar ou atualizar itinerário
   void _adicionarOuAtualizarItinerario(Map<String, String> itinerario,
-      {int? index}) {
-    setState(() {
-      if (index != null) {
-        _itinerarios[index] = itinerario;
-      } else {
-        _itinerarios.add(itinerario);
-      }
-    });
+      {int? index, String? docID}) {
+    if (docID == null) {
+      // Cria um novo itinerário
+      _firestoreService.addItinerario(itinerario);
+    } else {
+      // Atualiza o itinerário existente
+      _firestoreService.updateItinerario(docID, itinerario);
+    }
   }
 
   // Função para excluir itinerário com confirmação
-  Future<bool?> _confirmarExclusao(int index) async {
+  Future<bool?> _confirmarExclusao(String docID) async {
     return await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -69,97 +72,88 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(height: 8),
-            Text(
-              'Visualize ou edite seu itinerário',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontFamily: 'Poppins',
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Seu Itinerário',
-              style: TextStyle(
-                color: Colors.black,
-                fontFamily: 'Poppins',
-                fontSize: 20,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: _itinerarios.isEmpty
-                  ? Center(
-                      child: Text(
-                        'Nenhum itinerário adicionado ainda.',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _firestoreService.getItinerariosStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: Text(
+                  'Nenhum itinerário adicionado ainda.',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                  ),
+                ),
+              );
+            }
+
+            final itinerarios = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: itinerarios.length,
+              itemBuilder: (context, index) {
+                final itinerario = itinerarios[index];
+                final docID = itinerario.id;
+                final data = itinerario.data() as Map<String, dynamic>;
+
+                return Dismissible(
+                  key: Key(docID),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) async {
+                    bool? confirmarExclusao = await _confirmarExclusao(docID);
+                    if (confirmarExclusao == true) {
+                      await _firestoreService.deleteItinerario(docID);
+                      return true;
+                    }
+                    return false;
+                  },
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                  ),
+                  child: Card(
+                    child: ListTile(
+                      title: Text(data['titulo'] ?? ''),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${data['horario']} - ${data['localizacao']}'),
+                          // Adicionando a exibição das observações
+                          if (data['observacoes'] != null && data['observacoes'].isNotEmpty)
+                            Text('Observações: ${data['observacoes']}'),
+                        ],
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _itinerarios.length,
-                      itemBuilder: (context, index) {
-                        final itinerario = _itinerarios[index];
-                        return Dismissible(
-                          key: Key(itinerario['titulo'] ?? ''),
-                          direction: DismissDirection.endToStart,
-                          confirmDismiss: (direction) async {
-                            bool? confirmarExclusao =
-                                await _confirmarExclusao(index);
-                            if (confirmarExclusao == true) {
-                              setState(() {
-                                _itinerarios.removeAt(index);
-                              });
-                              return true;
-                            }
-                            return false;
-                          },
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 16.0),
-                              child: Icon(Icons.delete, color: Colors.white),
-                            ),
-                          ),
-                          child: Card(
-                            child: ListTile(
-                              title: Text(itinerario['titulo'] ?? ''),
-                              subtitle: Text(
-                                '${itinerario['horario']} - ${itinerario['localizacao']}',
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CriarItinerarioPage(
-                                      onSalvarItinerario: (novoItinerario) {
-                                        _adicionarOuAtualizarItinerario(
-                                            novoItinerario,
-                                            index:
-                                                index); // Atualiza o itinerário
-                                      },
-                                      itinerarioExistente:
-                                          itinerario, // Passa o itinerário para edição
-                                    ),
-                                  ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CriarItinerarioPage(
+                              onSalvarItinerario: (novoItinerario) {
+                                _adicionarOuAtualizarItinerario(
+                                  novoItinerario,
+                                  docID: docID, // Atualiza o itinerário
                                 );
                               },
+                              itinerarioExistente: data.map((key, value) => MapEntry(key, value.toString())),
                             ),
                           ),
                         );
                       },
                     ),
-            ),
-          ],
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(

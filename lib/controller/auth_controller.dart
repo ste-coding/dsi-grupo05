@@ -18,6 +18,10 @@ class AuthController {
     if (user != null) {
       UserModel userModel = UserModel(uid: user.uid, email: email, cpf: cpf, nome: nome);
       await _firestore.collection('users').doc(user.uid).set(userModel.toFirestore());
+
+      await _firestore.collection('viajantes').doc(user.uid).set({
+        'userId': user.uid,
+      });
     }
 
     return user;
