@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/firestore.dart';
 
 class ChecklistPage extends StatefulWidget {
   final String docID;
@@ -10,28 +13,19 @@ class ChecklistPage extends StatefulWidget {
 }
 
 class _ChecklistPageState extends State<ChecklistPage> {
-  List<Map<String, dynamic>> _checklist = []; // Lista de itens do checklist
-
   final TextEditingController _taskController = TextEditingController();
 
   void _addTask(String task) {
-    setState(() {
-      _checklist.add({'task': task, 'completed': false});
-    });
+    FirestoreService().addTask(task);
     _taskController.clear();
-    Navigator.of(context).pop();
   }
 
-  void _removeTask(int index) {
-    setState(() {
-      _checklist.removeAt(index);
-    });
+  void _removeTask(String docID) {
+    FirestoreService().deleteTask(docID);
   }
 
-  void _toggleTaskCompletion(int index) {
-    setState(() {
-      _checklist[index]['completed'] = !_checklist[index]['completed'];
-    });
+  void _toggleTaskCompletion(String docID, bool completed) {
+    FirestoreService().updateTaskStatus(docID, !completed);
   }
 
   void _showAddTaskDialog() {
@@ -55,49 +49,13 @@ class _ChecklistPageState extends State<ChecklistPage> {
               if (_taskController.text.trim().isNotEmpty) {
                 _addTask(_taskController.text.trim());
               }
+              Navigator.of(context).pop();
             },
             child: const Text('Adicionar'),
           ),
         ],
       ),
     );
-  }
-
-//função para editar tarefa
-  void _showEditTaskDialog(int index) {
-    _taskController.text = _checklist[index]['task'];
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Editar Tarefa'),
-        content: TextField(
-          controller: _taskController,
-          decoration: const InputDecoration(hintText: 'Renomear tarefa'),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancelar')),
-          ElevatedButton(
-            onPressed: () {
-              if (_taskController.text.trim().isNotEmpty) {
-                _editTask(index, _taskController.text.trim());
-              }
-            },
-            child: Text('Salvar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-//função para atualizar a task editada
-  void _editTask(int index, String updatedTask) {
-    setState(() {
-      _checklist[index]['task'] = updatedTask;
-    });
-    _taskController.clear();
-    Navigator.of(context).pop();
   }
 
   @override
@@ -151,8 +109,20 @@ class _ChecklistPageState extends State<ChecklistPage> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: _checklist.isEmpty
-                  ? Center(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirestoreService().getChecklistStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erro ao carregar dados.'));
+                  }
+
+                  final tasks = snapshot.data?.docs ?? [];
+                  if (tasks.isEmpty) {
+                    return Center(
                       child: Text(
                         'Nenhuma tarefa adicionada.',
                         style: TextStyle(
@@ -161,56 +131,50 @@ class _ChecklistPageState extends State<ChecklistPage> {
                           color: Colors.grey[600],
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: _checklist.length,
-                      itemBuilder: (context, index) {
-                        final item = _checklist[index];
-                        return Dismissible(
-                          key: Key(item['task']),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            _removeTask(index);
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      final taskData = task.data() as Map<String, dynamic>;
+                      final taskId = task.id;
+                      final completed = taskData['completed'];
+
+                      return Dismissible(
+                        key: Key(taskId),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (direction) {
+                          _removeTask(taskId);
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          child: const Padding(
+                            padding: EdgeInsets.only(right: 16.0),
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
+                        ),
+                        child: CheckboxListTile(
+                          title: Text(
+                            taskData['task'],
+                            style: TextStyle(
+                              decoration: completed
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                          value: completed,
+                          onChanged: (value) {
+                            _toggleTaskCompletion(taskId, completed);
                           },
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            child: const Padding(
-                              padding: EdgeInsets.only(right: 16.0),
-                              child: Icon(Icons.delete, color: Colors.white),
-                            ),
-                          ),
-                          child: CheckboxListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item['task'],
-                                    style: TextStyle(
-                                      decoration: item['completed']
-                                          ? TextDecoration.lineThrough
-                                          : TextDecoration.none,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    _showEditTaskDialog(index);
-                                  },
-                                ),
-                              ],
-                            ),
-                            value: item['completed'],
-                            onChanged: (value) {
-                              _toggleTaskCompletion(index);
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
