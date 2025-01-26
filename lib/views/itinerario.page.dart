@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'criar_itinerario.page.dart';
+import 'checklist.page.dart'; // Tela do checklist
 import '../services/firestore.dart';
 
 class ItinerarioPage extends StatefulWidget {
@@ -17,34 +18,33 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
   void _adicionarOuAtualizarItinerario(Map<String, String> itinerario,
       {int? index, String? docID}) {
     if (docID == null) {
-      // Cria um novo itinerário
       _firestoreService.addItinerario(itinerario);
     } else {
-      // Atualiza o itinerário existente
       _firestoreService.updateItinerario(docID, itinerario);
     }
   }
 
-  // Função para excluir itinerário com confirmação
+  // Função para confirmar exclusão
   Future<bool?> _confirmarExclusao(String docID) async {
     return await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Excluir Itinerário'),
-          content: Text('Você tem certeza que deseja excluir este itinerário?'),
+          title: const Text('Excluir Itinerário'),
+          content: const Text(
+              'Você tem certeza que deseja excluir este itinerário?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // Cancela a exclusão
+                Navigator.of(context).pop(false);
               },
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // Confirma a exclusão
+                Navigator.of(context).pop(true);
               },
-              child: Text('Excluir'),
+              child: const Text('Excluir'),
             ),
           ],
         );
@@ -55,11 +55,11 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFDFEAF1),
+      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Minha Viagem',
           style: TextStyle(
             color: Colors.black,
@@ -76,7 +76,7 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
           stream: _firestoreService.getItinerariosStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -115,8 +115,8 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                   background: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 16.0),
                       child: Icon(Icons.delete, color: Colors.white),
                     ),
                   ),
@@ -127,9 +127,28 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('${data['horario']} - ${data['localizacao']}'),
-                          // Adicionando a exibição das observações
-                          if (data['observacoes'] != null && data['observacoes'].isNotEmpty)
+                          if (data['observacoes'] != null &&
+                              data['observacoes'].isNotEmpty)
                             Text('Observações: ${data['observacoes']}'),
+                          // Botão para acessar o checklist
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChecklistPage(
+                                        docID:
+                                            docID), // Navegação para a página de checklist
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.checklist,
+                                  color: Colors.blue),
+                              label: const Text('Checklist'),
+                            ),
+                          ),
                         ],
                       ),
                       onTap: () {
@@ -140,10 +159,11 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                               onSalvarItinerario: (novoItinerario) {
                                 _adicionarOuAtualizarItinerario(
                                   novoItinerario,
-                                  docID: docID, // Atualiza o itinerário
+                                  docID: docID,
                                 );
                               },
-                              itinerarioExistente: data.map((key, value) => MapEntry(key, value.toString())),
+                              itinerarioExistente: data.map((key, value) =>
+                                  MapEntry(key, value.toString())),
                             ),
                           ),
                         );

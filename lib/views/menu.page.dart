@@ -30,7 +30,8 @@ class _MenuPageState extends State<MenuPage> {
       _isLoading = true;
     });
 
-    Stream<QuerySnapshot> stream = _firestoreService.getTouristSpotsStream(lastVisible: _lastVisible);
+    Stream<QuerySnapshot> stream =
+        _firestoreService.getTouristSpotsStream(lastVisible: _lastVisible);
 
     stream.listen((snapshot) {
       if (snapshot.docs.isNotEmpty) {
@@ -75,7 +76,8 @@ class _MenuPageState extends State<MenuPage> {
 
                 final spot = _touristSpots[index];
                 final locationString = spot['location'];
-                final locationMap = jsonDecode(locationString.replaceAll("'", '"'));
+                final locationMap =
+                    jsonDecode(locationString.replaceAll("'", '"'));
                 final latitude = locationMap['latitude'];
                 final longitude = locationMap['longitude'];
 
