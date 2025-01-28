@@ -97,6 +97,12 @@ class _MenuPageState extends State<MenuPage> {
         child: ListView(
           children: [
             ListTile(
+              title: const Text('Avaliações'),
+              onTap: () {
+                Navigator.pushNamed(context, '/avaliacoes');
+              },
+            ),
+            ListTile(
               title: const Text('Favoritos'),
               onTap: () {
                 Navigator.pushNamed(context, '/favoritos');

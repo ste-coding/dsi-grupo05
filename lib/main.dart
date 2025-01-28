@@ -11,6 +11,7 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/checklist.page.dart';
+import 'package:flutter_application_1/views/avaliacoes.page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/checklist': (context) => ChecklistPage(
               docID: '',
             ),
+        '/avaliacoes': (context) => AvaliacoesPage(),
       },
     );
   }
