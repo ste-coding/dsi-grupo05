@@ -1,7 +1,6 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
+import 'package:flutter_application_1/services/firestore/user.service.dart'; // Alteração aqui
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,20 +15,22 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthController _authController = AuthController();
+  final UserService _userService = UserService(); // Alteração aqui
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFDFEAF1),
+      backgroundColor: const Color(0xFFDFEAF1),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              SizedBox(height: 100),
-              Text(
+              const SizedBox(height: 100),
+              const Text(
                 'Faça Login',
                 style: TextStyle(
                   fontFamily: 'Poppins',
@@ -38,11 +39,11 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     'Não possui login?',
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -53,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: () {
                       Navigator.pushNamed(context, '/cadastro');
                     },
-                    child: Text(
+                    child: const Text(
                       'Cadastre-se',
                       style: TextStyle(
                           fontFamily: 'Poppins',
@@ -63,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 80),
+              const SizedBox(height: 80),
               SizedBox(
                 width: 300,
                 height: 48,
@@ -72,9 +73,9 @@ class _LoginPageState extends State<LoginPage> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -91,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               SizedBox(
                 width: 300,
                 height: 48,
@@ -100,9 +101,9 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Senha',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -116,14 +117,14 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
                     Navigator.pushNamed(context, '/senha');
                   },
-                  child: Text(
+                  child: const Text(
                     'Esqueci minha senha',
                     style: TextStyle(
                       color: Color(0xFF266B70),
@@ -133,45 +134,76 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 45),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.4,
-                child: OutlinedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      User? user =
-                          await _authController.signInWithEmailPassword(
-                              _emailController.text, _passwordController.text);
-                      if (user != null) {
-                        Navigator.pushReplacementNamed(context, '/menu');
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Falha no login')),
-                        );
-                      }
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Color(0xFF266B70), width: 2),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 45),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      child: OutlinedButton(
+                        onPressed: _handleLogin,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF266B70), width: 2),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              )
             ],
           ),
         ),
       ),
     );
+  }
+
+  // Função de login com integração Firestore
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        User? user = await _authController.signInWithEmailPassword(
+          _emailController.text, 
+          _passwordController.text
+        );
+
+        if (user != null) {
+          // Agora utilizamos o método getUserData
+          var userData = await _userService.getUserData(); // Alteração aqui
+
+          if (userData != null) {
+            // Você pode armazenar esses dados de alguma forma ou usá-los no app
+            Navigator.pushReplacementNamed(context, '/menu');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Dados do usuário não encontrados.')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Falha no login')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }
