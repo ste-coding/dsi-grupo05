@@ -1,8 +1,11 @@
+// lib/views/menu.page.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 import '../widgets/local_card.dart';
+import 'explore.page.dart';
 
 class MenuPage extends StatefulWidget {
   @override
@@ -19,7 +22,8 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   void _loadLocais() {
-    final localController = Provider.of<LocalController>(context, listen: false);
+    final localController =
+        Provider.of<LocalController>(context, listen: false);
     localController.fetchLocais('restaurante', 'São Paulo');
   }
 
@@ -40,7 +44,8 @@ class _MenuPageState extends State<MenuPage> {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundImage: NetworkImage('https://via.placeholder.com/40'),
+                        backgroundImage:
+                            NetworkImage('https://via.placeholder.com/40'),
                       ),
                       SizedBox(width: 8),
                       Text(
@@ -113,7 +118,13 @@ class _MenuPageState extends State<MenuPage> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Navegar para a ExplorePage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ExplorePage()),
+                      );
+                    },
                     child: Text(
                       'Ver mais',
                       style: TextStyle(
@@ -190,7 +201,28 @@ class _MenuPageState extends State<MenuPage> {
 
   Widget _buildNavItem(IconData icon, String label, bool isSelected) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        switch (label) {
+          case 'Home':
+            Navigator.pushNamed(context, '/menu');
+            break;
+          case 'Itinerários':
+            Navigator.pushNamed(context, '/itinerario');
+            break;
+          case 'Buscar':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ExplorePage()),
+            );
+            break;
+          case 'Avaliações':
+            Navigator.pushNamed(context, '/avaliacoes');
+            break;
+          case 'Perfil':
+            Navigator.pushNamed(context, '/perfil');
+            break;
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -210,4 +242,3 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 }
-
