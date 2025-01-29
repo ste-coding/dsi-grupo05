@@ -1,7 +1,7 @@
 import 'local_model.dart';
 
 class LocalDetailModel {
-  final LocalModel localModel; // Usando LocalModel para evitar repetição
+  final LocalModel localModel;
   final String email;
   final List<String> horas;
   final String menu;
@@ -11,7 +11,7 @@ class LocalDetailModel {
   final List<String> fotos;
 
   LocalDetailModel({
-    required this.localModel, // Recebendo o LocalModel
+    required this.localModel,
     required this.email,
     required this.horas,
     required this.menu,
@@ -22,7 +22,6 @@ class LocalDetailModel {
   });
 
   factory LocalDetailModel.fromJson(Map<String, dynamic> json) {
-    // Pegando as fotos
     List<String> fotosList = [];
     if (json['photos'] != null) {
       for (var photo in json['photos']) {
@@ -31,7 +30,6 @@ class LocalDetailModel {
       }
     }
 
-    // Pegando as horas
     List<String> horasList = [];
     if (json['hours'] != null) {
       for (var hour in json['hours']['periods']) {
@@ -40,7 +38,6 @@ class LocalDetailModel {
       }
     }
 
-    // Pegando as dicas
     List<String> dicasList = [];
     if (json['tips'] != null) {
       for (var tip in json['tips']) {
@@ -49,7 +46,7 @@ class LocalDetailModel {
     }
 
     return LocalDetailModel(
-      localModel: LocalModel.fromJson(json), // Utilizando a fábrica do LocalModel
+      localModel: LocalModel.fromJson(json),
       email: json['email'] ?? 'Email não disponível',
       horas: horasList,
       menu: json['menu'] ?? 'Menu não disponível',
