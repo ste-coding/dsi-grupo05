@@ -17,7 +17,7 @@ class _InicialPageState extends State<InicialPage> {
           Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
                   image: AssetImage('assets/images/fundo.jpg'),
                   fit: BoxFit.cover),
@@ -30,8 +30,8 @@ class _InicialPageState extends State<InicialPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(height: 100),
-                  Text(
+                  const SizedBox(height: 100),
+                  const Text(
                     'Bora Lá',
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -41,8 +41,8 @@ class _InicialPageState extends State<InicialPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Encontre destinos e \neventos próximos',
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -51,7 +51,7 @@ class _InicialPageState extends State<InicialPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 385),
+                  const SizedBox(height: 385),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -64,12 +64,12 @@ class _InicialPageState extends State<InicialPage> {
                             },
                             style: OutlinedButton.styleFrom(
                               side: BorderSide.none,
-                              backgroundColor: Color(0xFF266B70),
-                              padding: EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: const Color(0xFF266B70),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: FittedBox(
+                            child: const FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 'Login',
@@ -82,7 +82,7 @@ class _InicialPageState extends State<InicialPage> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 30),
+                        const SizedBox(height: 30),
                         SizedBox(
                           width: MediaQuery.of(context).size.width * 0.6,
                           child: OutlinedButton(
@@ -90,13 +90,13 @@ class _InicialPageState extends State<InicialPage> {
                               Navigator.pushNamed(context, '/cadastro');
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Color(0xFF266B70)),
+                              side: const BorderSide(color: Color(0xFF266B70)),
                               backgroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
-                            child: FittedBox(
+                            child: const FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 'Cadastre-se',

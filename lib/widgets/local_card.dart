@@ -53,7 +53,7 @@ class LocalCard extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Icon(Icons.bookmark_border, size: 20),
+                    child: Icon(Icons.favorite_border, size: 20),
                   ),
                 ),
               ],

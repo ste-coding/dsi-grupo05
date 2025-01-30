@@ -13,6 +13,8 @@ import 'package:flutter_application_1/controller/menu_controller.dart' as custom
 import 'package:flutter_application_1/controller/local_controller.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
+import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
+import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -29,13 +31,20 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Identificador de usuário fictício para testes
+    const String userId = "user123";
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
           create: (_) => custom_menu.MenuController(), 
         ),
         ChangeNotifierProvider(
-          create: (_) => LocalController(LocalRepository(FoursquareService())),
+          create: (_) => LocalController(
+            LocalRepository(FoursquareService()),
+            FavoritosService(userId),
+            ItinerariosService(userId),
+          ),
         ),
       ],
       child: MaterialApp(

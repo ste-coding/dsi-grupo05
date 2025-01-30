@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/services/firestore.dart';
-import 'package:flutter_application_1/views/localizacoes.page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
+import 'package:flutter_application_1/models/favorites_model.dart';
+import 'package:flutter_application_1/services/foursquare_service.dart';
+import 'package:flutter_application_1/models/local_model.dart';
+import 'explore.page.dart';
 
 class FavoritosPage extends StatefulWidget {
   const FavoritosPage({super.key});
@@ -11,187 +13,271 @@ class FavoritosPage extends StatefulWidget {
 }
 
 class _FavoritosPageState extends State<FavoritosPage> {
-  final FirestoreService firestoreService = FirestoreService();
-  final TextEditingController textController = TextEditingController();
+  final FavoritosService favoritosService = FavoritosService("user_id_placeholder");
+  final FoursquareService foursquareService = FoursquareService();
+  int _selectedIndex = 0;
 
-  // Método para abrir a caixa de diálogo para adicionar/editar localização
-  void openNoteBox() async {
-    final selectedLocation = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LocationOptionsPage()),
-    );
-
-    if (selectedLocation != null) {
-      final existingNotes = await firestoreService.getNotesStream().first;
-      bool locationExists =
-          existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
-
-      if (locationExists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Esta localização já foi salva!')),
-        );
-      } else {
-        firestoreService.addNote(selectedLocation); // SALVA NO FIRESTORE
-      }
-    }
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
-  void editNote({required String docID, String? currentLocation}) async {
-    final selectedLocation = await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) =>
-              LocationOptionsPage(initialLocation: currentLocation)),
-    );
-
-    if (selectedLocation != null && selectedLocation != currentLocation) {
-      final existingNotes = await firestoreService.getNotesStream().first;
-      bool locationExists =
-          existingNotes.docs.any((doc) => doc['note'] == selectedLocation);
-
-      if (locationExists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Localização já cadastrada!')),
-        );
-      } else {
-        // Atualiza a nota no Firestore se a localização não existir
-        firestoreService.updateNote(
-            docID, selectedLocation); // ATUALIZA NO FIRESTORE
-      }
-    }
+  Future<LocalModel> _getLocalDetails(String fsqId) async {
+    final result = await foursquareService.fetchLocalDetails(fsqId);
+    return LocalModel.fromJson(result);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(
-                context, '/menu', (route) => false);
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Meus lugares favoritos',
+          style: TextStyle(
+            color: Colors.black,
+            fontFamily: 'Poppins',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: StreamBuilder<List<FavoritoModel>>(
+          stream: favoritosService.getFavoritosStream(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final favoritos = snapshot.data!;
+
+              if (favoritos.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.favorite_border, size: 48, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        "Nenhum lugar favorito ainda",
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: favoritos.length,
+                itemBuilder: (context, index) {
+                  final favorito = favoritos[index];
+
+                  return FutureBuilder<LocalModel>(
+                    future: _getLocalDetails(favorito.localId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Card(
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (snapshot.hasError || !snapshot.hasData) {
+                        return Card(
+                          child: Center(
+                            child: Icon(Icons.error, color: Colors.red[300]),
+                          ),
+                        );
+                      }
+
+                      final local = snapshot.data!;
+
+                      return Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    topRight: Radius.circular(16),
+                                  ),
+                                  child: Image.network(
+                                    local.imagem,
+                                    fit: BoxFit.cover,
+                                    height: 120,
+                                    width: double.infinity,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                          height: 120,
+                                          color: Colors.grey[200],
+                                          child: const Icon(Icons.image_not_supported),
+                                        ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        local.nome,
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on,
+                                            size: 12,
+                                            color: Colors.grey,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              '${local.cidade}, ${local.estado}',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            } else if (snapshot.hasError) {
+              return const Center(child: Text("Erro ao carregar favoritos."));
+            }
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), //FAVORTIOS
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 10),
-            const Text(
-              'Favoritos',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-                fontSize: 35,
-              ),
-            ),
-            const SizedBox(height: 8), //TEXTO 1
-            Text(
-              'Visualize ou edite sua lista de desejos',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            const SizedBox(height: 50),
-            const Text(
-              'Localizações salvas', //TEXTO 2
-              style: TextStyle(
-                color: Colors.black,
-                fontFamily: 'Poppins',
-                fontSize: 20,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Lista de localizações salvas
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: firestoreService.getNotesStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List notesList = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      itemCount: notesList.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot document = notesList[index];
-                        String docID = document.id;
-                        Map<String, dynamic> data =
-                            document.data() as Map<String, dynamic>;
-                        String noteText = data['note'];
-
-                        return Dismissible(
-                          key: Key(docID),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            firestoreService.deleteNote(docID);
-                          },
-                          background: Container(
-                            // DELETAR
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          child: GestureDetector(
-                            //EDITAR
-                            onTap: () => editNote(
-                                docID: docID, currentLocation: noteText),
-                            child: Container(
-                              margin: EdgeInsets.only(bottom: 12),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 20, horizontal: 16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.black),
-                              ),
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(noteText),
-                                  const Icon(
-                                    Icons.favorite,
-                                    color: const Color(0xFF266B70),
-                                    size: 20.0,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  } else {
-                    return const Center(child: Text("Não há nada salvo"));
-                  }
-                },
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Itinerários',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Buscar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.star_border),
+            label: 'Avaliações',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFFFF5C00),
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        onTap: _onItemTapped,
       ),
+    );
+  }
 
-      // Botão circular no canto inferior direito
-      floatingActionButton: FloatingActionButton(
-        //CRIAR NOVO FAVORITO
-        onPressed: () => openNoteBox(),
-        backgroundColor: const Color(0xFF266B70),
-        child: const Icon(Icons.add, color: Colors.white),
+  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
+    return InkWell(
+      onTap: () {
+        switch (label) {
+          case 'Home':
+            Navigator.pushNamed(context, '/menu');
+            break;
+          case 'Itinerários':
+            Navigator.pushNamed(context, '/itinerario');
+            break;
+          case 'Buscar':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ExplorePage()),
+            );
+            break;
+          case 'Avaliações':
+            Navigator.pushNamed(context, '/avaliacoes');
+            break;
+          case 'Perfil':
+            Navigator.pushNamed(context, '/perfil');
+            break;
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Colors.orange : Colors.grey,
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isSelected ? Colors.orange : Colors.grey,
+            ),
+          ),
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

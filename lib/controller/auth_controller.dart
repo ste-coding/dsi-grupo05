@@ -7,7 +7,6 @@ class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Função para fazer login com e-mail e senha
   Future<User?> signInWithEmailPassword(String email, String password) async {
     try {
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -21,7 +20,6 @@ class AuthController {
     }
   }
 
-  // Função para registrar um novo usuário e criar um Viajante
   Future<User?> registerWithEmailPassword(String email, String password, String cpf, String nome) async {
     try {
       if (await isEmailRegistered(email)) {
@@ -40,7 +38,6 @@ class AuthController {
       User? user = userCredential.user;
 
       if (user != null) {
-        // Criar objeto UserModel
         UserModel userModel = UserModel(
           uid: user.uid,
           email: email,
@@ -48,13 +45,11 @@ class AuthController {
           nome: nome,
         );
 
-        // Salvar dados do usuário no Firestore
         await _firestore.collection('users').doc(user.uid).set(userModel.toFirestore());
 
-        // Criar documento de Viajante com dados iniciais (bio vazia)
         ViajanteModel viajanteModel = ViajanteModel(
           userId: user.uid,
-          bio: '',  // Bio vazia por padrão
+          bio: '',
         );
         await _firestore.collection('viajantes').doc(user.uid).set(viajanteModel.toFirestore());
       }
@@ -65,29 +60,24 @@ class AuthController {
     }
   }
 
-  // Função para sair da conta
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  // Função para resetar senha
   Future<void> resetPasswordWithEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
-  // Função para verificar se o CPF já está registrado
   Future<bool> isCpfRegistered(String cpf) async {
     final querySnapshot = await _firestore.collection('users').where('cpf', isEqualTo: cpf).get();
     return querySnapshot.docs.isNotEmpty;
   }
 
-  // Função para verificar se o email já está registrado
   Future<bool> isEmailRegistered(String email) async {
     final querySnapshot = await _firestore.collection('users').where('email', isEqualTo: email).get();
     return querySnapshot.docs.isNotEmpty;
   }
 
-  // Função para atualizar a bio do viajante
   Future<void> updateBio(String userId, String novaBio) async {
     try {
       await _firestore.collection('viajantes').doc(userId).update({
