@@ -1,5 +1,3 @@
-// lib/views/menu.page.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
@@ -24,7 +22,7 @@ class _MenuPageState extends State<MenuPage> {
   void _loadLocais() {
     final localController =
         Provider.of<LocalController>(context, listen: false);
-    localController.fetchLocais('restaurante', 'São Paulo');
+    localController.fetchLocais('', 'Brasil');
   }
 
   @override
@@ -34,7 +32,6 @@ class _MenuPageState extends State<MenuPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with profile
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -58,14 +55,16 @@ class _MenuPageState extends State<MenuPage> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                    icon: Icon(Icons.favorite_border),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/favoritos');
+                    },
                   ),
+
                 ],
               ),
             ),
 
-            // Title Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -104,7 +103,6 @@ class _MenuPageState extends State<MenuPage> {
 
             SizedBox(height: 24),
 
-            // Recommended Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -119,7 +117,6 @@ class _MenuPageState extends State<MenuPage> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navegar para a ExplorePage
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => ExplorePage()),
@@ -136,7 +133,6 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
 
-            // Cards List
             Expanded(
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
@@ -167,7 +163,6 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
 
-            // Bottom Navigation Bar
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,

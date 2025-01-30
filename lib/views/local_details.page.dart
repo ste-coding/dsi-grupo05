@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 
 class LocalDetailsPage extends StatelessWidget {
@@ -8,6 +10,8 @@ class LocalDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localController = Provider.of<LocalController>(context, listen: false);
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -26,8 +30,15 @@ class LocalDetailsPage extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.bookmark_border),
-                onPressed: () {},
+                icon: Icon(Icons.favorite_border),
+                onPressed: () async {
+                  bool isFavorito = await localController.favoritosService.checkIfFavoritoExists(local.id);
+                  if (isFavorito) {
+                    await localController.removeFromFavoritos(local.id);
+                  } else {
+                    await localController.addToFavoritos(local.id);
+                  }
+                },
               ),
             ],
           ),
@@ -74,7 +85,6 @@ class LocalDetailsPage extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       SizedBox(width: 16),
-                      Text('\$55/Person', style: TextStyle(color: Colors.blue)),
                     ],
                   ),
                   SizedBox(height: 24),
@@ -99,6 +109,9 @@ class LocalDetailsPage extends StatelessWidget {
                     child: Text('Adicionar a Itinerário'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                      ),
                       minimumSize: Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

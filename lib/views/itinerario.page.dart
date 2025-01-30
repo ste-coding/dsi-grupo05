@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'criar_itinerario.page.dart';
-import 'checklist.page.dart'; // Tela do checklist
-import '../services/firestore.dart';
+import 'checklist.page.dart';
+import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 
 class ItinerarioPage extends StatefulWidget {
   const ItinerarioPage({super.key});
@@ -12,9 +13,25 @@ class ItinerarioPage extends StatefulWidget {
 }
 
 class _ItinerarioPageState extends State<ItinerarioPage> {
-  final FirestoreService _firestoreService = FirestoreService();
+  late final ItinerariosService _firestoreService;
 
-  // Função para adicionar ou atualizar itinerário
+  @override
+  void initState() {
+    super.initState();
+    _initializeFirestoreService();
+  }
+
+  void _initializeFirestoreService() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userId = user.uid;
+      _firestoreService = ItinerariosService(userId);
+    } else {
+      // Tratar caso o usuário não esteja autenticado
+      print("Usuário não autenticado");
+    }
+  }
+
   void _adicionarOuAtualizarItinerario(Map<String, String> itinerario,
       {int? index, String? docID}) {
     if (docID == null) {
@@ -24,7 +41,6 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
     }
   }
 
-  // Função para confirmar exclusão
   Future<bool?> _confirmarExclusao(String docID) async {
     return await showDialog<bool>(
       context: context,
@@ -130,7 +146,6 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                           if (data['observacoes'] != null &&
                               data['observacoes'].isNotEmpty)
                             Text('Observações: ${data['observacoes']}'),
-                          // Botão para acessar o checklist
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
@@ -140,7 +155,7 @@ class _ItinerarioPageState extends State<ItinerarioPage> {
                                   MaterialPageRoute(
                                     builder: (context) => ChecklistPage(
                                         docID:
-                                            docID), // Navegação para a página de checklist
+                                            docID),
                                   ),
                                 );
                               },

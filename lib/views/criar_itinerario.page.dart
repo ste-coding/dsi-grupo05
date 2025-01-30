@@ -33,16 +33,16 @@ class CriarItinerarioPage extends StatelessWidget {
           itinerarioExistente != null
               ? 'Editar Itinerário'
               : 'Criar Itinerário',
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontFamily: 'Poppins',
             fontSize: 32,
           ),
         ),
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      backgroundColor: Color(0xFFDFEAF1),
+      backgroundColor: const Color(0xFFDFEAF1),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -55,21 +55,21 @@ class CriarItinerarioPage extends StatelessWidget {
                   itinerarioExistente != null
                       ? 'Editar Itinerário'
                       : 'Novo Itinerário',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextFormField(
                   controller: _tituloController,
                   decoration: InputDecoration(
                     labelText: 'Título da Atividade',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -82,14 +82,14 @@ class CriarItinerarioPage extends StatelessWidget {
                     return null;
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextFormField(
                   controller: _horarioController,
                   decoration: InputDecoration(
                     labelText: 'Horário',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -102,14 +102,14 @@ class CriarItinerarioPage extends StatelessWidget {
                     return null;
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextFormField(
                   controller: _localizacaoController,
                   decoration: InputDecoration(
                     labelText: 'Localização',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -122,15 +122,15 @@ class CriarItinerarioPage extends StatelessWidget {
                     return null;
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Novo campo de Observações
                 TextFormField(
                   controller: _observacoesController,
                   decoration: InputDecoration(
                     labelText: 'Observações',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: const TextStyle(color: Colors.black),
                     filled: true,
-                    fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(8),
@@ -143,7 +143,7 @@ class CriarItinerarioPage extends StatelessWidget {
                     return null;
                   },
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
@@ -161,14 +161,14 @@ class CriarItinerarioPage extends StatelessWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF266B70),
-                    padding: EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: const Color(0xFF266B70),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    minimumSize: Size(double.infinity, 40),
+                    minimumSize: const Size(double.infinity, 40),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Salvar',
                     style: TextStyle(
                       fontFamily: 'Poppins',
