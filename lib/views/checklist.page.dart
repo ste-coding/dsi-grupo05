@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/firestore.dart';
+import '../services/firestore/checklist.service.dart';
 
 class ChecklistPage extends StatefulWidget {
   final String docID;
 
-  const ChecklistPage({Key? key, required this.docID}) : super(key: key);
+  const ChecklistPage({super.key, required this.docID});
 
   @override
   State<ChecklistPage> createState() => _ChecklistPageState();
@@ -14,18 +14,41 @@ class ChecklistPage extends StatefulWidget {
 
 class _ChecklistPageState extends State<ChecklistPage> {
   final TextEditingController _taskController = TextEditingController();
+  late final ChecklistService _checklistService;
 
-  void _addTask(String task) {
-    FirestoreService().addTask(task);
-    _taskController.clear();
+  @override
+  void initState() {
+    super.initState();
+    final String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (userId.isEmpty) {
+      throw Exception('Erro: Usuário não autenticado.');
+    }
+    _checklistService = ChecklistService(userId);
   }
 
-  void _removeTask(String docID) {
-    FirestoreService().deleteTask(docID);
+  void _addTask(String task) async {
+    try {
+      await _checklistService.addTask({'task': task});
+      _taskController.clear();
+    } catch (e) {
+      _showErrorSnackbar('Erro ao adicionar tarefa.');
+    }
   }
 
-  void _toggleTaskCompletion(String docID, bool completed) {
-    FirestoreService().updateTaskStatus(docID, !completed);
+  void _removeTask(String docID) async {
+    try {
+      await _checklistService.deleteTask(docID);
+    } catch (e) {
+      _showErrorSnackbar('Erro ao excluir tarefa.');
+    }
+  }
+
+  void _toggleTaskCompletion(String docID, bool completed) async {
+    try {
+      await _checklistService.updateTaskStatus(docID, !completed);
+    } catch (e) {
+      _showErrorSnackbar('Erro ao atualizar status da tarefa.');
+    }
   }
 
   void _showAddTaskDialog() {
@@ -46,15 +69,24 @@ class _ChecklistPageState extends State<ChecklistPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (_taskController.text.trim().isNotEmpty) {
-                _addTask(_taskController.text.trim());
+              final taskName = _taskController.text.trim();
+              if (taskName.isNotEmpty) {
+                _addTask(taskName);
+                Navigator.of(context).pop();
+              } else {
+                _showErrorSnackbar('O nome da tarefa não pode ser vazio.');
               }
-              Navigator.of(context).pop();
             },
             child: const Text('Adicionar'),
           ),
         ],
       ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -110,14 +142,19 @@ class _ChecklistPageState extends State<ChecklistPage> {
             const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirestoreService().getChecklistStream(),
+                stream: _checklistService.getChecklistStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('Erro ao carregar dados.'));
+                    return Center(
+                      child: Text(
+                        'Erro ao carregar dados: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
                   }
 
                   final tasks = snapshot.data?.docs ?? [];
