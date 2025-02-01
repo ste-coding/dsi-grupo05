@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore;
 import 'package:flutter_application_1/services/firestore/user.service.dart';
+import 'package:flutter/services.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -19,7 +21,7 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _nomeController = TextEditingController();
   final AuthController _authController = AuthController();
-  final UserService _userService = UserService(); // Use o UserService agora
+  final firestore.UserService _userService = firestore.UserService();
 
   bool _isLoading = false;
 
@@ -87,14 +89,17 @@ class _CadastroPageState extends State<CadastroPage> {
                   return null;
                 }),
                 const SizedBox(height: 30),
-                _buildTextFormField(_cpfController, 'CPF', true, (value) {
+                _buildTextFormField(_cpfController, 'CPF', false, (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu CPF';
                   } else if (!CPFValidator.isValid(value)) {
                     return 'Por favor, insira um CPF válido';
                   }
                   return null;
-                }),
+                }, inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  CpfInputFormatter(),
+                ]),
                 const SizedBox(height: 30),
                 _buildTextFormField(_passwordController, 'Senha', true, (value) {
                   if (value == null || value.isEmpty) {
@@ -143,8 +148,7 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função que cria os campos de formulário
-  Widget _buildTextFormField(TextEditingController controller, String label, bool isPassword, String? Function(String?) validator) {
+  Widget _buildTextFormField(TextEditingController controller, String label, bool isPassword, String? Function(String?) validator, {List<TextInputFormatter>? inputFormatters}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -159,17 +163,17 @@ class _CadastroPageState extends State<CadastroPage> {
       ),
       obscureText: isPassword,
       validator: validator,
+      inputFormatters: inputFormatters,
     );
   }
 
-  // Função para o processo de cadastro
   Future<void> _handleCadastro() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      bool isCpfRegistered = await _userService.isCpfRegistered(_cpfController.text); // Verifique o CPF com o UserService
+      bool isCpfRegistered = await _userService.isCpfRegistered(_cpfController.text);
       if (isCpfRegistered) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('CPF já cadastrado.')),
@@ -183,9 +187,8 @@ class _CadastroPageState extends State<CadastroPage> {
             _nomeController.text,
           );
           if (user != null) {
-            // Salvando os dados do usuário no Firestore
             await _userService.createUserDocument(
-              user, // Passa o objeto 'user' completo
+              user,
               _nomeController.text,
               _cpfController.text,
             );

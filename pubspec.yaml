@@ -69,7 +69,7 @@ flutter:
   assets:
     - assets/images/fundo.jpg
     - assets/images/mock_image.jpg
-    - assets/.env
+  
 
   fonts:
     - family: Poppins

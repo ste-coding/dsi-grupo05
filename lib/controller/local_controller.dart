@@ -14,7 +14,7 @@ class LocalController with ChangeNotifier {
   bool _isLoading = false;
   bool _finishLoading = false;
   String? _errorMessage;
-  List<LocalModel> _locais = [];
+  final List<LocalModel> _locais = [];
   int _page = 0;
 
   bool get isLoading => _isLoading;

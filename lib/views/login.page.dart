@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
-import 'package:flutter_application_1/services/firestore/user.service.dart'; // Alteração aqui
+import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore; // Alteração aqui
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthController _authController = AuthController();
-  final UserService _userService = UserService(); // Alteração aqui
+  final firestore.UserService _userService = firestore.UserService(); // Alteração aqui
   bool _isLoading = false;
 
   @override

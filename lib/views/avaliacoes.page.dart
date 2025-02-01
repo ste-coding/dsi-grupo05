@@ -98,8 +98,8 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                     ),
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: localSelecionado,
-                      items: locaisVisitados.map((local) {
+                      value: locaisVisitados.contains(localSelecionado) ? localSelecionado : null,
+                      items: locaisVisitados.toSet().map((local) {
                         return DropdownMenuItem(
                           value: local,
                           child: Text(local),

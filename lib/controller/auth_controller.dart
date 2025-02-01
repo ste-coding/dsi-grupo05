@@ -88,3 +88,15 @@ class AuthController {
     }
   }
 }
+  
+  class UserService {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+    DocumentReference get userRef => _firestore.collection('users').doc(_auth.currentUser!.uid);
+  
+    Future<Map<String, dynamic>?> getUserData() async {
+      DocumentSnapshot doc = await userRef.get();
+      return doc.data() as Map<String, dynamic>?;
+    }
+  }

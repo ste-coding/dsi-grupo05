@@ -31,16 +31,22 @@ class _FavoritosPageState extends State<FavoritosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
+        backgroundColor: const Color(0xFFDFEAF1),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
           'Meus lugares favoritos',
           style: TextStyle(
             color: Colors.black,
             fontFamily: 'Poppins',
-            fontSize: 20,
+            fontSize: 35,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -79,12 +85,10 @@ class _FavoritosPageState extends State<FavoritosPage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.85,
                 ),
                 itemCount: favoritos.length,
                 itemBuilder: (context, index) {
                   final favorito = favoritos[index];
-
                   return FutureBuilder<LocalModel>(
                     future: _getLocalDetails(favorito.localId),
                     builder: (context, snapshot) {
@@ -229,7 +233,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFFFF5C00),
+        selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
@@ -267,13 +271,13 @@ class _FavoritosPageState extends State<FavoritosPage> {
         children: [
           Icon(
             icon,
-            color: isSelected ? Colors.orange : Colors.grey,
+            color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
           ),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isSelected ? Colors.orange : Colors.grey,
+              color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
             ),
           ),
         ],

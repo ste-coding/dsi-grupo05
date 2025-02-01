@@ -6,13 +6,14 @@ import '../models/local_model.dart';
 class LocalDetailsPage extends StatelessWidget {
   final LocalModel local;
 
-  const LocalDetailsPage({Key? key, required this.local}) : super(key: key);
+  const LocalDetailsPage({super.key, required this.local});
 
   @override
   Widget build(BuildContext context) {
     final localController = Provider.of<LocalController>(context, listen: false);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFDFEAF1),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -25,12 +26,12 @@ class LocalDetailsPage extends StatelessWidget {
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.favorite_border),
+                icon: const Icon(Icons.favorite_border),
                 onPressed: () async {
                   bool isFavorito = await localController.favoritosService.checkIfFavoritoExists(local.id);
                   if (isFavorito) {
@@ -54,68 +55,81 @@ class LocalDetailsPage extends StatelessWidget {
                         radius: 20,
                         backgroundImage: NetworkImage(local.imagem),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               local.nome,
-                              style: TextStyle(
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               '${local.cidade}, ${local.estado}',
-                              style: TextStyle(color: Colors.grey),
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      Icon(Icons.star, color: Colors.amber, size: 20),
-                      SizedBox(width: 4),
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 4),
                       Text(
                         '${local.mediaEstrelas} (${local.totalAvaliacoes})',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                     ],
                   ),
-                  SizedBox(height: 24),
-                  Text(
+                  const SizedBox(height: 24),
+                  const Text(
                     'Descrição',
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     local.descricao,
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       color: Colors.grey[600],
                       height: 1.5,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {},
-                    child: Text('Adicionar a Itinerário'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      textStyle: TextStyle(
+                      backgroundColor: const Color(0xFF01A897), // Verde água
+                      textStyle: const TextStyle(
+                        fontFamily: 'Poppins',
                         color: Colors.white,
                       ),
-                      minimumSize: Size(double.infinity, 50),
+                      minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                    ),
+                    child: const Text(
+                      'Adicionar a Itinerário',
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
@@ -126,10 +140,10 @@ class LocalDetailsPage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 2,
-        selectedItemColor: Colors.orange,
+        selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Itinerários'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),

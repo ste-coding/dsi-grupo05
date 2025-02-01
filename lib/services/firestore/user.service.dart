@@ -52,3 +52,6 @@ class UserService {
     }
   }
 }
+
+mixin UserController {
+}

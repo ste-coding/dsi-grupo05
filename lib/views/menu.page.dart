@@ -6,6 +6,8 @@ import '../widgets/local_card.dart';
 import 'explore.page.dart';
 
 class MenuPage extends StatefulWidget {
+  const MenuPage({super.key});
+
   @override
   _MenuPageState createState() => _MenuPageState();
 }
@@ -28,6 +30,7 @@ class _MenuPageState extends State<MenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFDFEAF1),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,10 +47,11 @@ class _MenuPageState extends State<MenuPage> {
                         backgroundImage:
                             NetworkImage('https://via.placeholder.com/40'),
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        'John D.',
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Olá, username',
                         style: TextStyle(
+                          fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -55,33 +59,33 @@ class _MenuPageState extends State<MenuPage> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(Icons.favorite_border),
+                    icon: const Icon(Icons.favorite_border),
                     onPressed: () {
                       Navigator.pushNamed(context, '/favoritos');
                     },
                   ),
-
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Explore novos\nlugares.',
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'Bora lá?',
                         style: TextStyle(
+                          fontFamily: 'Poppins',
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -89,9 +93,9 @@ class _MenuPageState extends State<MenuPage> {
                       Container(
                         height: 2,
                         width: 40,
-                        margin: EdgeInsets.only(left: 8),
+                        margin: const EdgeInsets.only(left: 8),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
+                          color: const Color.fromARGB(255, 1, 168, 151),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -100,17 +104,16 @@ class _MenuPageState extends State<MenuPage> {
                 ],
               ),
             ),
-
-            SizedBox(height: 24),
-
+            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Recomendado para você',
                     style: TextStyle(
+                      fontFamily: 'Poppins',
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -122,9 +125,11 @@ class _MenuPageState extends State<MenuPage> {
                         MaterialPageRoute(builder: (context) => ExplorePage()),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       'Ver mais',
                       style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
                         color: Colors.blue,
                       ),
                     ),
@@ -132,26 +137,25 @@ class _MenuPageState extends State<MenuPage> {
                 ],
               ),
             ),
-
             Expanded(
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
                   if (controller.isLoading) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (controller.locais.isEmpty) {
-                    return Center(child: Text('Nenhum local encontrado.'));
+                    return const Center(child: Text('Nenhum local encontrado.'));
                   }
 
                   return ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     itemCount: controller.locais.length,
                     itemBuilder: (context, index) {
                       final local = controller.locais[index];
                       return Padding(
-                        padding: EdgeInsets.only(right: 16),
+                        padding: const EdgeInsets.only(right: 16),
                         child: SizedBox(
                           width: 280,
                           child: LocalCard(local: local),
@@ -162,7 +166,6 @@ class _MenuPageState extends State<MenuPage> {
                 },
               ),
             ),
-
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -170,7 +173,7 @@ class _MenuPageState extends State<MenuPage> {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
-                    offset: Offset(0, -5),
+                    offset: const Offset(0, -5),
                   ),
                 ],
               ),
@@ -223,13 +226,14 @@ class _MenuPageState extends State<MenuPage> {
         children: [
           Icon(
             icon,
-            color: isSelected ? Colors.orange : Colors.grey,
+            color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
           ),
           Text(
             label,
             style: TextStyle(
+              fontFamily: 'Poppins',
               fontSize: 12,
-              color: isSelected ? Colors.orange : Colors.grey,
+              color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
             ),
           ),
         ],
