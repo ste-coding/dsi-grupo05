@@ -20,7 +20,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_application_1/services/firestore/user.service.dart'; // Import UserService
+import 'package:flutter_application_1/services/firestore/user.service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
           '/cadastro': (context) => const CadastroPage(),
           '/redefinir': (context) => const RedefinirPage(),
           '/senha': (context) => const SenhaPage(),
-          '/itinerario': (context) => const ItinerarioPage(),
+          '/itinerario': (context) => ItinerariosPage(userId: userId),
           '/favoritos': (context) => const FavoritosPage(),
           '/checklist': (context) => const ChecklistPage(docID: ''),
           '/avaliacoes': (context) => const AvaliacoesPage(),
