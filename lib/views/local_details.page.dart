@@ -3,10 +3,47 @@ import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 
-class LocalDetailsPage extends StatelessWidget {
+class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
 
   const LocalDetailsPage({super.key, required this.local});
+
+  @override
+  _LocalDetailsPageState createState() => _LocalDetailsPageState();
+}
+
+class _LocalDetailsPageState extends State<LocalDetailsPage> {
+  bool isFavorited = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorited();
+  }
+
+  // Verifica se o local já está favoritado
+  Future<void> _checkIfFavorited() async {
+    final localController = Provider.of<LocalController>(context, listen: false);
+    bool favoritado = await localController.favoritosService.checkIfFavoritoExists(widget.local.id);
+    setState(() {
+      isFavorited = favoritado;
+    });
+  }
+
+  // Toca no botão de favoritar
+  void _toggleFavorite() async {
+    final localController = Provider.of<LocalController>(context, listen: false);
+
+    if (isFavorited) {
+      await localController.removeFromFavoritos(widget.local.id);
+    } else {
+      await localController.addToFavoritos(widget.local.id);
+    }
+
+    setState(() {
+      isFavorited = !isFavorited;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +58,7 @@ class LocalDetailsPage extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Image.network(
-                local.imagem,
+                widget.local.imagem,
                 fit: BoxFit.cover,
               ),
             ),
@@ -31,15 +68,11 @@ class LocalDetailsPage extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () async {
-                  bool isFavorito = await localController.favoritosService.checkIfFavoritoExists(local.id);
-                  if (isFavorito) {
-                    await localController.removeFromFavoritos(local.id);
-                  } else {
-                    await localController.addToFavoritos(local.id);
-                  }
-                },
+                icon: Icon(
+                  isFavorited ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorited ? Colors.red : Colors.white,
+                ),
+                onPressed: _toggleFavorite,
               ),
             ],
           ),
@@ -53,7 +86,7 @@ class LocalDetailsPage extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundImage: NetworkImage(local.imagem),
+                        backgroundImage: NetworkImage(widget.local.imagem),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -61,7 +94,7 @@ class LocalDetailsPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              local.nome,
+                              widget.local.nome,
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 24,
@@ -69,7 +102,7 @@ class LocalDetailsPage extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${local.cidade}, ${local.estado}',
+                              '${widget.local.cidade}, ${widget.local.estado}',
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 color: Colors.grey,
@@ -86,7 +119,7 @@ class LocalDetailsPage extends StatelessWidget {
                       const Icon(Icons.star, color: Colors.amber, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        '${local.mediaEstrelas} (${local.totalAvaliacoes})',
+                        '${widget.local.mediaEstrelas} (${widget.local.totalAvaliacoes})',
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
@@ -106,7 +139,7 @@ class LocalDetailsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    local.descricao,
+                    widget.local.descricao,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       color: Colors.grey[600],

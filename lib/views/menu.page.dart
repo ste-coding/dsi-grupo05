@@ -4,6 +4,8 @@ import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 import '../widgets/local_card.dart';
 import 'explore.page.dart';
+import '../services/firestore/favoritos.service.dart'; // Importe o FavoritosService
+import '../services/firestore/user.service.dart'; // Importe o UserService
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -29,6 +31,16 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtendo o userId através do UserService
+    final userService = Provider.of<UserService>(context);
+    
+    // Garantir que o usuário esteja autenticado
+    final userId = userService.auth.currentUser?.uid;
+
+    if (userId == null) {
+      return const Center(child: Text("Usuário não autenticado."));
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFDFEAF1),
       body: SafeArea(
@@ -158,7 +170,7 @@ class _MenuPageState extends State<MenuPage> {
                         padding: const EdgeInsets.only(right: 16),
                         child: SizedBox(
                           width: 280,
-                          child: LocalCard(local: local),
+                          child: LocalCard(local: local, favoritosService: FavoritosService(userId),),
                         ),
                       );
                     },

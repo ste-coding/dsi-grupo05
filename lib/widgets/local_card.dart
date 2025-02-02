@@ -1,11 +1,55 @@
 import 'package:flutter/material.dart';
-import '../models/local_model.dart';
-import '../views/local_details.page.dart';
+import 'package:flutter_application_1/models/local_model.dart';
+import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
+import 'package:flutter_application_1/views/local_details.page.dart';
 
-class LocalCard extends StatelessWidget {
+class LocalCard extends StatefulWidget {
   final LocalModel local;
+  final FavoritosService favoritosService;
 
-  const LocalCard({super.key, required this.local});
+  const LocalCard({
+    Key? key,
+    required this.local,
+    required this.favoritosService,
+  }) : super(key: key);
+
+  @override
+  State<LocalCard> createState() => _LocalCardState();
+}
+
+class _LocalCardState extends State<LocalCard> {
+  bool isFavorito = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorito();
+  }
+
+  Future<void> _checkIfFavorito() async {
+    final favorito = await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
+    setState(() {
+      isFavorito = favorito;
+    });
+  }
+
+  Future<void> _toggleFavorito() async {
+    try {
+      if (isFavorito) {
+        await widget.favoritosService.removeFavorito(widget.local.id);
+      } else {
+        await widget.favoritosService.addFavorito(widget.local.id);
+      }
+
+      setState(() {
+        isFavorito = !isFavorito;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar favorito: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +58,7 @@ class LocalCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LocalDetailsPage(local: local),
+            builder: (context) => LocalDetailsPage(local: widget.local),
           ),
         );
       },
@@ -29,10 +73,10 @@ class LocalCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  child: local.imagem.isNotEmpty
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: widget.local.imagem.isNotEmpty
                       ? Image.network(
-                          local.imagem,
+                          widget.local.imagem,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -47,13 +91,20 @@ class LocalCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: Container(
-                    padding: EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                  child: GestureDetector(
+                    onTap: _toggleFavorito,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(
+                        Icons.favorite,
+                        color: isFavorito ? Colors.red : Colors.grey,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(Icons.favorite_border, size: 20),
                   ),
                 ),
               ],
@@ -67,31 +118,31 @@ class LocalCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        local.nome,
-                        style: TextStyle(
+                        widget.local.nome,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Row(
                         children: [
-                          Icon(Icons.star, color: Colors.amber, size: 16),
-                          SizedBox(width: 4),
+                          const Icon(Icons.star, color: Colors.amber, size: 16),
+                          const SizedBox(width: 4),
                           Text(
-                            local.mediaEstrelas.toStringAsFixed(1),
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            widget.local.mediaEstrelas.toStringAsFixed(1),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 14, color: Colors.grey),
-                      SizedBox(width: 4),
+                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                      const SizedBox(width: 4),
                       Text(
-                        '${local.cidade}, ${local.estado}',
+                        '${widget.local.cidade}, ${widget.local.estado}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 12,
@@ -99,23 +150,12 @@ class LocalCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (local.totalAvaliacoes > 0) ...[
-                    SizedBox(height: 8),
+                  if (widget.local.totalAvaliacoes > 0) ...[
+                    const SizedBox(height: 8),
                     Row(
                       children: [
-                        ...List.generate(
-                          5,
-                          (index) => Padding(
-                            padding: EdgeInsets.only(right: 2),
-                            child: CircleAvatar(
-                              radius: 8,
-                              backgroundImage: NetworkImage('https://via.placeholder.com/16'),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 4),
                         Text(
-                          '+${local.totalAvaliacoes}',
+                          '+${widget.local.totalAvaliacoes}',
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 12,
@@ -133,4 +173,3 @@ class LocalCard extends StatelessWidget {
     );
   }
 }
-

@@ -9,7 +9,7 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/avaliacoes.page.dart';
-import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu; 
+import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu;
 import 'package:flutter_application_1/controller/local_controller.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
@@ -20,6 +20,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application_1/services/firestore/user.service.dart'; // Import UserService
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,9 +40,7 @@ class MyApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => custom_menu.MenuController(), 
-        ),
+        ChangeNotifierProvider(create: (_) => custom_menu.MenuController()),
         ChangeNotifierProvider(
           create: (_) => LocalController(
             LocalRepository(FoursquareService()),
@@ -49,6 +48,8 @@ class MyApp extends StatelessWidget {
             ItinerariosService(userId),
           ),
         ),
+        Provider(create: (_) => FavoritosService(userId)),
+        Provider(create: (_) => UserService()),
       ],
       child: MaterialApp(
         title: 'boraLa',

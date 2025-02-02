@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../widgets/local_card.dart';
+import '../services/firestore/favoritos.service.dart';
+import '../services/firestore/user.service.dart';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -26,6 +28,14 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userService = Provider.of<UserService>(context);
+    
+    final userId = userService.auth.currentUser?.uid;
+
+    if (userId == null) {
+      return const Center(child: Text("Usuário não autenticado."));
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
@@ -86,7 +96,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       final local = controller.locais[index];
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: LocalCard(local: local),
+                        child: LocalCard(local: local, favoritosService: FavoritosService(userId)),
                       );
                     },
                   );

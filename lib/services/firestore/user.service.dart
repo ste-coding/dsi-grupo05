@@ -5,6 +5,9 @@ class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Getter para acessar o _auth
+  FirebaseAuth get auth => _auth;
+
   DocumentReference get userRef {
     return _firestore.collection('users').doc(_auth.currentUser!.uid);
   }
@@ -51,7 +54,4 @@ class UserService {
       throw 'Erro ao criar o documento do usuário: $e';
     }
   }
-}
-
-mixin UserController {
 }
