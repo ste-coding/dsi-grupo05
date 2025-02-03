@@ -4,8 +4,8 @@ import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 import '../widgets/local_card.dart';
 import 'explore.page.dart';
-import '../services/firestore/favoritos.service.dart'; // Importe o FavoritosService
-import '../services/firestore/user.service.dart'; // Importe o UserService
+import '../services/firestore/favoritos.service.dart';
+import '../services/firestore/user.service.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -31,10 +31,8 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Obtendo o userId através do UserService
     final userService = Provider.of<UserService>(context);
-    
-    // Garantir que o usuário esteja autenticado
+
     final userId = userService.auth.currentUser?.uid;
 
     if (userId == null) {
@@ -134,7 +132,13 @@ class _MenuPageState extends State<MenuPage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ExplorePage()),
+                        MaterialPageRoute(
+                          builder: (context) => ExplorePage(
+                            onSelectedLocal: (local) {
+                              print("Local selecionado: ${local.nome}");
+                            },
+                          ),
+                        ),
                       );
                     },
                     child: const Text(
@@ -222,7 +226,10 @@ class _MenuPageState extends State<MenuPage> {
           case 'Buscar':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ExplorePage()),
+              MaterialPageRoute(builder: (context) => ExplorePage(onSelectedLocal:(local) {
+                              print("Local selecionado: ${local.nome}");
+                            },
+                            )),
             );
             break;
           case 'Avaliações':

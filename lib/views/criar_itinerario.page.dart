@@ -1,3 +1,4 @@
+// lib/views/criar_itinerario.page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:flutter_application_1/models/itinerario_model.dart';
@@ -68,7 +69,9 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                         });
                       }
                     },
-                    child: Text(_startDate == null ? 'Início' : _startDate!.toIso8601String()),
+                    child: Text(_startDate == null
+                        ? 'Início'
+                        : _startDate!.toIso8601String()),
                   ),
                   SizedBox(width: 16),
                   TextButton(
@@ -85,23 +88,29 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                         });
                       }
                     },
-                    child: Text(_endDate == null ? 'Fim' : _endDate!.toIso8601String()),
+                    child: Text(
+                        _endDate == null ? 'Fim' : _endDate!.toIso8601String()),
                   ),
                 ],
               ),
               Spacer(),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate() && _startDate != null && _endDate != null) {
+                  if (_formKey.currentState!.validate() &&
+                      _startDate != null &&
+                      _endDate != null) {
                     if (_startDate!.isAfter(_endDate!)) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('A data de início deve ser antes da data de fim.')),
+                        const SnackBar(
+                            content: Text(
+                                'A data de início deve ser antes da data de fim.')),
                       );
                       return;
                     }
 
+                    // Criar o itinerário com o id vazio e userId correto
                     final itinerario = ItinerarioModel(
-                      id: '',
+                      id: '',  // O Firestore gerará o id automaticamente ao adicionar
                       userId: widget.userId,
                       titulo: _tituloController.text,
                       startDate: _startDate!,
@@ -117,7 +126,6 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                 },
                 child: const Text('Salvar'),
               ),
-
             ],
           ),
         ),

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importando FirebaseAuth
 import 'package:flutter/material.dart';
 import 'package:dartz/dartz.dart';
 import '../models/local_model.dart';
@@ -5,12 +7,14 @@ import '../models/local_response_model.dart';
 import '../repositories/local_repository.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/itinerarios.service.dart';
+import '../models/itinerario_model.dart';
 
 class LocalController with ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalRepository repository;
   final FavoritosService favoritosService;
   final ItinerariosService itinerariosService;
-  
+
   bool _isLoading = false;
   bool _finishLoading = false;
   String? _errorMessage;
@@ -22,7 +26,8 @@ class LocalController with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<LocalModel> get locais => _locais;
 
-  LocalController(this.repository, this.favoritosService, this.itinerariosService);
+  LocalController(
+      this.repository, this.favoritosService, this.itinerariosService);
 
   void resetLocais() {
     _locais.clear();
@@ -67,7 +72,8 @@ class LocalController with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final result = await repository.fetchLocais(query, location, offset: _page * 20);
+    final result =
+        await repository.fetchLocais(query, location, offset: _page * 20);
 
     result.fold(
       (error) {
@@ -86,5 +92,31 @@ class LocalController with ChangeNotifier {
         notifyListeners();
       },
     );
+  }
+
+  Future<List<ItinerarioModel>> getUserItinerarios() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      
+      if (userId == null) {
+        _errorMessage = "Usuário não autenticado";
+        notifyListeners();
+        return [];
+      }
+
+      final snapshot = await _firestore
+          .collection('itinerarios')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final itinerarios = snapshot.docs.map((doc) {
+        return ItinerarioModel.fromFirestore(doc.data());
+      }).toList();
+
+      return itinerarios;
+    } catch (e) {
+      print('Erro ao buscar itinerários: $e');
+      return [];
+    }
   }
 }
