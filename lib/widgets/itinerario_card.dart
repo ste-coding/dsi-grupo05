@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/itinerario_model.dart';
-import '../views/itinerario_detail.page.dart'; // Importando a nova página
+import '../views/itinerario_detalhes.page.dart';
 
 class ItineraryCard extends StatelessWidget {
   final ItinerarioModel itinerario;
@@ -18,14 +18,14 @@ class ItineraryCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ItinerarioDetailPage(itinerario: itinerario), // Passando o itinerário
+              builder: (context) => ItinerarioDetalhesPage(itinerario: itinerario),
             ),
           );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagem com fallback
+
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(

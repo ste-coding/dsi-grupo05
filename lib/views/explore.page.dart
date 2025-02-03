@@ -4,9 +4,12 @@ import '../controller/local_controller.dart';
 import '../widgets/local_card.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/user.service.dart';
+import '../models/local_model.dart';
 
 class ExplorePage extends StatefulWidget {
-  const ExplorePage({super.key});
+  final Function(LocalModel) onSelectedLocal;
+
+  const ExplorePage({super.key, required this.onSelectedLocal});
 
   @override
   State<ExplorePage> createState() => _ExplorePageState();
@@ -29,7 +32,6 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   Widget build(BuildContext context) {
     final userService = Provider.of<UserService>(context);
-    
     final userId = userService.auth.currentUser?.uid;
 
     if (userId == null) {
@@ -96,7 +98,13 @@ class _ExplorePageState extends State<ExplorePage> {
                       final local = controller.locais[index];
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: LocalCard(local: local, favoritosService: FavoritosService(userId)),
+                        child: GestureDetector(
+                          onTap: () {
+                            widget.onSelectedLocal(local);
+                            Navigator.pop(context);
+                          },
+                          child: LocalCard(local: local, favoritosService: FavoritosService(userId)),
+                        ),
                       );
                     },
                   );
