@@ -4,14 +4,14 @@ import '../controller/local_controller.dart';
 import '../models/local_model.dart';
 import '../widgets/local_card.dart';
 import 'explore.page.dart';
-
+import '../services/firestore/favoritos.service.dart';
+import '../services/firestore/user.service.dart';
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
 
   @override
   _MenuPageState createState() => _MenuPageState();
 }
-
 class _MenuPageState extends State<MenuPage> {
   final TextEditingController _searchController = TextEditingController();
 
@@ -29,6 +29,14 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userService = Provider.of<UserService>(context);
+
+    final userId = userService.auth.currentUser?.uid;
+
+    if (userId == null) {
+      return const Center(child: Text("Usuário não autenticado."));
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFDFEAF1),
       body: SafeArea(
@@ -122,7 +130,13 @@ class _MenuPageState extends State<MenuPage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ExplorePage()),
+                        MaterialPageRoute(
+                          builder: (context) => ExplorePage(
+                            onSelectedLocal: (local) {
+                              print("Local selecionado: ${local.nome}");
+                            },
+                          ),
+                        ),
                       );
                     },
                     child: const Text(
@@ -158,7 +172,7 @@ class _MenuPageState extends State<MenuPage> {
                         padding: const EdgeInsets.only(right: 16),
                         child: SizedBox(
                           width: 280,
-                          child: LocalCard(local: local),
+                          child: LocalCard(local: local, favoritosService: FavoritosService(userId),),
                         ),
                       );
                     },
@@ -210,7 +224,10 @@ class _MenuPageState extends State<MenuPage> {
           case 'Buscar':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ExplorePage()),
+              MaterialPageRoute(builder: (context) => ExplorePage(onSelectedLocal:(local) {
+                              print("Local selecionado: ${local.nome}");
+                            },
+                            )),
             );
             break;
           case 'Avaliações':

@@ -39,7 +39,7 @@ class ChecklistService {
     }
   }
 
-  Future<void> editTask(String docID, String updatedTask) async {
+  Future<void> updateTask(String docID, String updatedTask) async {
     try {
       await checklist.doc(docID).update({
         'task': updatedTask,

@@ -1,184 +1,130 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
+import 'package:flutter_application_1/models/itinerario_model.dart';
 
-class CriarItinerarioPage extends StatelessWidget {
+class CreateItinerarioPage extends StatefulWidget {
+  final String userId;
+
+  CreateItinerarioPage({required this.userId});
+
+  @override
+  _CreateItinerarioPageState createState() => _CreateItinerarioPageState();
+}
+
+class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _horarioController = TextEditingController();
-  final TextEditingController _localizacaoController = TextEditingController();
-  final TextEditingController _tituloController = TextEditingController();
-  final TextEditingController _observacoesController = TextEditingController(); // Controller para observações
-  final Function(Map<String, String>) onSalvarItinerario;
-  final Map<String, String>? itinerarioExistente; // Para editar
-
-  CriarItinerarioPage({
-    super.key,
-    required this.onSalvarItinerario,
-    this.itinerarioExistente,
-  });
+  final _tituloController = TextEditingController();
+  final _observationsController = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final _imageUrlController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    // Preencher os campos com o itinerário existente, caso esteja editando
-    if (itinerarioExistente != null) {
-      _tituloController.text = itinerarioExistente!['titulo'] ?? '';
-      _horarioController.text = itinerarioExistente!['horario'] ?? '';
-      _localizacaoController.text = itinerarioExistente!['localizacao'] ?? '';
-      _observacoesController.text = itinerarioExistente!['observacoes'] ?? ''; // Preenchendo o campo de observações
-    }
+    final itinerariosService = ItinerariosService(widget.userId);
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          itinerarioExistente != null
-              ? 'Editar Itinerário'
-              : 'Criar Itinerário',
-          style: const TextStyle(
-            color: Colors.black,
-            fontFamily: 'Poppins',
-            fontSize: 32,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
+        title: Text('Criar Itinerário'),
       ),
-      backgroundColor: const Color(0xFFDFEAF1),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  itinerarioExistente != null
-                      ? 'Editar Itinerário'
-                      : 'Novo Itinerário',
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _tituloController,
+                decoration: InputDecoration(labelText: 'Título'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira um título.';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _observationsController,
+                decoration: InputDecoration(labelText: 'Observações'),
+              ),
+              TextFormField(
+                controller: _imageUrlController,
+                decoration: InputDecoration(labelText: 'URL da Imagem'),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          _startDate = date;
+                        });
+                      }
+                    },
+                    child: Text(_startDate == null
+                        ? 'Início'
+                        : _startDate!.toIso8601String()),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _tituloController,
-                  decoration: InputDecoration(
-                    labelText: 'Título da Atividade',
-                    labelStyle: const TextStyle(color: Colors.black),
-                    filled: true,
-                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  SizedBox(width: 16),
+                  TextButton(
+                    onPressed: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          _endDate = date;
+                        });
+                      }
+                    },
+                    child: Text(
+                        _endDate == null ? 'Fim' : _endDate!.toIso8601String()),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira o nome da atividade';
+                ],
+              ),
+              Spacer(),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate() &&
+                      _startDate != null &&
+                      _endDate != null) {
+                    if (_startDate!.isAfter(_endDate!)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'A data de início deve ser antes da data de fim.')),
+                      );
+                      return;
                     }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _horarioController,
-                  decoration: InputDecoration(
-                    labelText: 'Horário',
-                    labelStyle: const TextStyle(color: Colors.black),
-                    filled: true,
-                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira o horário';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _localizacaoController,
-                  decoration: InputDecoration(
-                    labelText: 'Localização',
-                    labelStyle: const TextStyle(color: Colors.black),
-                    filled: true,
-                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira a localização';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                // Novo campo de Observações
-                TextFormField(
-                  controller: _observacoesController,
-                  decoration: InputDecoration(
-                    labelText: 'Observações',
-                    labelStyle: const TextStyle(color: Colors.black),
-                    filled: true,
-                    fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null && value.length > 500) {
-                      return 'Observações devem ter no máximo 500 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Incluindo o campo de observações ao salvar ou editar
-                      final novoItinerario = {
-                        'titulo': _tituloController.text,
-                        'horario': _horarioController.text,
-                        'localizacao': _localizacaoController.text,
-                        'observacoes': _observacoesController.text, // Adicionando observações
-                      };
-                      onSalvarItinerario(
-                          novoItinerario); // Salva ou atualiza o itinerário
-                      Navigator.pop(
-                          context); // Volta para a página de itinerários
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF266B70),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    minimumSize: const Size(double.infinity, 40),
-                  ),
-                  child: const Text(
-                    'Salvar',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
+                    final itinerario = ItinerarioModel(
+                      id: '', //ver se está gerando o id automatico
+                      userId: widget.userId,
+                      titulo: _tituloController.text,
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                      observations: _observationsController.text,
+                      imageUrl: _imageUrlController.text,
+                      locais: [],
+                    );
+
+                    await itinerariosService.addItinerario(itinerario.toFirestore());
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Salvar'),
+              ),
+            ],
           ),
         ),
       ),

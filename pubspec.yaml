@@ -69,6 +69,7 @@ flutter:
   assets:
     - assets/images/fundo.jpg
     - assets/images/mock_image.jpg
+    - assets/images/placeholder_image.png
   
 
   fonts:

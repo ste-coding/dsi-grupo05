@@ -4,6 +4,7 @@ import 'package:flutter_application_1/models/favorites_model.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
 import 'package:flutter_application_1/models/local_model.dart';
 import 'explore.page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FavoritosPage extends StatefulWidget {
   const FavoritosPage({super.key});
@@ -13,9 +14,16 @@ class FavoritosPage extends StatefulWidget {
 }
 
 class _FavoritosPageState extends State<FavoritosPage> {
-  final FavoritosService favoritosService = FavoritosService("user_id_placeholder");
+  late FavoritosService favoritosService;
   final FoursquareService foursquareService = FoursquareService();
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? "guest_user";
+    favoritosService = FavoritosService(userId);
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -24,8 +32,14 @@ class _FavoritosPageState extends State<FavoritosPage> {
   }
 
   Future<LocalModel> _getLocalDetails(String fsqId) async {
-    final result = await foursquareService.fetchLocalDetails(fsqId);
-    return LocalModel.fromJson(result);
+    try {
+      final result = await foursquareService.fetchLocalDetails(fsqId);
+      print("Dados retornados: $result");
+      return LocalModel.fromJson(result);
+    } catch (error) {
+      print("Erro ao carregar detalhes do local: $error");
+      throw Exception("Erro ao carregar detalhes do local: $error");
+    }
   }
 
   @override
@@ -107,6 +121,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
                       }
 
                       final local = snapshot.data!;
+                      final imageUrl = local.imagem ?? 'https://via.placeholder.com/150';
 
                       return Card(
                         elevation: 2,
@@ -124,16 +139,18 @@ class _FavoritosPageState extends State<FavoritosPage> {
                                     topRight: Radius.circular(16),
                                   ),
                                   child: Image.network(
-                                    local.imagem,
+                                    imageUrl,
                                     fit: BoxFit.cover,
                                     height: 120,
                                     width: double.infinity,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        Container(
-                                          height: 120,
-                                          color: Colors.grey[200],
-                                          child: const Icon(Icons.image_not_supported),
-                                        ),
+                                    errorBuilder: (context, error, stackTrace) {
+                                      print("Erro ao carregar imagem: $error");
+                                      return Container(
+                                        height: 120,
+                                        color: Colors.grey[200],
+                                        child: const Icon(Icons.image_not_supported),
+                                      );
+                                    },
                                   ),
                                 ),
                                 Padding(
@@ -238,49 +255,6 @@ class _FavoritosPageState extends State<FavoritosPage> {
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-    return InkWell(
-      onTap: () {
-        switch (label) {
-          case 'Home':
-            Navigator.pushNamed(context, '/menu');
-            break;
-          case 'Itinerários':
-            Navigator.pushNamed(context, '/itinerario');
-            break;
-          case 'Buscar':
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ExplorePage()),
-            );
-            break;
-          case 'Avaliações':
-            Navigator.pushNamed(context, '/avaliacoes');
-            break;
-          case 'Perfil':
-            Navigator.pushNamed(context, '/perfil');
-            break;
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
-            ),
-          ),
-        ],
       ),
     );
   }

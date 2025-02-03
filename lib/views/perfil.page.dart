@@ -9,7 +9,7 @@ import 'package:flutter_application_1/services/firestore/user.service.dart' as f
 import 'package:brasil_fields/brasil_fields.dart';
 
 class PerfilPage extends StatefulWidget {
-  const PerfilPage({Key? key}) : super(key: key);
+  const PerfilPage({super.key});
 
   @override
   State<PerfilPage> createState() => _PerfilPageState();

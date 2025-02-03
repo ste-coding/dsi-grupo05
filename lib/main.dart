@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/views/checklist.page.dart';
 import 'package:flutter_application_1/views/favoritos.page.dart';
 import 'package:flutter_application_1/views/itinerario.page.dart';
 import 'package:flutter_application_1/views/login.page.dart';
@@ -9,7 +8,7 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/avaliacoes.page.dart';
-import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu; 
+import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu;
 import 'package:flutter_application_1/controller/local_controller.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
@@ -20,6 +19,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application_1/services/firestore/user.service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,36 +35,57 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Identificador de usuário fictício para testes
-    const String userId = "user123";
-
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => custom_menu.MenuController()),
         ChangeNotifierProvider(
-          create: (_) => custom_menu.MenuController(), 
+          create: (_) {
+            final userId = FirebaseAuth.instance.currentUser?.uid;
+            if (userId == null) {
+              print("Erro: Usuário não autenticado.");
+            }
+            return LocalController(
+              LocalRepository(FoursquareService()),
+              FavoritosService(userId ?? ""),
+              ItinerariosService(userId ?? ""),
+            );
+          },
         ),
-        ChangeNotifierProvider(
-          create: (_) => LocalController(
-            LocalRepository(FoursquareService()),
-            FavoritosService(userId),
-            ItinerariosService(userId),
-          ),
-        ),
+        Provider(create: (_) {
+          final userId = FirebaseAuth.instance.currentUser?.uid;
+          if (userId == null) {
+            print("Erro: Usuário não autenticado.");
+          }
+          return FavoritosService(userId ?? "");
+        }),
+        Provider(create: (_) {
+          final userId = FirebaseAuth.instance.currentUser?.uid;
+          if (userId == null) {
+            print("Erro: Usuário não autenticado.");
+          }
+          return ItinerariosService(userId ?? "");
+        }),
+        Provider(create: (_) => UserService()),
       ],
       child: MaterialApp(
         title: 'boraLa',
         debugShowCheckedModeBanner: false,
         initialRoute: '/inicial',
         routes: {
-          '/menu': (context) => MenuPage(),
+          '/menu': (context) => const MenuPage(),
           '/inicial': (context) => const InicialPage(),
           '/login': (context) => const LoginPage(),
           '/cadastro': (context) => const CadastroPage(),
           '/redefinir': (context) => const RedefinirPage(),
           '/senha': (context) => const SenhaPage(),
-          '/itinerario': (context) => const ItinerarioPage(),
+          '/itinerario': (context) {
+            final userId = FirebaseAuth.instance.currentUser?.uid;
+            if (userId == null) {
+              return const LoginPage();
+            }
+            return ItinerariosPage(userId: userId);
+          },
           '/favoritos': (context) => const FavoritosPage(),
-          '/checklist': (context) => const ChecklistPage(docID: ''),
           '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
         },
