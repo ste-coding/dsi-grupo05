@@ -34,7 +34,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
   Future<LocalModel> _getLocalDetails(String fsqId) async {
     try {
       final result = await foursquareService.fetchLocalDetails(fsqId);
-      print("Dados retornados: $result"); // Debugging
+      print("Dados retornados: $result");
       return LocalModel.fromJson(result);
     } catch (error) {
       print("Erro ao carregar detalhes do local: $error");

@@ -6,14 +6,12 @@ import '../widgets/local_card.dart';
 import 'explore.page.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/user.service.dart';
-
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
 
   @override
   _MenuPageState createState() => _MenuPageState();
 }
-
 class _MenuPageState extends State<MenuPage> {
   final TextEditingController _searchController = TextEditingController();
 

@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/itinerario_model.dart';
-import '../models/local_model.dart';
-import '../controller/local_controller.dart';
 import 'package:intl/intl.dart';
-import '../models/local_detail_model.dart';
-import '../views/local_details.page.dart';
 
 class RoteiroTab extends StatefulWidget {
   final ItinerarioModel itinerario;
-  final LocalController localController;
 
   const RoteiroTab({
     Key? key,
     required this.itinerario,
-    required this.localController,
   }) : super(key: key);
 
   @override
@@ -33,7 +27,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
   }
 
   void _updateWeekDays() {
-    // Encontra o domingo da semana
     DateTime startOfWeek = _selectedDate.subtract(
       Duration(days: _selectedDate.weekday % 7),
     );
@@ -60,69 +53,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
     return widget.itinerario.locais.where((local) {
       return DateUtils.isSameDay(local.visitDate, date);
     }).toList();
-  }
-
-  Future<void> _navigateToLocalDetails(String localId, String? localName) async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
-      final result = await widget.localController.repository.fetchLocalDetalhes(localId);
-
-      Navigator.pop(context);
-
-      result.fold(
-        (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao carregar detalhes do local: $error'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
-        (detalhes) {
-          final localModel = LocalModel(
-            id: localId,
-            nome: localName ?? 'Nome não disponível',
-            descricao: detalhes.localModel.descricao,
-            imagem: detalhes.fotos.isNotEmpty
-                ? detalhes.fotos[0]
-                : 'https://via.placeholder.com/150',
-            categoria: detalhes.localModel.categoria,
-            cidade: detalhes.localModel.cidade,
-            estado: detalhes.localModel.estado,
-            latitude: detalhes.localModel.latitude,
-            longitude: detalhes.localModel.longitude,
-            mediaEstrelas: detalhes.localModel.mediaEstrelas,
-            totalAvaliacoes: detalhes.localModel.totalAvaliacoes,
-          );
-
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LocalDetailsPage(local: localModel),
-              ),
-            );
-          }
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro inesperado: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   @override
@@ -178,7 +108,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Dias da semana
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -192,7 +121,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
                     .toList(),
               ),
               const SizedBox(height: 8),
-              // Calendário
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: _weekDays.map((date) {
@@ -272,7 +200,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
                       const Icon(Icons.chevron_right),
                     ],
                   ),
-                  onTap: () => _navigateToLocalDetails(local.localId, local.localName),
                 ),
               );
             },

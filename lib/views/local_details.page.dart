@@ -7,7 +7,6 @@ import '../services/firestore/itinerarios.service.dart';
 import 'package:intl/intl.dart';
 import '../widgets/itinerary_bottom_sheet.dart';
 
-
 class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
 
@@ -51,41 +50,41 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     });
   }
 
-  void _addToItinerary() async {
-    final itinerariosService = ItinerariosService('userId');
-    final localName = widget.local.nome;
-    final localId = widget.local.id;
-    final visitDate = DateTime.now();
-    final comment = 'Comentário opcional';
-    final itinerarioItem = ItinerarioItem(
-      localId: localId,
-      localName: localName,
-      visitDate: visitDate,
-      comment: comment,
-    );
+ void _addToItinerary() async {
+  final localController = Provider.of<LocalController>(context, listen: false);
+  final localName = widget.local.nome;
+  final localId = widget.local.id;
+  final visitDate = DateTime.now();
+  final comment = 'Comentário opcional';
+  final itinerarioItem = ItinerarioItem(
+    localId: localId,
+    localName: localName,
+    visitDate: visitDate,
+    comment: comment,
+  );
 
-    final itinerario = ItinerarioModel(
-      id: 'itinerarioId', 
-      userId: 'userId',
-      titulo: 'Título do Itinerário',
-      startDate: DateTime.now(),
-      endDate: DateTime.now().add(Duration(days: 2)),
-      observations: 'Observações sobre o itinerário',
-      imageUrl: '',
-      locais: [itinerarioItem],
-    );
+  final itinerario = ItinerarioModel(
+    id: '',
+    userId: 'userId',
+    titulo: 'Título do Itinerário',
+    startDate: DateTime.now(),
+    endDate: DateTime.now().add(Duration(days: 2)),
+    observations: 'Observações sobre o itinerário',
+    imageUrl: '',
+    locais: [itinerarioItem],
+  );
 
-    try {
-      await itinerariosService.addItinerario(itinerario.toFirestore());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Local adicionado ao itinerário!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao adicionar local: $e')),
-      );
-    }
+  try {
+    await localController.itinerariosService.addItinerario(itinerario.toFirestore());
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Local adicionado ao itinerário!')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao adicionar local: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

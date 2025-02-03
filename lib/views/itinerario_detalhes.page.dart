@@ -1,24 +1,43 @@
 import 'package:flutter/material.dart';
 import '../models/itinerario_model.dart';
+import '../widgets/roteiro_tab.dart';
+import '../controller/local_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_application_1/services/foursquare_service.dart';
+import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
+import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
+import 'package:flutter_application_1/repositories/local_repository.dart';
+import 'package:flutter_application_1/widgets/checklist_tab.dart';
 
 class ItinerarioDetalhesPage extends StatefulWidget {
   final ItinerarioModel itinerario;
 
-  const ItinerarioDetalhesPage({Key? key, required this.itinerario}) : super(key: key);
+  const ItinerarioDetalhesPage({Key? key, required this.itinerario})
+      : super(key: key);
 
   @override
   _ItinerarioDetalhesPageState createState() => _ItinerarioDetalhesPageState();
 }
 
-class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage> with SingleTickerProviderStateMixin {
+class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _observacoesController = TextEditingController();
+  
+  late LocalController _localController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _observacoesController.text = widget.itinerario.observations;
+
+    _localController = LocalController(
+      LocalRepository(FoursquareService()),
+      FavoritosService(FirebaseAuth.instance.currentUser?.uid ?? ""),
+      ItinerariosService(FirebaseAuth.instance.currentUser?.uid ?? ""),
+    );
   }
 
   @override
@@ -46,7 +65,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage> with Si
               background: Image.network(
                 widget.itinerario.imageUrl.isNotEmpty
                     ? widget.itinerario.imageUrl
-                    : 'https://via.placeholder.com/400x200',
+                    : '../assets/images/placeholder_image.png',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[300],
@@ -144,15 +163,18 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage> with Si
                                       maxLines: 4,
                                       decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
-                                        hintText: 'Adicione suas observações aqui...',
+                                        hintText:
+                                            'Adicione suas observações aqui...',
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     ElevatedButton(
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           const SnackBar(
-                                            content: Text('Observações salvas com sucesso!'),
+                                            content: Text(
+                                                'Observações salvas com sucesso!'),
                                           ),
                                         );
                                       },
@@ -165,11 +187,11 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage> with Si
                           ],
                         ),
                       ),
-                      Center(
-                        child: Text('Conteúdo do Roteiro'),
+                      RoteiroTab(
+                        itinerario: widget.itinerario,
                       ),
-                      Center(
-                        child: Text('Conteúdo do Checklist'),
+                      ChecklistTab(
+                      itinerarioId: widget.itinerario.id,
                       ),
                     ],
                   ),

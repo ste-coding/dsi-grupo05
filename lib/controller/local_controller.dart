@@ -97,10 +97,8 @@ class LocalController with ChangeNotifier {
   Future<List<ItinerarioModel>> getUserItinerarios() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      
       if (userId == null) {
-        _errorMessage = "Usuário não autenticado";
-        notifyListeners();
+        print("Usuário não autenticado");
         return [];
       }
 
@@ -109,14 +107,45 @@ class LocalController with ChangeNotifier {
           .where('userId', isEqualTo: userId)
           .get();
 
-      final itinerarios = snapshot.docs.map((doc) {
-        return ItinerarioModel.fromFirestore(doc.data());
-      }).toList();
+      if (snapshot.docs.isEmpty) {
+        print("Nenhum itinerário encontrado.");
+        return [];
+      }
 
+      List<ItinerarioModel> itinerarios = snapshot.docs
+          .map((doc) => ItinerarioModel.fromFirestore(doc.data()))
+          .toList();
+
+      print("Itinerários carregados: ${itinerarios.length}");
       return itinerarios;
     } catch (e) {
       print('Erro ao buscar itinerários: $e');
       return [];
+    }
+  }
+
+  Future<void> addLocalToRoteiro(String itinerarioId, LocalModel local) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      print("Usuário não autenticado");
+      return;
+    }
+
+    final itinerarioItem = ItinerarioItem(
+      localId: local.id,
+      localName: local.nome,
+      visitDate: DateTime.now(),
+      comment: 'Comentário opcional',
+    );
+
+    final localData = itinerarioItem.toFirestore();
+
+    try {
+      await itinerariosService.addLocalToRoteiro(itinerarioId, localData);
+      print("Local adicionado ao roteiro com sucesso!");
+      notifyListeners();
+    } catch (e) {
+      print("Erro ao adicionar local ao roteiro: $e");
     }
   }
 }

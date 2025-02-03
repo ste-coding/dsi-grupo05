@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/views/checklist.page.dart';
 import 'package:flutter_application_1/views/favoritos.page.dart';
 import 'package:flutter_application_1/views/itinerario.page.dart';
 import 'package:flutter_application_1/views/login.page.dart';
@@ -87,7 +86,6 @@ class MyApp extends StatelessWidget {
             return ItinerariosPage(userId: userId);
           },
           '/favoritos': (context) => const FavoritosPage(),
-          '/checklist': (context) => const ChecklistPage(docID: ''),
           '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
         },
