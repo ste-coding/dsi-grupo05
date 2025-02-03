@@ -1,4 +1,3 @@
-// lib/views/criar_itinerario.page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:flutter_application_1/models/itinerario_model.dart';
@@ -108,9 +107,8 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                       return;
                     }
 
-                    // Criar o itinerário com o id vazio e userId correto
                     final itinerario = ItinerarioModel(
-                      id: '',  // O Firestore gerará o id automaticamente ao adicionar
+                      id: '', //ver se está gerando o id automatico
                       userId: widget.userId,
                       titulo: _tituloController.text,
                       startDate: _startDate!,

@@ -3,8 +3,8 @@ import '../models/itinerario_model.dart';
 import '../models/local_model.dart';
 import '../controller/local_controller.dart';
 import 'package:intl/intl.dart';
-import '../models/local_detail_model.dart'; // Importando o modelo de detalhes do local
-import '../views/local_details.page.dart'; // Importando a página de detalhes
+import '../models/local_detail_model.dart';
+import '../views/local_details.page.dart';
 
 class RoteiroTab extends StatefulWidget {
   final ItinerarioModel itinerario;
@@ -62,10 +62,8 @@ class _RoteiroTabState extends State<RoteiroTab> {
     }).toList();
   }
 
-  // Método para navegar para a página de detalhes do local
   Future<void> _navigateToLocalDetails(String localId, String? localName) async {
     try {
-      // Mostrar loading enquanto carrega os detalhes
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -74,16 +72,12 @@ class _RoteiroTabState extends State<RoteiroTab> {
         ),
       );
 
-      // Buscar os detalhes do local usando o FoursquareService
       final result = await widget.localController.repository.fetchLocalDetalhes(localId);
 
-      // Remover o loading
       Navigator.pop(context);
 
-      // Verificar se o resultado foi bem-sucedido ou se houve erro
       result.fold(
         (error) {
-          // Caso de erro (Left)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Erro ao carregar detalhes do local: $error'),
@@ -92,7 +86,6 @@ class _RoteiroTabState extends State<RoteiroTab> {
           );
         },
         (detalhes) {
-          // Caso de sucesso (Right)
           final localModel = LocalModel(
             id: localId,
             nome: localName ?? 'Nome não disponível',

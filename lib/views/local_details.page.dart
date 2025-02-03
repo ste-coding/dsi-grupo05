@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/local_model.dart';
-import '../models/itinerario_model.dart'; // Importando o modelo de itinerário
-import '../services/firestore/itinerarios.service.dart'; // Serviço de itinerários
-import 'package:intl/intl.dart'; // Para formatar as datas
-import '../widgets/itinerary_bottom_sheet.dart'; // Importando o widget
+import '../models/itinerario_model.dart';
+import '../services/firestore/itinerarios.service.dart';
+import 'package:intl/intl.dart';
+import '../widgets/itinerary_bottom_sheet.dart';
 
 
 class LocalDetailsPage extends StatefulWidget {
@@ -26,7 +26,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     _checkIfFavorited();
   }
 
-  // Verifica se o local já está favoritado
   Future<void> _checkIfFavorited() async {
     final localController =
         Provider.of<LocalController>(context, listen: false);
@@ -37,7 +36,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     });
   }
 
-  // Toca no botão de favoritar
   void _toggleFavorite() async {
     final localController =
         Provider.of<LocalController>(context, listen: false);
@@ -53,14 +51,12 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     });
   }
 
-  // Função para adicionar ao itinerário
   void _addToItinerary() async {
-    final itinerariosService = ItinerariosService('userId'); // Substitua pelo userId real
+    final itinerariosService = ItinerariosService('userId');
     final localName = widget.local.nome;
     final localId = widget.local.id;
-    final visitDate = DateTime.now(); // Usamos a data atual, mas pode ser personalizada
-    final comment = 'Comentário opcional'; // Pode ser deixado em branco ou personalizado pelo usuário
-
+    final visitDate = DateTime.now();
+    final comment = 'Comentário opcional';
     final itinerarioItem = ItinerarioItem(
       localId: localId,
       localName: localName,
@@ -68,19 +64,17 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
       comment: comment,
     );
 
-    // Agora você deve criar ou buscar um itinerário existente e adicionar o item ao itinerário
     final itinerario = ItinerarioModel(
-      id: 'itinerarioId', // Aqui você precisaria pegar o id do itinerário, caso já exista
-      userId: 'userId', // Adicione o id do usuário
-      titulo: 'Título do Itinerário', // Adicione o título do itinerário
-      startDate: DateTime.now(), // Adicione as datas de início e fim
-      endDate: DateTime.now().add(Duration(days: 2)), // Exemplo de fim do itinerário
+      id: 'itinerarioId', 
+      userId: 'userId',
+      titulo: 'Título do Itinerário',
+      startDate: DateTime.now(),
+      endDate: DateTime.now().add(Duration(days: 2)),
       observations: 'Observações sobre o itinerário',
-      imageUrl: '', // Adicione a imagem, se necessário
-      locais: [itinerarioItem], // Adiciona o item de local ao itinerário
+      imageUrl: '',
+      locais: [itinerarioItem],
     );
 
-    // Adiciona o itinerário
     try {
       await itinerariosService.addItinerario(itinerario.toFirestore());
       ScaffoldMessenger.of(context).showSnackBar(
@@ -201,7 +195,7 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                       _showItineraryBottomSheet(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF01A897), // Verde água
+                      backgroundColor: const Color(0xFF01A897),
                       textStyle: const TextStyle(
                         fontFamily: 'Poppins',
                         color: Colors.white,
@@ -238,12 +232,11 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     );
   }
 
-  // Função para abrir o bottom sheet com os itinerários
   void _showItineraryBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return ItineraryBottomSheet(); // Chamando o widget de itinerários
+        return ItineraryBottomSheet();
       },
     );
   }

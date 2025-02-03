@@ -15,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthController _authController = AuthController();
-  final firestore.UserService _userService = firestore.UserService(); // Alteração aqui
+  final firestore.UserService _userService = firestore.UserService();
   bool _isLoading = false;
 
   @override
@@ -179,11 +179,9 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         if (user != null) {
-          // Agora utilizamos o método getUserData
-          var userData = await _userService.getUserData(); // Alteração aqui
+          var userData = await _userService.getUserData();
 
           if (userData != null) {
-            // Você pode armazenar esses dados de alguma forma ou usá-los no app
             Navigator.pushReplacementNamed(context, '/menu');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(

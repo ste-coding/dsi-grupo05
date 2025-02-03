@@ -14,7 +14,7 @@ class LocalRepository {
       String query, String location,
       {int offset = 0}) async {
     try {
-      final locais = await _foursquareService.fetchPlaces(query, location, offset: offset); // Passando o offset aqui
+      final locais = await _foursquareService.fetchPlaces(query, location, offset: offset);
 
       return Right(LocalResponseModel(
         totalLocais: locais.length,

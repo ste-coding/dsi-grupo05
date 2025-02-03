@@ -11,18 +11,14 @@ void showItineraryBottomSheet(BuildContext context) {
     },
   );
 }
-
-// Widget que exibe a lista de itinerários com checkboxes
 class ItineraryBottomSheet extends StatefulWidget {
   @override
   _ItineraryBottomSheetState createState() => _ItineraryBottomSheetState();
 }
 
 class _ItineraryBottomSheetState extends State<ItineraryBottomSheet> {
-  // Lista de itinerários
   List<ItinerarioModel> itinerarios = [];
   
-  // Mapa para controlar o estado de seleção de cada itinerário (usando id como chave)
   Map<String, bool> selectedItinerarios = {};
 
   @override
@@ -62,10 +58,10 @@ class _ItineraryBottomSheetState extends State<ItineraryBottomSheet> {
             final itinerario = itinerarios[index];
             return CheckboxListTile(
               title: Text(itinerario.titulo),
-              value: selectedItinerarios[itinerario.id] ?? false, // Verifica a seleção do itinerário
+              value: selectedItinerarios[itinerario.id] ?? false,
               onChanged: (bool? selected) {
                 setState(() {
-                  selectedItinerarios[itinerario.id] = selected ?? false; // Atualiza o estado de seleção
+                  selectedItinerarios[itinerario.id] = selected ?? false;
                 });
               },
             );
