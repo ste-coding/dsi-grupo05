@@ -8,10 +8,10 @@ class LocalCard extends StatefulWidget {
   final FavoritosService favoritosService;
 
   const LocalCard({
-    Key? key,
+    super.key,
     required this.local,
     required this.favoritosService,
-  }) : super(key: key);
+  });
 
   @override
   State<LocalCard> createState() => _LocalCardState();

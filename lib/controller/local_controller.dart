@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:dartz/dartz.dart';
 import '../models/local_model.dart';
 import '../models/local_response_model.dart';
 import '../repositories/local_repository.dart';
@@ -94,6 +93,7 @@ class LocalController with ChangeNotifier {
     );
   }
 
+  // Função para buscar os itinerários do usuário
   Future<List<ItinerarioModel>> getUserItinerarios() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -102,10 +102,15 @@ class LocalController with ChangeNotifier {
         return [];
       }
 
+      // Buscar itinerários do Firestore
       final snapshot = await _firestore
+          .collection('viajantes')
+          .doc(userId)
           .collection('itinerarios')
-          .where('userId', isEqualTo: userId)
           .get();
+
+      print(
+          "Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
 
       if (snapshot.docs.isEmpty) {
         print("Nenhum itinerário encontrado.");
@@ -124,24 +129,45 @@ class LocalController with ChangeNotifier {
     }
   }
 
-  Future<void> addLocalToRoteiro(String itinerarioId, LocalModel local) async {
+  // Função para adicionar local ao itinerário
+  Future<void> addLocalToRoteiro(
+      String itinerarioId, LocalModel local, DateTime visitDate) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
       print("Usuário não autenticado");
       return;
     }
 
+    final itinerarioDoc = await _firestore
+        .collection('viajantes')
+        .doc(userId)
+        .collection('itinerarios')
+        .doc(itinerarioId)
+        .get();
+
+    if (!itinerarioDoc.exists) {
+      print("Erro: itinerário não encontrado para o ID: $itinerarioId");
+      return;
+    }
+
     final itinerarioItem = ItinerarioItem(
       localId: local.id,
       localName: local.nome,
-      visitDate: DateTime.now(),
+      visitDate: visitDate, // Usando a data selecionada
       comment: 'Comentário opcional',
     );
 
     final localData = itinerarioItem.toFirestore();
 
     try {
-      await itinerariosService.addLocalToRoteiro(itinerarioId, localData);
+      await _firestore
+          .collection('viajantes')
+          .doc(userId)
+          .collection('itinerarios')
+          .doc(itinerarioId)
+          .collection('roteiro')
+          .add(localData);
+
       print("Local adicionado ao roteiro com sucesso!");
       notifyListeners();
     } catch (e) {

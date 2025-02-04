@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore;
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -19,7 +18,7 @@ class _PerfilPageState extends State<PerfilPage> {
   String _firstName = '';
   String _email = '';
   String _cpf = '';
-  String? _profileImageUrl;
+  String? _profileImagePath;
   final UserService _userService = UserService();
   final AuthController _authController = AuthController();
 
@@ -42,7 +41,7 @@ class _PerfilPageState extends State<PerfilPage> {
         _firstName = userData['nome'];
         _email = userData['email'];
         _cpf = maskFormatter(userData['cpf']);
-        _profileImageUrl = userData['profileImageUrl'];
+        _profileImagePath = userData['profileImagePath'];
         _firstNameController.text = _firstName;
         _emailController.text = _email;
         _cpfController.text = _cpf;
@@ -52,11 +51,12 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> _saveProfileImage(File image) async {
     try {
-      final bytes = await image.readAsBytes();
-      final base64Image = base64Encode(bytes);
-      await _userService.userRef.update({'profileImageUrl': base64Image});
+      final directory = await getApplicationDocumentsDirectory();
+      final imagePath = '${directory.path}/profile_image.png';
+      await image.copy(imagePath);
+      await _userService.userRef.update({'profileImagePath': imagePath});
       setState(() {
-        _profileImageUrl = base64Image;
+        _profileImagePath = imagePath;
       });
     } catch (e) {
       print('Erro ao salvar imagem de perfil: $e');
@@ -139,10 +139,10 @@ class _PerfilPageState extends State<PerfilPage> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey[300],
-                    backgroundImage: _profileImageUrl != null
-                        ? MemoryImage(base64Decode(_profileImageUrl!))
+                    backgroundImage: _profileImagePath != null
+                        ? FileImage(File(_profileImagePath!))
                         : null,
-                    child: _profileImageUrl == null
+                    child: _profileImagePath == null
                         ? const Icon(Icons.camera_alt, color: Colors.white)
                         : null,
                   ),
@@ -164,35 +164,36 @@ class _PerfilPageState extends State<PerfilPage> {
                 decoration: const InputDecoration(labelText: 'CPF'),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateUserData,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancelar"),
                   ),
-                ),
-                child: const Text(
-                  'Salvar',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _updateUserData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF266B70),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text("Salvar"),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _deleteAccount,
+                onPressed: () async {
+                  await _authController.signOut();
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  backgroundColor: const Color(0xFF266B70),
+                  foregroundColor: Colors.white,
                 ),
                 child: const Text(
-                  'Excluir Conta',
+                  'Logout',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 18,

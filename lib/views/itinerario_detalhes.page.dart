@@ -13,8 +13,7 @@ import 'package:flutter_application_1/widgets/checklist_tab.dart';
 class ItinerarioDetalhesPage extends StatefulWidget {
   final ItinerarioModel itinerario;
 
-  const ItinerarioDetalhesPage({Key? key, required this.itinerario})
-      : super(key: key);
+  const ItinerarioDetalhesPage({super.key, required this.itinerario});
 
   @override
   _ItinerarioDetalhesPageState createState() => _ItinerarioDetalhesPageState();

@@ -5,7 +5,7 @@ import '../views/itinerario_detalhes.page.dart';
 class ItineraryCard extends StatelessWidget {
   final ItinerarioModel itinerario;
 
-  const ItineraryCard({Key? key, required this.itinerario}) : super(key: key);
+  const ItineraryCard({super.key, required this.itinerario});
 
   @override
   Widget build(BuildContext context) {

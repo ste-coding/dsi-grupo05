@@ -80,8 +80,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localController = Provider.of<LocalController>(context, listen: false);
-
     return Scaffold(
       backgroundColor: const Color(0xFFDFEAF1),
       body: CustomScrollView(
@@ -236,7 +234,7 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return ItineraryBottomSheet();
+        return ItineraryBottomSheet(local: widget.local);
       },
     );
   }

@@ -5,7 +5,7 @@ import 'package:flutter_application_1/models/itinerario_model.dart';
 class CreateItinerarioPage extends StatefulWidget {
   final String userId;
 
-  CreateItinerarioPage({required this.userId});
+  const CreateItinerarioPage({super.key, required this.userId});
 
   @override
   _CreateItinerarioPageState createState() => _CreateItinerarioPageState();

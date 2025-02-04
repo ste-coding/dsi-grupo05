@@ -8,7 +8,7 @@ import '../widgets/local_card.dart';
 import '../models/local_model.dart';
 
 class FavoritesPage extends StatelessWidget {
-  const FavoritesPage({Key? key}) : super(key: key);
+  const FavoritesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +52,6 @@ class FavoritesPage extends StatelessWidget {
                 (local) => local.id == favorito.localId, 
                 orElse: () => LocalModel(id: '', nome: '', descricao: '', imagem: '', categoria: '', cidade: '', estado: '', latitude: 0.0, longitude: 0.0, mediaEstrelas: 0.0, totalAvaliacoes: 0)
               );
-
-
-              if (local == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
 
               return LocalCard(
                 local: local,

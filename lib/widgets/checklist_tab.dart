@@ -6,7 +6,7 @@ import '../services/firestore/checklist.service.dart';
 class ChecklistTab extends StatefulWidget {
   final String itinerarioId;
 
-  const ChecklistTab({Key? key, required this.itinerarioId}) : super(key: key);
+  const ChecklistTab({super.key, required this.itinerarioId});
 
   @override
   _ChecklistTabState createState() => _ChecklistTabState();

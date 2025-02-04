@@ -9,7 +9,7 @@ import 'package:flutter_application_1/views/criar_itinerario.page.dart';
 class ItinerariosPage extends StatelessWidget {
   final String userId;
 
-  ItinerariosPage({required this.userId});
+  const ItinerariosPage({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
