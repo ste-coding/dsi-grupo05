@@ -28,7 +28,6 @@ class _CadastroPageState extends State<CadastroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

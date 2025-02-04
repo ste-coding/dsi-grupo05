@@ -17,7 +17,6 @@ class _SenhaPageState extends State<SenhaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFDFEAF1),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: Column(

@@ -106,26 +106,15 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
+        title: const Text('Meu perfil'),
         elevation: 0,
-        backgroundColor: const Color(0xFFDFEAF1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          'Meu Perfil',
-          style: TextStyle(
-            color: Colors.black,
-            fontFamily: 'Poppins',
-            fontSize: 35,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),

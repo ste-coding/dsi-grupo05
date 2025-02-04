@@ -134,7 +134,7 @@ class _ItineraryBottomSheetState extends State<ItineraryBottomSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Local adicionado ao itinerário!')),
       );
-      Navigator.pop(context); // Fechar o bottom sheet após adicionar
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao adicionar local ao itinerário: $e')),

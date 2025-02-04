@@ -175,8 +175,8 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
+        title: const Text('Minhas avaliações'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -193,14 +193,7 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 10),
-            const Text(
-              'Avaliações',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-                fontSize: 35,
-              ),
-            ),
+          
             const SizedBox(height: 8),
             Text(
               'Visualize, escreva ou edite uma avaliação.',
@@ -270,7 +263,7 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => abrirDialogoAvaliacao(),
-        backgroundColor: const Color(0xFF266B70),
+        backgroundColor: const Color(0xFF01A897),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

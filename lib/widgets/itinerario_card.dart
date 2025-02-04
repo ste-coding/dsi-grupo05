@@ -70,13 +70,6 @@ class ItineraryCard extends StatelessWidget {
                         '${_formatDate(itinerario.startDate)} - ${_formatDate(itinerario.endDate)}',
                         style: const TextStyle(fontSize: 12),
                       ),
-                      Row(
-                        children: [
-                          const Icon(Icons.place, size: 16),
-                          const SizedBox(width: 4),
-                          Text('${itinerario.locais.length} locais'),
-                        ],
-                      ),
                     ],
                   ),
                 ],

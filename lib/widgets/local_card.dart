@@ -150,20 +150,6 @@ class _LocalCardState extends State<LocalCard> {
                       ),
                     ],
                   ),
-                  if (widget.local.totalAvaliacoes > 0) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          '+${widget.local.totalAvaliacoes}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),

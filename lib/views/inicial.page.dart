@@ -13,7 +13,6 @@ class _InicialPageState extends State<InicialPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagem de fundo com Container e BoxDecoration
           Container(
             width: double.infinity,
             height: double.infinity,

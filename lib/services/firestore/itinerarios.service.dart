@@ -52,37 +52,36 @@ class ItinerariosService {
   }
 
   Future<ItinerarioModel> getItinerarioWithLocais(String itinerarioId) async {
-    try {
-      DocumentSnapshot itinerarioDoc = await _firestore
-          .collection('viajantes')
-          .doc(itinerarioId)
-          .get();
+  try {
+    DocumentSnapshot itinerarioDoc = await _firestore
+        .collection('viajantes')
+        .doc(itinerarioId)
+        .get();
 
-      if (itinerarioDoc.exists) {
-        var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
-
-        List<ItinerarioItem> locais = [];
-        var locaisSnapshot = await _firestore
-            .collection('viajantes')
-            .doc(itinerarioId)
-            .collection('roteiro')
-            .get();
-
-        for (var localDoc in locaisSnapshot.docs) {
-          var localData = localDoc.data() as Map<String, dynamic>;
-          locais.add(ItinerarioItem.fromFirestore(localData));
-        }
-
-        return ItinerarioModel.fromFirestore(itinerarioData, locais);
-      } else {
-        throw Exception('Itinerário não encontrado');
-      }
-    } catch (e) {
-      print("Erro ao carregar itinerário com locais: $e");
-      throw e;
+    if (!itinerarioDoc.exists) {
+      throw Exception('Itinerário não encontrado para o ID: $itinerarioId');
     }
-  }
 
+    var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
+
+    List<ItinerarioItem> locais = [];
+    var locaisSnapshot = await _firestore
+        .collection('viajantes')
+        .doc(itinerarioId)
+        .collection('roteiro')
+        .get();
+
+    for (var localDoc in locaisSnapshot.docs) {
+      var localData = localDoc.data() as Map<String, dynamic>;
+      locais.add(ItinerarioItem.fromFirestore(localData));
+    }
+
+    return ItinerarioModel.fromFirestore(itinerarioData, locais);
+  } catch (e) {
+    print("Erro ao carregar itinerário com locais: $e");
+    throw Exception('Erro ao carregar itinerário: $e');
+  }
+}
   Stream<QuerySnapshot> getItinerariosStream() {
     return itinerarios.orderBy('startDate', descending: true).snapshots();
   }

@@ -81,7 +81,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(),
