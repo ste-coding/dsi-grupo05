@@ -8,7 +8,8 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/avaliacoes.page.dart';
-import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu;
+import 'package:flutter_application_1/controller/menu_controller.dart'
+    as custom_menu;
 import 'package:flutter_application_1/controller/local_controller.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
@@ -85,7 +86,7 @@ class MyApp extends StatelessWidget {
             }
             return ItinerariosPage(userId: userId);
           },
-          '/favoritos': (context) => const FavoritosPage(),
+          '/favoritos': (context) => const FavoritesPage(),
           '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
         },
