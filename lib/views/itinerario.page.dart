@@ -43,15 +43,45 @@ class ItinerariosPage extends StatelessWidget {
             return const Center(child: Text('Nenhum itinerário encontrado.'));
           }
 
-          final itinerarios = snapshot.data!.docs.map((doc) {
-            return ItinerarioModel.fromFirestore(doc.data() as Map<String, dynamic>);
+          final itinerarios = snapshot.data!.docs.map((doc) async {
+            var itinerarioData = doc.data() as Map<String, dynamic>;
+            var itinerarioId = doc.id;
+
+            List<ItinerarioItem> locais = [];
+            var locaisSnapshot = await itinerariosService.getLocaisByItinerarioId(itinerarioId);
+
+            for (var localDoc in locaisSnapshot.docs) {
+              var localData = localDoc.data() as Map<String, dynamic>;
+              locais.add(ItinerarioItem.fromFirestore(localData));
+            }
+
+            return ItinerarioModel.fromFirestore(itinerarioData, locais);
           }).toList();
 
-          return ListView.builder(
-            itemCount: itinerarios.length,
-            itemBuilder: (context, index) {
-              final itinerario = itinerarios[index];
-              return ItineraryCard(itinerario: itinerario);
+          return FutureBuilder(
+            future: Future.wait(itinerarios),
+            builder: (context, futureSnapshot) {
+              if (futureSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (futureSnapshot.hasError) {
+                return Center(child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}"));
+              }
+
+              if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
+                return const Center(child: Text('Nenhum itinerário encontrado.'));
+              }
+
+              final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
+
+              return ListView.builder(
+                itemCount: itinerarios.length,
+                itemBuilder: (context, index) {
+                  final itinerario = itinerarios[index];
+                  return ItineraryCard(itinerario: itinerario);
+                },
+              );
             },
           );
         },

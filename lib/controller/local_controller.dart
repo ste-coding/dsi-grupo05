@@ -94,40 +94,59 @@ class LocalController with ChangeNotifier {
   }
 
   // Função para buscar os itinerários do usuário
-  Future<List<ItinerarioModel>> getUserItinerarios() async {
-    try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) {
-        print("Usuário não autenticado");
-        return [];
-      }
+Future<List<ItinerarioModel>> getUserItinerarios() async {
+  try {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      print("Usuário não autenticado");
+      return [];
+    }
 
-      // Buscar itinerários do Firestore
-      final snapshot = await _firestore
+    // Buscar itinerários do Firestore
+    final snapshot = await _firestore
+        .collection('viajantes')
+        .doc(userId)
+        .collection('itinerarios')
+        .get();
+
+    print("Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
+
+    if (snapshot.docs.isEmpty) {
+      print("Nenhum itinerário encontrado.");
+      return [];
+    }
+
+    List<ItinerarioModel> itinerarios = [];
+
+    for (var doc in snapshot.docs) {
+      var itinerarioData = doc.data();
+      String itinerarioId = doc.id;
+
+      // Buscar os locais do itinerário na subcoleção 'roteiro'
+      var locaisSnapshot = await _firestore
           .collection('viajantes')
           .doc(userId)
           .collection('itinerarios')
+          .doc(itinerarioId)
+          .collection('roteiro')
           .get();
 
-      print(
-          "Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
-
-      if (snapshot.docs.isEmpty) {
-        print("Nenhum itinerário encontrado.");
-        return [];
-      }
-
-      List<ItinerarioModel> itinerarios = snapshot.docs
-          .map((doc) => ItinerarioModel.fromFirestore(doc.data()))
+      List<ItinerarioItem> locais = locaisSnapshot.docs
+          .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data() as Map<String, dynamic>))
           .toList();
 
-      print("Itinerários carregados: ${itinerarios.length}");
-      return itinerarios;
-    } catch (e) {
-      print('Erro ao buscar itinerários: $e');
-      return [];
+      // Agora, criamos o itinerário passando os locais encontrados
+      itinerarios.add(ItinerarioModel.fromFirestore(itinerarioData, locais));
     }
+
+    print("Itinerários carregados: ${itinerarios.length}");
+    return itinerarios;
+  } catch (e) {
+    print('Erro ao buscar itinerários: $e');
+    return [];
   }
+}
+
 
   // Função para adicionar local ao itinerário
   Future<void> addLocalToRoteiro(

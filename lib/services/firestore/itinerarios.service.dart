@@ -53,38 +53,50 @@ class ItinerariosService {
 
   Future<ItinerarioModel> getItinerarioWithLocais(String itinerarioId) async {
     try {
-      final itinerarioDoc = await itinerarios.doc(itinerarioId).get();
-      if (!itinerarioDoc.exists) {
-        throw Exception('Itinerário não encontrado');
-      }
-
-      final itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
-
-      final locaisSnapshot = await itinerarios
+      DocumentSnapshot itinerarioDoc = await _firestore
+          .collection('viajantes')
           .doc(itinerarioId)
-          .collection('roteiro')
-          .where('itinerarioId', isEqualTo: itinerarioId)
           .get();
 
-      if (locaisSnapshot.docs.isEmpty) {
-        print("Nenhum local encontrado para o itinerário.");
+      if (itinerarioDoc.exists) {
+        var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
+
+        List<ItinerarioItem> locais = [];
+        var locaisSnapshot = await _firestore
+            .collection('viajantes')
+            .doc(itinerarioId)
+            .collection('roteiro')
+            .get();
+
+        for (var localDoc in locaisSnapshot.docs) {
+          var localData = localDoc.data() as Map<String, dynamic>;
+          locais.add(ItinerarioItem.fromFirestore(localData));
+        }
+
+        return ItinerarioModel.fromFirestore(itinerarioData, locais);
+      } else {
+        throw Exception('Itinerário não encontrado');
       }
-
-      List<ItinerarioItem> locais = locaisSnapshot.docs
-          .map((doc) => ItinerarioItem.fromFirestore(doc.data()))
-          .toList();
-
-      return ItinerarioModel.fromFirestore({
-        ...itinerarioData,
-        'locais': locais,
-      });
     } catch (e) {
-      print("Erro ao carregar itinerário e locais: $e");
-      rethrow;
+      print("Erro ao carregar itinerário com locais: $e");
+      throw e;
     }
   }
 
   Stream<QuerySnapshot> getItinerariosStream() {
     return itinerarios.orderBy('startDate', descending: true).snapshots();
+  }
+
+  Future<QuerySnapshot> getLocaisByItinerarioId(String itinerarioId) async {
+    try {
+      return await _firestore
+          .collection('viajantes')
+          .doc(itinerarioId)
+          .collection('roteiro')
+          .get();
+    } catch (e) {
+      print("Erro ao obter locais para itinerário $itinerarioId: $e");
+      rethrow;
+    }
   }
 }
