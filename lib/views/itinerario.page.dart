@@ -16,7 +16,9 @@ class ItinerariosPage extends StatelessWidget {
     final itinerariosService = ItinerariosService(userId);
 
     return Scaffold(
+      backgroundColor: Color(0xFFDFEAF1), // Cor de fundo
       appBar: AppBar(
+        backgroundColor: const Color(0xFFDFEAF1),
         title: const Text('Itinerários'),
         actions: [
           IconButton(
@@ -44,7 +46,8 @@ class ItinerariosPage extends StatelessWidget {
           }
 
           final itinerarios = snapshot.data!.docs.map((doc) {
-            return ItinerarioModel.fromFirestore(doc.data() as Map<String, dynamic>);
+            return ItinerarioModel.fromFirestore(
+                doc.data() as Map<String, dynamic>);
           }).toList();
 
           return ListView.builder(

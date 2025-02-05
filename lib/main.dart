@@ -8,7 +8,8 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/avaliacoes.page.dart';
-import 'package:flutter_application_1/controller/menu_controller.dart' as custom_menu;
+import 'package:flutter_application_1/controller/menu_controller.dart'
+    as custom_menu;
 import 'package:flutter_application_1/controller/local_controller.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/services/foursquare_service.dart';
@@ -24,7 +25,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
+  await dotenv.load(fileName: "assets/.env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(MyApp());

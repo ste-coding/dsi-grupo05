@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 
 class AvaliacoesPage extends StatefulWidget {
@@ -25,150 +23,24 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
     "Museu Histórico",
   ];
 
-  TextEditingController comentarioController = TextEditingController();
-  int estrelasSelecionadas = 0;
-  String? localSelecionado;
-
-  void adicionarOuEditarAvaliacao({int? index}) {
-    if (comentarioController.text.isNotEmpty &&
-        estrelasSelecionadas > 0 &&
-        localSelecionado != null) {
-      setState(() {
-        if (index != null) {
-          // Editar Avaliação Existente
-          avaliacoes[index] = {
-            "local": localSelecionado,
-            "comentario": comentarioController.text,
-            "estrelas": estrelasSelecionadas,
-          };
-        } else {
-          // Adicionar Nova Avaliação
-          avaliacoes.add({
-            "local": localSelecionado,
-            "comentario": comentarioController.text,
-            "estrelas": estrelasSelecionadas,
-          });
-        }
-        comentarioController.clear();
-        estrelasSelecionadas = 0;
-        localSelecionado = null;
-      });
-      Navigator.pop(context);
-    }
-  }
-
-  void abrirDialogoAvaliacao({int? index}) {
-    if (index != null) {
-      final avaliacao = avaliacoes[index];
-      comentarioController.text = avaliacao["comentario"];
-      estrelasSelecionadas = avaliacao["estrelas"];
-      localSelecionado = avaliacao["local"];
-    } else {
-      comentarioController.clear();
-      estrelasSelecionadas = 0;
-      localSelecionado = null;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Color(0xFF266B70), width: 2),
-              ),
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      index != null ? "Editar Avaliação" : "Nova Avaliação",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF266B70),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: locaisVisitados.contains(localSelecionado) ? localSelecionado : null,
-                      items: locaisVisitados.toSet().map((local) {
-                        return DropdownMenuItem(
-                          value: local,
-                          child: Text(local),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          localSelecionado = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Selecione um local",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: comentarioController,
-                      decoration: InputDecoration(
-                        labelText: "Comentário",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        return IconButton(
-                          onPressed: () {
-                            setState(() {
-                              estrelasSelecionadas = index + 1;
-                            });
-                          },
-                          icon: Icon(
-                            index < estrelasSelecionadas
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.amber,
-                          ),
-                        );
-                      }),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Cancelar"),
-                        ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () =>
-                              adicionarOuEditarAvaliacao(index: index),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF266B70),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text("Salvar"),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
+  void editarAvaliacao(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EscolherLocalEAvaliarPage(
+          avaliacao: avaliacoes[index],
+          locaisVisitados: locaisVisitados,
+          onSalvar: (local, comentario, estrelas) {
+            setState(() {
+              avaliacoes[index] = {
+                "local": local,
+                "comentario": comentario,
+                "estrelas": estrelas,
+              };
+            });
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -177,6 +49,15 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
+        title: const Text(
+          'Avaliações',
+          style: TextStyle(
+            color: Colors.black,
+            fontFamily: 'Poppins',
+            fontSize: 35,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -192,15 +73,6 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 10),
-            const Text(
-              'Avaliações',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-                fontSize: 35,
-              ),
-            ),
             const SizedBox(height: 8),
             Text(
               'Visualize, escreva ou edite uma avaliação.',
@@ -257,7 +129,7 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                         ),
                         trailing: IconButton(
                           icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => abrirDialogoAvaliacao(index: index),
+                          onPressed: () => editarAvaliacao(index),
                         ),
                       ),
                     ),
@@ -269,9 +141,182 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => abrirDialogoAvaliacao(),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EscolherLocalEAvaliarPage(
+                locaisVisitados: locaisVisitados,
+                onSalvar: (local, comentario, estrelas) {
+                  setState(() {
+                    avaliacoes.add({
+                      "local": local,
+                      "comentario": comentario,
+                      "estrelas": estrelas,
+                    });
+                  });
+                },
+              ),
+            ),
+          );
+        },
         backgroundColor: const Color(0xFF266B70),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class EscolherLocalEAvaliarPage extends StatefulWidget {
+  final List<String> locaisVisitados;
+  final Function(String, String, int) onSalvar;
+  final Map<String, dynamic>? avaliacao;
+
+  const EscolherLocalEAvaliarPage({
+    super.key,
+    required this.locaisVisitados,
+    required this.onSalvar,
+    this.avaliacao,
+  });
+
+  @override
+  _EscolherLocalEAvaliarPageState createState() =>
+      _EscolherLocalEAvaliarPageState();
+}
+
+class _EscolherLocalEAvaliarPageState extends State<EscolherLocalEAvaliarPage> {
+  TextEditingController comentarioController = TextEditingController();
+  int estrelasSelecionadas = 0;
+  String? localSelecionado;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.avaliacao != null) {
+      comentarioController.text = widget.avaliacao!["comentario"];
+      estrelasSelecionadas = widget.avaliacao!["estrelas"];
+      localSelecionado = widget.avaliacao!["local"];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFDFEAF1),
+      appBar: AppBar(
+        title: Text(
+          widget.avaliacao != null ? "Editar Avaliação" : "Nova Avaliação",
+          style: const TextStyle(
+            color: Colors.black, // Cor do texto
+            fontFamily: 'Poppins', // Fonte personalizada
+            fontSize: 28, // Tamanho da fonte
+            fontWeight: FontWeight.bold, // Peso da fonte
+          ),
+        ),
+        backgroundColor: const Color(0xFFDFEAF1), // Cor do fundo da AppBar
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: DropdownButtonFormField<String>(
+                value: localSelecionado,
+                items: widget.locaisVisitados.map((local) {
+                  return DropdownMenuItem(
+                    value: local,
+                    child: Text(local),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    localSelecionado = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  labelText: "Selecione um local",
+                  labelStyle: const TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: TextField(
+                controller: comentarioController,
+                decoration: InputDecoration(
+                  labelText: "Comentário",
+                  labelStyle: const TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  onPressed: () {
+                    setState(() {
+                      estrelasSelecionadas = index + 1;
+                    });
+                  },
+                  icon: Icon(
+                    index < estrelasSelecionadas
+                        ? Icons.star
+                        : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () {
+                if (comentarioController.text.isNotEmpty &&
+                    estrelasSelecionadas > 0 &&
+                    localSelecionado != null) {
+                  widget.onSalvar(localSelecionado!, comentarioController.text,
+                      estrelasSelecionadas);
+                  Navigator.pop(context);
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide.none,
+                backgroundColor: const Color(0xFF266B70),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 16, horizontal: 24), // Aumenta o tamanho do botão
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Salvar',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 22, // Aumenta o tamanho da fonte
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

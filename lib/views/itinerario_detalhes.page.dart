@@ -24,7 +24,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _observacoesController = TextEditingController();
-  
+
   late LocalController _localController;
 
   @override
@@ -191,7 +191,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                         itinerario: widget.itinerario,
                       ),
                       ChecklistTab(
-                      itinerarioId: widget.itinerario.id,
+                        itinerarioId: widget.itinerario.id,
                       ),
                     ],
                   ),
