@@ -82,28 +82,29 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLocalHeader(),
-                  const SizedBox(height: 24),
-                  _buildDescription(),
-                  const SizedBox(height: 24),
-                  _buildAddToItineraryButton(),
-                ],
-              ),
-            ),
+      slivers: [
+        _buildSliverAppBar(),
+        SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLocalHeader(),
+            const SizedBox(height: 24),
+            _buildDescription(),
+            const SizedBox(height: 24),
+            _buildAddToItineraryButton(),
+          ],
           ),
-        ],
+        ),
+        ),
+      ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
-  }
+    }
+
 
   SliverAppBar _buildSliverAppBar() {
     return SliverAppBar(
@@ -196,7 +197,9 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
         _showItineraryBottomSheet(context);
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF01A897),
+        side: BorderSide(color: Color(0xFF266B70), width: 2),
+        padding: EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: Color(0xFF266B70),
         textStyle: const TextStyle(
           fontFamily: 'Poppins',
           color: Colors.white,
@@ -213,21 +216,68 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     );
   }
 
-  BottomNavigationBar _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      currentIndex: 2,
-      selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
-      unselectedItemColor: Colors.grey,
-      showUnselectedLabels: true,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Itinerários'),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Buscar'),
-        BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Avaliações'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-      ],
-    );
-  }
+ BottomNavigationBar _buildBottomNavigationBar() {
+  return BottomNavigationBar(
+    currentIndex: 2,
+    selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
+    unselectedItemColor: Colors.grey,
+    showUnselectedLabels: true,
+    items: const [
+      BottomNavigationBarItem(
+      icon: Icon(Icons.home),
+      label: 'Home',
+      tooltip: 'Home',
+      backgroundColor: Colors.white,
+      ),
+      BottomNavigationBarItem(
+      icon: Icon(Icons.map),
+      label: 'Itinerários',
+      tooltip: 'Itinerários',
+      backgroundColor: Colors.white,
+      ),
+      BottomNavigationBarItem(
+      icon: Icon(Icons.search),
+      label: 'Buscar',
+      tooltip: 'Buscar',
+      backgroundColor: Colors.white,
+      ),
+      BottomNavigationBarItem(
+      icon: Icon(Icons.chat),
+      label: 'Avaliações',
+      tooltip: 'Avaliações',
+      backgroundColor: Colors.white,
+      ),
+      BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: 'Perfil',
+      tooltip: 'Perfil',
+      backgroundColor: Colors.white,
+      ),
+    ],
+    selectedLabelStyle: TextStyle(fontFamily: 'Poppins'),
+    unselectedLabelStyle: TextStyle(fontFamily: 'Poppins'),
+    onTap: (index) {
+      switch (index) {
+        case 0:
+          Navigator.pushNamed(context, '/menu');
+          break;
+        case 1:
+          Navigator.pushNamed(context, '/itinerario');
+          break;
+        case 2:
+          Navigator.pushNamed(context, '/buscar');
+          break;
+        case 3:
+          Navigator.pushNamed(context, '/avaliacoes');
+          break;
+        case 4:
+          Navigator.pushNamed(context, '/perfil');
+          break;
+      }
+    },
+  );
+}
+
 
   void _showItineraryBottomSheet(BuildContext context) {
     showModalBottomSheet(

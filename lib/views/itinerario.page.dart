@@ -17,20 +17,23 @@ class ItinerariosPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Itinerários'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CreateItinerarioPage(userId: userId),
-                ),
-              );
-            },
+        title: const Text(
+          'Itinerários',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
-        ],
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: itinerariosService.getItinerariosStream(),
@@ -40,7 +43,7 @@ class ItinerariosPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nenhum itinerário encontrado.'));
+            return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
           }
 
           final itinerarios = snapshot.data!.docs.map((doc) async {
@@ -66,11 +69,11 @@ class ItinerariosPage extends StatelessWidget {
               }
 
               if (futureSnapshot.hasError) {
-                return Center(child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}"));
+                return Center(child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}", style: TextStyle(fontFamily: 'Poppins')));
               }
 
               if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
-                return const Center(child: Text('Nenhum itinerário encontrado.'));
+                return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
               }
 
               final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
@@ -79,12 +82,29 @@ class ItinerariosPage extends StatelessWidget {
                 itemCount: itinerarios.length,
                 itemBuilder: (context, index) {
                   final itinerario = itinerarios[index];
-                  return ItineraryCard(itinerario: itinerario);
+                  return GestureDetector(
+                    onTap: () {
+                      // Handle card tap
+                    },
+                    child: ItineraryCard(itinerario: itinerario),
+                  );
                 },
               );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateItinerarioPage(userId: userId),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF01A897),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

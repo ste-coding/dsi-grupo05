@@ -20,7 +20,7 @@ class ItinerarioDetalhesPage extends StatefulWidget {
 }
 
 class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _observacoesController = TextEditingController();
   
@@ -60,7 +60,14 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(widget.itinerario.titulo),
+              title: Text(
+                widget.itinerario.titulo,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
               background: Image.network(
                 widget.itinerario.imageUrl.isNotEmpty
                     ? widget.itinerario.imageUrl
@@ -104,6 +111,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                     const Text(
                                       'Período da Viagem',
                                       style: TextStyle(
+                                        fontFamily: 'Poppins',
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -111,7 +119,10 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                     const SizedBox(height: 8),
                                     Text(
                                       '${_formatDate(widget.itinerario.startDate)} - ${_formatDate(widget.itinerario.endDate)}',
-                                      style: const TextStyle(fontSize: 16),
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -127,6 +138,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                     const Text(
                                       'Descrição',
                                       style: TextStyle(
+                                        fontFamily: 'Poppins',
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -136,7 +148,10 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                       widget.itinerario.observations.isNotEmpty
                                           ? widget.itinerario.observations
                                           : 'Sem descrição',
-                                      style: const TextStyle(fontSize: 16),
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -152,6 +167,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                     const Text(
                                       'Observações',
                                       style: TextStyle(
+                                        fontFamily: 'Poppins',
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -160,24 +176,40 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                     TextField(
                                       controller: _observacoesController,
                                       maxLines: 4,
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                         border: OutlineInputBorder(),
-                                        hintText:
-                                            'Adicione suas observações aqui...',
+                                        hintText: 'Adicione suas observações aqui...',
+                                        hintStyle: TextStyle(
+                                          fontFamily: 'Poppins',
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Observações salvas com sucesso!'),
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Observações salvas com sucesso!'),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(0xFF266B70),
+                                          textStyle: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                        );
-                                      },
-                                      child: const Text('Salvar Observações'),
+                                        ),
+                                        child: const Text(
+                                          'Salvar Observações',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -190,7 +222,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                         itinerario: widget.itinerario,
                       ),
                       ChecklistTab(
-                      itinerarioId: widget.itinerario.id,
+                        itinerarioId: widget.itinerario.id,
                       ),
                     ],
                   ),

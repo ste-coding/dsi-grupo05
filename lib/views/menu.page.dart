@@ -51,10 +51,15 @@ class _MenuPageState extends State<MenuPage> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage:
-                            NetworkImage('../assets/images/placeholder_image.png'),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/perfil');
+                        },
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                              NetworkImage('../assets/images/placeholder_image.png'),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       FutureBuilder<Map<String, dynamic>?>(
@@ -185,7 +190,7 @@ class _MenuPageState extends State<MenuPage> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
-                        color: Colors.blue,
+                        color: Color(0xFF266B70),
                       ),
                     ),
                   ),
@@ -238,7 +243,7 @@ class _MenuPageState extends State<MenuPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildNavItem(Icons.home, 'Home', true),
-                    _buildNavItem(Icons.map_outlined, 'Itinerários', false),
+                    _buildNavItem(Icons.map, 'Itinerários', false),
                     _buildNavItem(Icons.search, 'Buscar', false),
                     _buildNavItem(Icons.star_border, 'Avaliações', false),
                     _buildNavItem(Icons.person_outline, 'Perfil', false),

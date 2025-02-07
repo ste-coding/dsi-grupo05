@@ -72,7 +72,7 @@ class ItinerariosService {
         .get();
 
     for (var localDoc in locaisSnapshot.docs) {
-      var localData = localDoc.data() as Map<String, dynamic>;
+      var localData = localDoc.data();
       locais.add(ItinerarioItem.fromFirestore(localData));
     }
 

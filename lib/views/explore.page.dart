@@ -8,7 +8,7 @@ import '../models/local_model.dart';
 class ExplorePage extends StatefulWidget {
   final Function(LocalModel local) onSelectedLocal;
 
-  ExplorePage({required this.onSelectedLocal});
+  const ExplorePage({super.key, required this.onSelectedLocal});
 
   @override
   _ExplorePageState createState() => _ExplorePageState();
@@ -59,7 +59,17 @@ class _ExplorePageState extends State<ExplorePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Explorar Locais'),
+        title: Text(
+          'Explorar Locais',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SafeArea(
         child: Column(
@@ -70,6 +80,13 @@ class _ExplorePageState extends State<ExplorePage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   labelText: 'Pesquisar por locais...',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   suffixIcon: IconButton(
                     icon: Icon(Icons.search),
                     onPressed: () {
@@ -114,7 +131,7 @@ class _ExplorePageState extends State<ExplorePage> {
                         }
                         final local = controller.locais[index];
 
-                        final userId = 'user-id-aqui'; 
+                        final userId = 'user-id-aqui';
 
                         final favoritosService = FavoritosService(userId);
 

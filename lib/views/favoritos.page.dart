@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,17 +23,15 @@ class FavoritesPage extends StatelessWidget {
 
     final favoritosService = FavoritosService(userId);
 
-
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Locais Favoritos'),
+        title: Text('Locais Favoritos'),
       ),
       body: StreamBuilder<List<FavoritoModel>>(
         stream: favoritosService.getFavoritosStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -41,7 +41,7 @@ class FavoritesPage extends StatelessWidget {
           final favoritos = snapshot.data ?? [];
 
           if (favoritos.isEmpty) {
-            return const Center(child: Text('Nenhum favorito encontrado.'));
+            return Center(child: Text('Nenhum favorito encontrado.'));
           }
 
           return ListView.builder(
@@ -49,8 +49,20 @@ class FavoritesPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final favorito = favoritos[index];
               final local = localController.locais.firstWhere(
-                (local) => local.id == favorito.localId, 
-                orElse: () => LocalModel(id: '', nome: '', descricao: '', imagem: '', categoria: '', cidade: '', estado: '', latitude: 0.0, longitude: 0.0, mediaEstrelas: 0.0, totalAvaliacoes: 0)
+                (local) => local.id == favorito.localId,
+                orElse: () => LocalModel(
+                  id: '',
+                  nome: '',
+                  descricao: '',
+                  imagem: '',
+                  categoria: '',
+                  cidade: '',
+                  estado: '',
+                  latitude: 0.0,
+                  longitude: 0.0,
+                  mediaEstrelas: 0.0,
+                  totalAvaliacoes: 0,
+                ),
               );
 
               return LocalCard(

@@ -25,150 +25,25 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
     "Museu Histórico",
   ];
 
-  TextEditingController comentarioController = TextEditingController();
-  int estrelasSelecionadas = 0;
-  String? localSelecionado;
-
-  void adicionarOuEditarAvaliacao({int? index}) {
-    if (comentarioController.text.isNotEmpty &&
-        estrelasSelecionadas > 0 &&
-        localSelecionado != null) {
-      setState(() {
-        if (index != null) {
-          // Editar Avaliação Existente
-          avaliacoes[index] = {
-            "local": localSelecionado,
-            "comentario": comentarioController.text,
-            "estrelas": estrelasSelecionadas,
-          };
-        } else {
-          // Adicionar Nova Avaliação
-          avaliacoes.add({
-            "local": localSelecionado,
-            "comentario": comentarioController.text,
-            "estrelas": estrelasSelecionadas,
-          });
-        }
-        comentarioController.clear();
-        estrelasSelecionadas = 0;
-        localSelecionado = null;
-      });
-      Navigator.pop(context);
-    }
-  }
-
-  void abrirDialogoAvaliacao({int? index}) {
-    if (index != null) {
-      final avaliacao = avaliacoes[index];
-      comentarioController.text = avaliacao["comentario"];
-      estrelasSelecionadas = avaliacao["estrelas"];
-      localSelecionado = avaliacao["local"];
-    } else {
-      comentarioController.clear();
-      estrelasSelecionadas = 0;
-      localSelecionado = null;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Color(0xFF266B70), width: 2),
-              ),
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      index != null ? "Editar Avaliação" : "Nova Avaliação",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF266B70),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: locaisVisitados.contains(localSelecionado) ? localSelecionado : null,
-                      items: locaisVisitados.toSet().map((local) {
-                        return DropdownMenuItem(
-                          value: local,
-                          child: Text(local),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          localSelecionado = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: "Selecione um local",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: comentarioController,
-                      decoration: InputDecoration(
-                        labelText: "Comentário",
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        return IconButton(
-                          onPressed: () {
-                            setState(() {
-                              estrelasSelecionadas = index + 1;
-                            });
-                          },
-                          icon: Icon(
-                            index < estrelasSelecionadas
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.amber,
-                          ),
-                        );
-                      }),
-                    ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Cancelar"),
-                        ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () =>
-                              adicionarOuEditarAvaliacao(index: index),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF266B70),
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text("Salvar"),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
+  void abrirTelaAvaliacao({int? index}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AvaliacaoFormPage(
+          index: index,
+          avaliacao: index != null ? avaliacoes[index] : null,
+          locaisVisitados: locaisVisitados,
+          onSave: (avaliacao) {
+            setState(() {
+              if (index != null) {
+                avaliacoes[index] = avaliacao;
+              } else {
+                avaliacoes.add(avaliacao);
+              }
+            });
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -176,9 +51,10 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minhas avaliações'),
+        title: const Text('Minhas avaliações', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
@@ -193,7 +69,6 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 10),
-          
             const SizedBox(height: 8),
             Text(
               'Visualize, escreva ou edite uma avaliação.',
@@ -224,17 +99,17 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                         avaliacoes.removeAt(index);
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Avaliação excluída')),
+                        SnackBar(content: Text('Avaliação excluída', style: TextStyle(fontFamily: 'Poppins'))),
                       );
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
-                        title: Text(avaliacao["local"]),
+                        title: Text(avaliacao["local"], style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(avaliacao["comentario"]),
+                            Text(avaliacao["comentario"], style: TextStyle(fontFamily: 'Poppins')),
                             Row(
                               children: List.generate(5, (starIndex) {
                                 return Icon(
@@ -250,7 +125,7 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                         ),
                         trailing: IconButton(
                           icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => abrirDialogoAvaliacao(index: index),
+                          onPressed: () => abrirTelaAvaliacao(index: index),
                         ),
                       ),
                     ),
@@ -262,9 +137,172 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => abrirDialogoAvaliacao(),
+        onPressed: () => abrirTelaAvaliacao(),
         backgroundColor: const Color(0xFF01A897),
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class AvaliacaoFormPage extends StatefulWidget {
+  final int? index;
+  final Map<String, dynamic>? avaliacao;
+  final List<String> locaisVisitados;
+  final Function(Map<String, dynamic>) onSave;
+
+  const AvaliacaoFormPage({
+    Key? key,
+    this.index,
+    this.avaliacao,
+    required this.locaisVisitados,
+    required this.onSave,
+  }) : super(key: key);
+
+  @override
+  _AvaliacaoFormPageState createState() => _AvaliacaoFormPageState();
+}
+
+class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
+  TextEditingController comentarioController = TextEditingController();
+  int estrelasSelecionadas = 0;
+  String? localSelecionado;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.avaliacao != null) {
+      comentarioController.text = widget.avaliacao!["comentario"];
+      estrelasSelecionadas = widget.avaliacao!["estrelas"];
+      localSelecionado = widget.avaliacao!["local"];
+    }
+  }
+
+  void salvarAvaliacao() {
+    if (comentarioController.text.isNotEmpty &&
+        estrelasSelecionadas > 0 &&
+        localSelecionado != null) {
+      widget.onSave({
+        "local": localSelecionado,
+        "comentario": comentarioController.text,
+        "estrelas": estrelasSelecionadas,
+      });
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.index != null ? "Editar Avaliação" : "Nova Avaliação", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              value: widget.locaisVisitados.contains(localSelecionado) ? localSelecionado : null,
+              items: widget.locaisVisitados.toSet().map((local) {
+                return DropdownMenuItem(
+                  value: local,
+                  child: Text(local, style: TextStyle(fontFamily: 'Poppins')),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  localSelecionado = value;
+                });
+              },
+                decoration: InputDecoration(
+                labelText: "Selecione um local",
+                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: comentarioController,
+                decoration: InputDecoration(
+                labelText: "Comentário",
+                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontFamily: 'Poppins'), 
+              ),
+              SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  onPressed: () {
+                    setState(() {
+                      estrelasSelecionadas = index + 1;
+                    });
+                  },
+                  icon: Icon(
+                    index < estrelasSelecionadas ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                );
+              }),
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Color(0xFF266B70), width: 2),
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Color(0xFF266B70),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: salvarAvaliacao,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF266B70),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    "Salvar",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

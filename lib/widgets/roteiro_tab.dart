@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/itinerario_model.dart';
 import 'package:intl/intl.dart';
-import '../services/firestore/itinerarios.service.dart'; 
+import '../services/firestore/itinerarios.service.dart';
 
 class RoteiroTab extends StatefulWidget {
   final ItinerarioModel itinerario;
 
-  const RoteiroTab({Key? key, required this.itinerario}) : super(key: key);
+  const RoteiroTab({super.key, required this.itinerario});
 
   @override
   _RoteiroTabState createState() => _RoteiroTabState();
@@ -16,7 +16,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
   late DateTime _selectedDate;
   late List<DateTime> _weekDays;
   final Map<String, bool> _visitedPlaces = {};
-  Map<DateTime, List<ItinerarioItem>> _groupedLocais = {};
+  final Map<DateTime, List<ItinerarioItem>> _groupedLocais = {};
 
   @override
   void initState() {
@@ -60,11 +60,10 @@ class _RoteiroTabState extends State<RoteiroTab> {
     });
   }
 
-  // Método para adicionar local
   void _addNewLocal() async {
-    final itinerarioService = ItinerariosService('userId'); 
+    final itinerarioService = ItinerariosService('userId');
     final newLocal = ItinerarioItem(
-      localId: 'local_123', 
+      localId: 'local_123',
       localName: 'Novo Local',
       visitDate: _selectedDate,
       comment: 'Comentário do local',
@@ -75,7 +74,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
       await itinerarioService.addLocalToRoteiro(widget.itinerario.id, newLocal.toFirestore());
       setState(() {
         widget.itinerario.locais.add(newLocal);
-        _groupLocaisByDate(); 
+        _groupLocaisByDate();
       });
     } catch (e) {
       print("Erro ao adicionar local: $e");
@@ -85,7 +84,16 @@ class _RoteiroTabState extends State<RoteiroTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Roteiro do Itinerário')),
+      appBar: AppBar(
+        title: Text(
+          'Roteiro do Itinerário',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: FutureBuilder<ItinerarioModel>(
         future: _loadLocais(),
         builder: (context, snapshot) {
@@ -127,6 +135,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
                         Text(
                           DateFormat('MMMM yyyy').format(_selectedDate),
                           style: const TextStyle(
+                            fontFamily: 'Poppins',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -162,6 +171,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
                           .map((day) => Text(
                                 day,
                                 style: const TextStyle(
+                                  fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
                                 ),
@@ -186,9 +196,9 @@ class _RoteiroTabState extends State<RoteiroTab> {
                               child: Text(
                                 '${date.day}',
                                 style: TextStyle(
+                                  fontFamily: 'Poppins',
                                   color: isSelected ? Colors.white : Colors.black,
-                                  fontWeight:
-                                      isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 ),
                               ),
                             ),
@@ -209,14 +219,31 @@ class _RoteiroTabState extends State<RoteiroTab> {
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       child: ListTile(
-                        title: Text(DateFormat('dd/MM/yyyy').format(date)),
+                        title: Text(
+                          DateFormat('dd/MM/yyyy').format(date),
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: locais.map((local) {
                             final isVisited = _visitedPlaces[local.localId] ?? false;
                             return ListTile(
-                              title: Text(local.localName ?? 'Nome do local não disponível'),
-                              subtitle: Text(local.comment),
+                              title: Text(
+                                local.localName ?? 'Nome do local não disponível',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                              subtitle: Text(
+                                local.comment,
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
                               trailing: IconButton(
                                 icon: Icon(
                                   isVisited ? Icons.check_circle : Icons.check_circle_outline,
@@ -240,11 +267,12 @@ class _RoteiroTabState extends State<RoteiroTab> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addNewLocal,
-        child: const Icon(Icons.add),
         tooltip: 'Adicionar Local',
+        backgroundColor: Color(0xFF266B70),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
-    );
-  }
+        );
+      }
 
   Future<ItinerarioModel> _loadLocais() async {
     try {
@@ -252,7 +280,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
       return await itinerarioService.getItinerarioWithLocais(widget.itinerario.id);
     } catch (e) {
       print("Erro ao carregar locais: $e");
-      throw e;
+      rethrow;
     }
   }
 }

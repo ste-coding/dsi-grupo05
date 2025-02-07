@@ -132,7 +132,7 @@ Future<List<ItinerarioModel>> getUserItinerarios() async {
           .get();
 
       List<ItinerarioItem> locais = locaisSnapshot.docs
-          .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data() as Map<String, dynamic>))
+          .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data()))
           .toList();
 
       // Agora, criamos o itinerário passando os locais encontrados
