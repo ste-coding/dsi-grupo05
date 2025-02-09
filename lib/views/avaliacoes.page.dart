@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 
 class AvaliacoesPage extends StatefulWidget {
@@ -51,7 +49,14 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minhas avaliações', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Minhas Avaliações',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -69,14 +74,12 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 10),
-            const SizedBox(height: 8),
             Text(
               'Visualize, escreva ou edite uma avaliação.',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.normal,
               ),
             ),
             const SizedBox(height: 20),
@@ -91,25 +94,31 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                     background: Container(
                       color: Colors.red,
                       alignment: Alignment.centerRight,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Icon(Icons.delete, color: Colors.white),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
                     onDismissed: (direction) {
                       setState(() {
                         avaliacoes.removeAt(index);
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Avaliação excluída', style: TextStyle(fontFamily: 'Poppins'))),
+                        const SnackBar(
+                            content: Text('Avaliação excluída',
+                                style: TextStyle(fontFamily: 'Poppins'))),
                       );
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
-                        title: Text(avaliacao["local"], style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+                        title: Text(avaliacao["local"],
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(avaliacao["comentario"], style: TextStyle(fontFamily: 'Poppins')),
+                            Text(avaliacao["comentario"],
+                                style: const TextStyle(fontFamily: 'Poppins')),
                             Row(
                               children: List.generate(5, (starIndex) {
                                 return Icon(
@@ -124,7 +133,7 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                           ],
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
                           onPressed: () => abrirTelaAvaliacao(index: index),
                         ),
                       ),
@@ -195,28 +204,35 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.index != null ? "Editar Avaliação" : "Nova Avaliação", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+        title: Text(
+            widget.index != null ? "Editar Avaliação" : "Nova Avaliação",
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            )),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
-              value: widget.locaisVisitados.contains(localSelecionado) ? localSelecionado : null,
+              value: widget.locaisVisitados.contains(localSelecionado)
+                  ? localSelecionado
+                  : null,
               items: widget.locaisVisitados.toSet().map((local) {
                 return DropdownMenuItem(
                   value: local,
-                  child: Text(local, style: TextStyle(fontFamily: 'Poppins')),
+                  child: Text(local, style: const TextStyle(fontFamily: 'Poppins')),
                 );
               }).toList(),
               onChanged: (value) {
@@ -224,86 +240,18 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
                   localSelecionado = value;
                 });
               },
-                decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Selecione um local",
                 labelStyle: TextStyle(fontFamily: 'Poppins'),
                 border: OutlineInputBorder(),
-                ),
               ),
-              SizedBox(height: 16),
-              TextField(
-                controller: comentarioController,
-                decoration: InputDecoration(
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: comentarioController,
+              decoration: const InputDecoration(
                 labelText: "Comentário",
                 labelStyle: TextStyle(fontFamily: 'Poppins'),
                 border: OutlineInputBorder(),
-                ),
-                style: TextStyle(fontFamily: 'Poppins'), 
               ),
-              SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  onPressed: () {
-                    setState(() {
-                      estrelasSelecionadas = index + 1;
-                    });
-                  },
-                  icon: Icon(
-                    index < estrelasSelecionadas ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                );
-              }),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Color(0xFF266B70), width: 2),
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    "Cancelar",
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      color: Color(0xFF266B70),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: salvarAvaliacao,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF266B70),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    "Salvar",
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+              style:

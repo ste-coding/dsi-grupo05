@@ -23,7 +23,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
   with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _observacoesController = TextEditingController();
-  
+
   late LocalController _localController;
 
   @override

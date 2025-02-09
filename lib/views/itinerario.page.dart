@@ -16,6 +16,7 @@ class ItinerariosPage extends StatelessWidget {
     final itinerariosService = ItinerariosService(userId);
 
     return Scaffold(
+      backgroundColor: Color(0xFFDFEAF1), // Cor de fundo
       appBar: AppBar(
         title: const Text(
           'Itinerários',
