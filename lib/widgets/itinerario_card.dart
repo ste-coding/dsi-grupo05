@@ -5,7 +5,7 @@ import '../views/itinerario_detalhes.page.dart';
 class ItineraryCard extends StatelessWidget {
   final ItinerarioModel itinerario;
 
-  const ItineraryCard({Key? key, required this.itinerario}) : super(key: key);
+  const ItineraryCard({super.key, required this.itinerario});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,6 @@ class ItineraryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(
@@ -42,7 +41,6 @@ class ItineraryCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Detalhes
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -51,6 +49,7 @@ class ItineraryCard extends StatelessWidget {
                   Text(
                     itinerario.titulo,
                     style: const TextStyle(
+                      fontFamily: 'Poppins',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -60,7 +59,10 @@ class ItineraryCard extends StatelessWidget {
                     itinerario.observations.isNotEmpty
                         ? itinerario.observations
                         : 'Sem observações',
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.grey,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -68,14 +70,10 @@ class ItineraryCard extends StatelessWidget {
                     children: [
                       Text(
                         '${_formatDate(itinerario.startDate)} - ${_formatDate(itinerario.endDate)}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.place, size: 16),
-                          const SizedBox(width: 4),
-                          Text('${itinerario.locais.length} locais'),
-                        ],
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),

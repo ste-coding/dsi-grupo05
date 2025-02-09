@@ -23,20 +23,21 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
     "Museu Histórico",
   ];
 
-  void editarAvaliacao(int index) {
+  void abrirTelaAvaliacao({int? index}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EscolherLocalEAvaliarPage(
-          avaliacao: avaliacoes[index],
+        builder: (context) => AvaliacaoFormPage(
+          index: index,
+          avaliacao: index != null ? avaliacoes[index] : null,
           locaisVisitados: locaisVisitados,
-          onSalvar: (local, comentario, estrelas) {
+          onSave: (avaliacao) {
             setState(() {
-              avaliacoes[index] = {
-                "local": local,
-                "comentario": comentario,
-                "estrelas": estrelas,
-              };
+              if (index != null) {
+                avaliacoes[index] = avaliacao;
+              } else {
+                avaliacoes.add(avaliacao);
+              }
             });
           },
         ),
@@ -47,19 +48,18 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
         title: const Text(
-          'Avaliações',
+          'Minhas Avaliações',
           style: TextStyle(
-            color: Colors.black,
             fontFamily: 'Poppins',
-            fontSize: 35,
+            fontSize: 30,
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
@@ -73,14 +73,13 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               'Visualize, escreva ou edite uma avaliação.',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 16,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.normal,
               ),
             ),
             const SizedBox(height: 20),
@@ -95,25 +94,31 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                     background: Container(
                       color: Colors.red,
                       alignment: Alignment.centerRight,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Icon(Icons.delete, color: Colors.white),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
                     onDismissed: (direction) {
                       setState(() {
                         avaliacoes.removeAt(index);
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Avaliação excluída')),
+                        const SnackBar(
+                            content: Text('Avaliação excluída',
+                                style: TextStyle(fontFamily: 'Poppins'))),
                       );
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
-                        title: Text(avaliacao["local"]),
+                        title: Text(avaliacao["local"],
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(avaliacao["comentario"]),
+                            Text(avaliacao["comentario"],
+                                style: const TextStyle(fontFamily: 'Poppins')),
                             Row(
                               children: List.generate(5, (starIndex) {
                                 return Icon(
@@ -128,8 +133,8 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                           ],
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => editarAvaliacao(index),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => abrirTelaAvaliacao(index: index),
                         ),
                       ),
                     ),
@@ -141,50 +146,33 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EscolherLocalEAvaliarPage(
-                locaisVisitados: locaisVisitados,
-                onSalvar: (local, comentario, estrelas) {
-                  setState(() {
-                    avaliacoes.add({
-                      "local": local,
-                      "comentario": comentario,
-                      "estrelas": estrelas,
-                    });
-                  });
-                },
-              ),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFF266B70),
+        onPressed: () => abrirTelaAvaliacao(),
+        backgroundColor: const Color(0xFF01A897),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 }
 
-class EscolherLocalEAvaliarPage extends StatefulWidget {
-  final List<String> locaisVisitados;
-  final Function(String, String, int) onSalvar;
+class AvaliacaoFormPage extends StatefulWidget {
+  final int? index;
   final Map<String, dynamic>? avaliacao;
+  final List<String> locaisVisitados;
+  final Function(Map<String, dynamic>) onSave;
 
-  const EscolherLocalEAvaliarPage({
-    super.key,
-    required this.locaisVisitados,
-    required this.onSalvar,
+  const AvaliacaoFormPage({
+    Key? key,
+    this.index,
     this.avaliacao,
-  });
+    required this.locaisVisitados,
+    required this.onSave,
+  }) : super(key: key);
 
   @override
-  _EscolherLocalEAvaliarPageState createState() =>
-      _EscolherLocalEAvaliarPageState();
+  _AvaliacaoFormPageState createState() => _AvaliacaoFormPageState();
 }
 
-class _EscolherLocalEAvaliarPageState extends State<EscolherLocalEAvaliarPage> {
+class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
   TextEditingController comentarioController = TextEditingController();
   int estrelasSelecionadas = 0;
   String? localSelecionado;
@@ -199,125 +187,71 @@ class _EscolherLocalEAvaliarPageState extends State<EscolherLocalEAvaliarPage> {
     }
   }
 
+  void salvarAvaliacao() {
+    if (comentarioController.text.isNotEmpty &&
+        estrelasSelecionadas > 0 &&
+        localSelecionado != null) {
+      widget.onSave({
+        "local": localSelecionado,
+        "comentario": comentarioController.text,
+        "estrelas": estrelasSelecionadas,
+      });
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
         title: Text(
-          widget.avaliacao != null ? "Editar Avaliação" : "Nova Avaliação",
-          style: const TextStyle(
-            color: Colors.black, // Cor do texto
-            fontFamily: 'Poppins', // Fonte personalizada
-            fontSize: 28, // Tamanho da fonte
-            fontWeight: FontWeight.bold, // Peso da fonte
-          ),
+            widget.index != null ? "Editar Avaliação" : "Nova Avaliação",
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            )),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        backgroundColor: const Color(0xFFDFEAF1), // Cor do fundo da AppBar
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: DropdownButtonFormField<String>(
-                value: localSelecionado,
-                items: widget.locaisVisitados.map((local) {
-                  return DropdownMenuItem(
-                    value: local,
-                    child: Text(local),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    localSelecionado = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: "Selecione um local",
-                  labelStyle: const TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: TextField(
-                controller: comentarioController,
-                decoration: InputDecoration(
-                  labelText: "Comentário",
-                  labelStyle: const TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  onPressed: () {
-                    setState(() {
-                      estrelasSelecionadas = index + 1;
-                    });
-                  },
-                  icon: Icon(
-                    index < estrelasSelecionadas
-                        ? Icons.star
-                        : Icons.star_border,
-                    color: Colors.amber,
-                  ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              value: widget.locaisVisitados.contains(localSelecionado)
+                  ? localSelecionado
+                  : null,
+              items: widget.locaisVisitados.toSet().map((local) {
+                return DropdownMenuItem(
+                  value: local,
+                  child: Text(local, style: const TextStyle(fontFamily: 'Poppins')),
                 );
-              }),
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  localSelecionado = value;
+                });
+              },
+              decoration: const InputDecoration(
+                labelText: "Selecione um local",
+                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: () {
-                if (comentarioController.text.isNotEmpty &&
-                    estrelasSelecionadas > 0 &&
-                    localSelecionado != null) {
-                  widget.onSalvar(localSelecionado!, comentarioController.text,
-                      estrelasSelecionadas);
-                  Navigator.pop(context);
-                }
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide.none,
-                backgroundColor: const Color(0xFF266B70),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 24), // Aumenta o tamanho do botão
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+            TextField(
+              controller: comentarioController,
+              decoration: const InputDecoration(
+                labelText: "Comentário",
+                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                border: OutlineInputBorder(),
               ),
-              child: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  'Salvar',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 22, // Aumenta o tamanho da fonte
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
+              style:

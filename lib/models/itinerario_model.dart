@@ -21,11 +21,7 @@ class ItinerarioModel {
     required this.locais,
   }) : imageUrl = imageUrl.isNotEmpty ? imageUrl : 'assets/images/placeholder_image.png';
 
-  factory ItinerarioModel.fromFirestore(Map<String, dynamic> data) {
-    var locais = (data['locais'] as List)
-        .map((item) => ItinerarioItem.fromFirestore(item))
-        .toList();
-
+  factory ItinerarioModel.fromFirestore(Map<String, dynamic> data, List<ItinerarioItem> locais) {
     return ItinerarioModel(
       id: data['id'],
       userId: data['userId'],
@@ -57,12 +53,14 @@ class ItinerarioItem {
   final String? localName;
   final DateTime visitDate;
   final String comment;
+  final String? itinerarioId;
 
   ItinerarioItem({
     required this.localId,
     this.localName,
     required this.visitDate,
     required this.comment,
+    this.itinerarioId,
   });
 
   factory ItinerarioItem.fromFirestore(Map<String, dynamic> data) {
@@ -71,6 +69,7 @@ class ItinerarioItem {
       localName: data['localName'],
       visitDate: (data['visitDate'] as Timestamp).toDate(),
       comment: data['comment'],
+      itinerarioId: data['itinerarioId'],
     );
   }
 
@@ -80,6 +79,7 @@ class ItinerarioItem {
       'localName': localName,
       'visitDate': Timestamp.fromDate(visitDate),
       'comment': comment,
+      'itinerarioId': itinerarioId,
     };
   }
 }

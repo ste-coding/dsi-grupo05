@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore;
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -19,7 +18,7 @@ class _PerfilPageState extends State<PerfilPage> {
   String _firstName = '';
   String _email = '';
   String _cpf = '';
-  String? _profileImageUrl;
+  String? _profileImagePath;
   final UserService _userService = UserService();
   final AuthController _authController = AuthController();
 
@@ -42,7 +41,7 @@ class _PerfilPageState extends State<PerfilPage> {
         _firstName = userData['nome'];
         _email = userData['email'];
         _cpf = maskFormatter(userData['cpf']);
-        _profileImageUrl = userData['profileImageUrl'];
+        _profileImagePath = userData['profileImagePath'];
         _firstNameController.text = _firstName;
         _emailController.text = _email;
         _cpfController.text = _cpf;
@@ -52,11 +51,12 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> _saveProfileImage(File image) async {
     try {
-      final bytes = await image.readAsBytes();
-      final base64Image = base64Encode(bytes);
-      await _userService.userRef.update({'profileImageUrl': base64Image});
+      final directory = await getApplicationDocumentsDirectory();
+      final imagePath = '${directory.path}/profile_image.png';
+      await image.copy(imagePath);
+      await _userService.userRef.update({'profileImagePath': imagePath});
       setState(() {
-        _profileImageUrl = base64Image;
+        _profileImagePath = imagePath;
       });
     } catch (e) {
       print('Erro ao salvar imagem de perfil: $e');
@@ -106,97 +106,154 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFFDFEAF1),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/menu');
           },
         ),
-        title: const Text(
-          'Meu Perfil',
+        title: Text(
+          'Meu perfil',
           style: TextStyle(
-            color: Colors.black,
             fontFamily: 'Poppins',
-            fontSize: 35,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+              SizedBox(height: 20),
               Center(
                 child: GestureDetector(
                   onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey[300],
-                    backgroundImage: _profileImageUrl != null
-                        ? MemoryImage(base64Decode(_profileImageUrl!))
+                    backgroundImage: _profileImagePath != null
+                        ? FileImage(File(_profileImagePath!))
                         : null,
-                    child: _profileImageUrl == null
-                        ? const Icon(Icons.camera_alt, color: Colors.white)
+                    child: _profileImagePath == null
+                        ? Icon(Icons.camera_alt, color: Colors.white)
                         : null,
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: 30),
               TextField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'Nome'),
+                decoration: InputDecoration(
+                  labelText: 'Nome',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               TextField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               TextField(
                 controller: _cpfController,
-                decoration: const InputDecoration(labelText: 'CPF'),
+                decoration: InputDecoration(
+                  labelText: 'CPF',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Color(0xFF266B70), width: 2),
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        color: Color(0xFF266B70),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _updateUserData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Color(0xFF266B70),
+                      side: BorderSide(color: Color(0xFF266B70), width: 2),
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Salvar",
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        color: Color(0xFF266B70),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _updateUserData,
+                onPressed: () async {
+                  await _authController.signOut();
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Color(0xFF266B70),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Salvar',
+                child: Text(
+                  'Logout',
                   style: TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _deleteAccount,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Excluir Conta',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
                     color: Colors.white,
                   ),
                 ),

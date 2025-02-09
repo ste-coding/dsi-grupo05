@@ -86,7 +86,7 @@ class MyApp extends StatelessWidget {
             }
             return ItinerariosPage(userId: userId);
           },
-          '/favoritos': (context) => const FavoritosPage(),
+          '/favoritos': (context) => const FavoritesPage(),
           '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
         },

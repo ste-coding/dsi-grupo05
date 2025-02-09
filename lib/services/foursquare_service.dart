@@ -17,7 +17,6 @@ class FoursquareService {
         queryParameters: {
           'query': query,
           'near': location,
-          'limit': 20,
           'offset': offset,
           'fields':
               'fsq_id,name,description,location,geocodes,rating,stats,photos,categories',

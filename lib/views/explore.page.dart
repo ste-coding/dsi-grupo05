@@ -3,65 +3,75 @@ import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../widgets/local_card.dart';
 import '../services/firestore/favoritos.service.dart';
-import '../services/firestore/user.service.dart';
 import '../models/local_model.dart';
 
 class ExplorePage extends StatefulWidget {
-  final Function(LocalModel) onSelectedLocal;
+  final Function(LocalModel local) onSelectedLocal;
 
   const ExplorePage({super.key, required this.onSelectedLocal});
 
   @override
-  State<ExplorePage> createState() => _ExplorePageState();
+  _ExplorePageState createState() => _ExplorePageState();
 }
 
 class _ExplorePageState extends State<ExplorePage> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadLocais();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _loadLocais() {
-    final localController = Provider.of<LocalController>(context, listen: false);
-    localController.fetchLocais(_searchController.text, 'Brasil');
+    final localController =
+        Provider.of<LocalController>(context, listen: false);
+    String searchTerm = _searchController.text.trim();
+    String location = 'Brasil';
+    if (searchTerm.isNotEmpty) {
+      localController.fetchLocais(searchTerm, location);
+    } else {
+      localController.fetchLocais('', location);
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      final localController =
+          Provider.of<LocalController>(context, listen: false);
+      if (!localController.isLoading && !localController.finishLoading) {
+        _loadLocais();
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userService = Provider.of<UserService>(context);
-    final userId = userService.auth.currentUser?.uid;
-
-    if (userId == null) {
-      return const Center(child: Text("Usuário não autenticado."));
-    }
-
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFFDFEAF1),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
+        title: Text(
           'Explorar Locais',
           style: TextStyle(
-            color: Colors.black,
             fontFamily: 'Poppins',
-            fontSize: 35,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      body: SafeArea(
         child: Column(
           children: [
             Padding(
@@ -70,9 +80,18 @@ class _ExplorePageState extends State<ExplorePage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   labelText: 'Pesquisar por locais...',
+                  labelStyle: TextStyle(color: Colors.black),
+                  filled: true,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: _loadLocais,
+                    icon: Icon(Icons.search),
+                    onPressed: () {
+                      _loadLocais();
+                    },
                   ),
                 ),
               ),
@@ -80,8 +99,8 @@ class _ExplorePageState extends State<ExplorePage> {
             Expanded(
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
-                  if (controller.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                  if (controller.isLoading && controller.locais.isEmpty) {
+                    return Center(child: CircularProgressIndicator());
                   }
 
                   if (controller.errorMessage != null) {
@@ -89,24 +108,42 @@ class _ExplorePageState extends State<ExplorePage> {
                   }
 
                   if (controller.locais.isEmpty) {
-                    return const Center(child: Text('Nenhum local encontrado.'));
+                    return Center(child: Text('Nenhum local encontrado.'));
                   }
 
-                  return ListView.builder(
-                    itemCount: controller.locais.length,
-                    itemBuilder: (context, index) {
-                      final local = controller.locais[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            widget.onSelectedLocal(local);
-                            Navigator.pop(context);
-                          },
-                          child: LocalCard(local: local, favoritosService: FavoritosService(userId)),
-                        ),
-                      );
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (!controller.isLoading &&
+                          !controller.finishLoading &&
+                          scrollInfo.metrics.pixels ==
+                              scrollInfo.metrics.maxScrollExtent) {
+                        _loadLocais();
+                      }
+                      return true;
                     },
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: controller.locais.length +
+                          (controller.isLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == controller.locais.length) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        final local = controller.locais[index];
+
+                        final userId = 'user-id-aqui';
+
+                        final favoritosService = FavoritosService(userId);
+
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: LocalCard(
+                            local: local,
+                            favoritosService: favoritosService,
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
               ),

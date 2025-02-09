@@ -6,12 +6,14 @@ import '../widgets/local_card.dart';
 import 'explore.page.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/user.service.dart';
+
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
 
   @override
   _MenuPageState createState() => _MenuPageState();
 }
+
 class _MenuPageState extends State<MenuPage> {
   final TextEditingController _searchController = TextEditingController();
 
@@ -38,7 +40,6 @@ class _MenuPageState extends State<MenuPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,19 +51,65 @@ class _MenuPageState extends State<MenuPage> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage:
-                            NetworkImage('https://via.placeholder.com/40'),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/perfil');
+                        },
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage:
+                              NetworkImage('../assets/images/placeholder_image.png'),
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Olá, username',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: userService.getUserData(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text(
+                              'Carregando...',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }
+
+                          if (snapshot.hasError) {
+                            return const Text(
+                              'Erro ao carregar nome',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }
+
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const Text(
+                              'Nome não encontrado',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }
+
+                          final nome = snapshot.data!['nome'] ?? '';
+                          final primeiroNome = nome.split(' ').first;
+
+                          return Text(
+                            'Olá, $primeiroNome',
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -103,7 +150,6 @@ class _MenuPageState extends State<MenuPage> {
                         width: 40,
                         margin: const EdgeInsets.only(left: 8),
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 1, 168, 151),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -144,7 +190,7 @@ class _MenuPageState extends State<MenuPage> {
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 16,
-                        color: Colors.blue,
+                        color: Color(0xFF266B70),
                       ),
                     ),
                   ),
@@ -197,7 +243,7 @@ class _MenuPageState extends State<MenuPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildNavItem(Icons.home, 'Home', true),
-                    _buildNavItem(Icons.map_outlined, 'Itinerários', false),
+                    _buildNavItem(Icons.map, 'Itinerários', false),
                     _buildNavItem(Icons.search, 'Buscar', false),
                     _buildNavItem(Icons.star_border, 'Avaliações', false),
                     _buildNavItem(Icons.person_outline, 'Perfil', false),
@@ -228,6 +274,7 @@ class _MenuPageState extends State<MenuPage> {
                               print("Local selecionado: ${local.nome}");
                             },
                             )),
+
             );
             break;
           case 'Avaliações':

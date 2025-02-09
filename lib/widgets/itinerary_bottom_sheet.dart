@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/itinerario_model.dart';
+import '../models/local_model.dart';
 
 class ItineraryBottomSheet extends StatefulWidget {
+  final LocalModel local;
+
+  const ItineraryBottomSheet({super.key, required this.local});
+
   @override
   _ItineraryBottomSheetState createState() => _ItineraryBottomSheetState();
 }

@@ -9,7 +9,7 @@ import 'package:flutter_application_1/views/criar_itinerario.page.dart';
 class ItinerariosPage extends StatelessWidget {
   final String userId;
 
-  ItinerariosPage({required this.userId});
+  const ItinerariosPage({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -18,21 +18,23 @@ class ItinerariosPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFDFEAF1), // Cor de fundo
       appBar: AppBar(
-        backgroundColor: const Color(0xFFDFEAF1),
-        title: const Text('Itinerários'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CreateItinerarioPage(userId: userId),
-                ),
-              );
-            },
+        title: const Text(
+          'Itinerários',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
-        ],
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: itinerariosService.getItinerariosStream(),
@@ -42,22 +44,68 @@ class ItinerariosPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nenhum itinerário encontrado.'));
+            return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
           }
 
-          final itinerarios = snapshot.data!.docs.map((doc) {
-            return ItinerarioModel.fromFirestore(
-                doc.data() as Map<String, dynamic>);
+          final itinerarios = snapshot.data!.docs.map((doc) async {
+            var itinerarioData = doc.data() as Map<String, dynamic>;
+            var itinerarioId = doc.id;
+
+            List<ItinerarioItem> locais = [];
+            var locaisSnapshot = await itinerariosService.getLocaisByItinerarioId(itinerarioId);
+
+            for (var localDoc in locaisSnapshot.docs) {
+              var localData = localDoc.data() as Map<String, dynamic>;
+              locais.add(ItinerarioItem.fromFirestore(localData));
+            }
+
+            return ItinerarioModel.fromFirestore(itinerarioData, locais);
           }).toList();
 
-          return ListView.builder(
-            itemCount: itinerarios.length,
-            itemBuilder: (context, index) {
-              final itinerario = itinerarios[index];
-              return ItineraryCard(itinerario: itinerario);
+          return FutureBuilder(
+            future: Future.wait(itinerarios),
+            builder: (context, futureSnapshot) {
+              if (futureSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (futureSnapshot.hasError) {
+                return Center(child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}", style: TextStyle(fontFamily: 'Poppins')));
+              }
+
+              if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
+                return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
+              }
+
+              final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
+
+              return ListView.builder(
+                itemCount: itinerarios.length,
+                itemBuilder: (context, index) {
+                  final itinerario = itinerarios[index];
+                  return GestureDetector(
+                    onTap: () {
+                      // Handle card tap
+                    },
+                    child: ItineraryCard(itinerario: itinerario),
+                  );
+                },
+              );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateItinerarioPage(userId: userId),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF01A897),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
