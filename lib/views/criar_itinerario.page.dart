@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:flutter_application_1/models/itinerario_model.dart';
-import 'package:flutter/services.dart';
 
 class CreateItinerarioPage extends StatefulWidget {
   final String userId;
-  final ItinerarioModel? itinerario; // Adicionando o itinerário para edição
 
   const CreateItinerarioPage({super.key, required this.userId});
-  
+
   @override
   _CreateItinerarioPageState createState() => _CreateItinerarioPageState();
 }
@@ -19,15 +17,13 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   final _observationsController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
-  TextEditingController _timeController = TextEditingController();
-  bool _isLoading = false;
+  final _imageUrlController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final itinerariosService = ItinerariosService(widget.userId);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFDFEAF1),
       appBar: AppBar(
         title: Text(
           'Criar Itinerário',
@@ -194,36 +190,8 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextFormField(TextEditingController controller, String label,
-      bool isPassword, String? Function(String?) validator,
-      {List<TextInputFormatter>? inputFormatters}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width *
-            0.8, // Tamanho fixo para os campos
-        child: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: const TextStyle(color: Colors.black),
-            filled: true,
-            fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          obscureText: isPassword,
-          validator: validator,
-          inputFormatters: inputFormatters,
         ),
       ),
     );
