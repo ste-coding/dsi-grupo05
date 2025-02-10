@@ -269,7 +269,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
       floatingActionButton: FloatingActionButton(
         onPressed: _addNewLocal,
         tooltip: 'Adicionar Local',
-        backgroundColor: Color(0xFF266B70),
+        backgroundColor: const Color(0xFF01A897),
         child: const Icon(Icons.add, color: Colors.white),
       ),
         );

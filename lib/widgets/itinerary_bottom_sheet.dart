@@ -108,7 +108,8 @@ class _ItineraryBottomSheetState extends State<ItineraryBottomSheet> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF01A897),
+              backgroundColor: const Color(0xFF266B70),
+              foregroundColor: Colors.white,
               textStyle: const TextStyle(
                 fontFamily: 'Poppins',
                 color: Colors.white,

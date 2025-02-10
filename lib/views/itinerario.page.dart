@@ -36,7 +36,7 @@ class ItinerariosPage extends StatelessWidget {
           },
         ),
       ),
-body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
         stream: itinerariosService.getItinerariosStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

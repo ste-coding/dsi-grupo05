@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/local_model.dart';
+import 'explore.page.dart';
 import '../models/itinerario_model.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../widgets/itinerary_bottom_sheet.dart';
@@ -265,7 +266,14 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
           Navigator.pushNamed(context, '/itinerario');
           break;
         case 2:
-          Navigator.pushNamed(context, '/buscar');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ExplorePage(onSelectedLocal:(local) {
+                              print("Local selecionado: ${local.nome}");
+                            },
+                            )),
+
+            );
           break;
         case 3:
           Navigator.pushNamed(context, '/avaliacoes');

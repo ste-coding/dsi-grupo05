@@ -128,7 +128,7 @@ class _MenuPageState extends State<MenuPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Explore novos\nlugares.',
+                    'Explore novos lugares.',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 24,
