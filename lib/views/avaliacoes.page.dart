@@ -108,9 +108,11 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                         SnackBar(content: Text('Avaliação excluída', style: TextStyle(fontFamily: 'Poppins'))),
                       );
                     },
+                    
                     child: Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       child: ListTile(
+                        onTap: ()=> abrirTelaAvaliacao(index: index),
                         title: Text(avaliacao["local"], style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,10 +130,6 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
                               }),
                             ),
                           ],
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => abrirTelaAvaliacao(index: index),
                         ),
                       ),
                     ),

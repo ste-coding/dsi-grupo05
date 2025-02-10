@@ -32,7 +32,7 @@ class ItinerariosPage extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushNamed(context, '/menu');
           },
         ),
       ),

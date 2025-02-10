@@ -90,6 +90,7 @@ class _RoteiroTabState extends State<RoteiroTab> {
           style: TextStyle(
             fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
         centerTitle: true,

@@ -89,7 +89,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,
-                  fontSize: 32,
+                  fontSize: 24,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -160,6 +160,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
                             ),
                           ),
                           child: ListTile(
+                            onTap: () => _editTask(taskId, taskName),
                             leading: Checkbox(
                               value: completed,
                               onChanged: (value) {
@@ -174,10 +175,6 @@ class _ChecklistTabState extends State<ChecklistTab> {
                                     ? TextDecoration.lineThrough
                                     : TextDecoration.none,
                               ),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _editTask(taskId, taskName),
                             ),
                           ),
                         );
@@ -201,7 +198,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
             ),
           );
         },
-        backgroundColor: const Color(0xFF266B70),
+        backgroundColor: const Color(0xFF01A897),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -264,14 +261,21 @@ class AddTaskPage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _addTask(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF266B70),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Salvar', style: TextStyle(fontFamily: 'Poppins', color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF266B70),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+              child: const Text(
+                'Salvar', 
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16, 
+                  color: Colors.white)
+                  ),
             ),
           ],
         ),
@@ -334,14 +338,21 @@ class EditTaskPage extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => _editTask(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF266B70),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Salvar', style: TextStyle(fontFamily: 'Poppins')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF266B70),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+              child: const Text(
+                'Salvar', 
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16, 
+                  color: Colors.white)
+                  ),
             ),
           ],
         ),

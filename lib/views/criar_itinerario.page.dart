@@ -175,10 +175,10 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                       Navigator.pop(context);
                     }
                   },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Color(0xFF266B70), width: 2),
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                  style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF266B70),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -186,7 +186,9 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                   child: Text(
                     'Salvar',
                     style: TextStyle(
-                        fontFamily: 'Poppins', fontSize: 18, color: Colors.white),
+                        fontFamily: 'Poppins',
+                        fontSize: 18, 
+                        color: Colors.white),
                   ),
                 ),
               ),
