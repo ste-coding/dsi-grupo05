@@ -16,7 +16,7 @@ class ItinerariosPage extends StatelessWidget {
     final itinerariosService = ItinerariosService(userId);
 
     return Scaffold(
-      backgroundColor: Color(0xFFDFEAF1), // Cor de fundo
+      backgroundColor: Colors.white, // Cor de fundo
       appBar: AppBar(
         title: const Text(
           'Itinerários',
@@ -36,7 +36,7 @@ class ItinerariosPage extends StatelessWidget {
           },
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+body: StreamBuilder<QuerySnapshot>(
         stream: itinerariosService.getItinerariosStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -44,7 +44,9 @@ class ItinerariosPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
+            return const Center(
+                child: Text('Nenhum itinerário encontrado.',
+                    style: TextStyle(fontFamily: 'Poppins')));
           }
 
           final itinerarios = snapshot.data!.docs.map((doc) async {
@@ -52,7 +54,8 @@ class ItinerariosPage extends StatelessWidget {
             var itinerarioId = doc.id;
 
             List<ItinerarioItem> locais = [];
-            var locaisSnapshot = await itinerariosService.getLocaisByItinerarioId(itinerarioId);
+            var locaisSnapshot =
+                await itinerariosService.getLocaisByItinerarioId(itinerarioId);
 
             for (var localDoc in locaisSnapshot.docs) {
               var localData = localDoc.data() as Map<String, dynamic>;
@@ -70,11 +73,15 @@ class ItinerariosPage extends StatelessWidget {
               }
 
               if (futureSnapshot.hasError) {
-                return Center(child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}", style: TextStyle(fontFamily: 'Poppins')));
+                return Center(
+                    child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}",
+                        style: TextStyle(fontFamily: 'Poppins')));
               }
 
               if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
-                return const Center(child: Text('Nenhum itinerário encontrado.', style: TextStyle(fontFamily: 'Poppins')));
+                return const Center(
+                    child: Text('Nenhum itinerário encontrado.',
+                        style: TextStyle(fontFamily: 'Poppins')));
               }
 
               final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
@@ -83,11 +90,29 @@ class ItinerariosPage extends StatelessWidget {
                 itemCount: itinerarios.length,
                 itemBuilder: (context, index) {
                   final itinerario = itinerarios[index];
-                  return GestureDetector(
-                    onTap: () {
-                      // Handle card tap
+                  return Dismissible(
+                    key: Key(itinerario.id ?? ''),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) async {
+                      await itinerariosService.deleteItinerario(itinerario.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Itinerário '${itinerario.titulo}' excluído."),
+                        ),
+                      );
                     },
-                    child: ItineraryCard(itinerario: itinerario),
+                    child: GestureDetector(
+                      onTap: () {
+                        // Handle card tap
+                      },
+                      child: ItineraryCard(itinerario: itinerario),
+                    ),
                   );
                 },
               );

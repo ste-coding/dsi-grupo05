@@ -25,7 +25,17 @@ class FavoritesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Locais Favoritos'),
+        title: Text(
+          'Favoritos',
+            style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
       ),
       body: StreamBuilder<List<FavoritoModel>>(
         stream: favoritosService.getFavoritosStream(),

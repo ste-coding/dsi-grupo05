@@ -242,13 +242,13 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
       backgroundColor: Colors.white,
       ),
       BottomNavigationBarItem(
-      icon: Icon(Icons.chat),
+      icon: Icon(Icons.star_border),
       label: 'Avaliações',
       tooltip: 'Avaliações',
       backgroundColor: Colors.white,
       ),
       BottomNavigationBarItem(
-      icon: Icon(Icons.person),
+      icon: Icon(Icons.person_outline),
       label: 'Perfil',
       tooltip: 'Perfil',
       backgroundColor: Colors.white,

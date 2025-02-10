@@ -52,36 +52,37 @@ class ItinerariosService {
   }
 
   Future<ItinerarioModel> getItinerarioWithLocais(String itinerarioId) async {
-  try {
-    DocumentSnapshot itinerarioDoc = await _firestore
-        .collection('viajantes')
-        .doc(itinerarioId)
-        .get();
+    try {
+      DocumentSnapshot itinerarioDoc = await _firestore
+          .collection('viajantes')
+          .doc(itinerarioId)
+          .get();
 
-    if (!itinerarioDoc.exists) {
-      throw Exception('Itinerário não encontrado para o ID: $itinerarioId');
+      if (!itinerarioDoc.exists) {
+        throw Exception('Itinerário não encontrado para o ID: $itinerarioId');
+      }
+
+      var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
+
+      List<ItinerarioItem> locais = [];
+      var locaisSnapshot = await _firestore
+          .collection('viajantes')
+          .doc(itinerarioId)
+          .collection('roteiro')
+          .get();
+
+      for (var localDoc in locaisSnapshot.docs) {
+        var localData = localDoc.data();
+        locais.add(ItinerarioItem.fromFirestore(localData));
+      }
+
+      return ItinerarioModel.fromFirestore(itinerarioData, locais);
+    } catch (e) {
+      print("Erro ao carregar itinerário com locais: $e");
+      throw Exception('Erro ao carregar itinerário: $e');
     }
-
-    var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
-
-    List<ItinerarioItem> locais = [];
-    var locaisSnapshot = await _firestore
-        .collection('viajantes')
-        .doc(itinerarioId)
-        .collection('roteiro')
-        .get();
-
-    for (var localDoc in locaisSnapshot.docs) {
-      var localData = localDoc.data();
-      locais.add(ItinerarioItem.fromFirestore(localData));
-    }
-
-    return ItinerarioModel.fromFirestore(itinerarioData, locais);
-  } catch (e) {
-    print("Erro ao carregar itinerário com locais: $e");
-    throw Exception('Erro ao carregar itinerário: $e');
   }
-}
+
   Stream<QuerySnapshot> getItinerariosStream() {
     return itinerarios.orderBy('startDate', descending: true).snapshots();
   }
@@ -95,6 +96,16 @@ class ItinerariosService {
           .get();
     } catch (e) {
       print("Erro ao obter locais para itinerário $itinerarioId: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> deleteItinerario(String itinerarioId) async {
+    try {
+      await itinerarios.doc(itinerarioId).delete();
+      print("Itinerário $itinerarioId excluído com sucesso.");
+    } catch (e) {
+      print("Erro ao excluir itinerário: $e");
       rethrow;
     }
   }

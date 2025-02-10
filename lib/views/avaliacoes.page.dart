@@ -51,7 +51,13 @@ class _AvaliacoesPageState extends State<AvaliacoesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minhas avaliações', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+        title: const Text('Minhas avaliações',
+         style: TextStyle(
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.bold,
+          fontSize: 24,
+          )
+          ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
