@@ -1,11 +1,15 @@
+import 'dart:typed_data';
+import 'dart:convert'; 
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Uint8List? profileImage;
+  
 
-  // Getter para acessar o _auth
   FirebaseAuth get auth => _auth;
 
   DocumentReference get userRef {
@@ -42,12 +46,14 @@ class UserService {
     return querySnapshot.docs.isNotEmpty;
   }
 
-  Future<void> createUserDocument(User user, String nome, String cpf) async {
+  Future<void> createUserDocument(User user, String nome, String cpf, Uint8List? profileImage) async {
     try {
+      String? profilePictureBase64 = profileImage != null ? base64Encode(profileImage) : null;
       await _firestore.collection('users').doc(user.uid).set({
         'email': user.email,
         'nome': nome,
         'cpf': cpf,
+        'profilePicture': profilePictureBase64,
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {

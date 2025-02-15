@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../controller/local_controller.dart';
 import '../models/local_model.dart';
@@ -50,31 +51,55 @@ class _MenuPageState extends State<MenuPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    children: [
-                      InkWell(
+                  children: [
+                    FutureBuilder<Map<String, dynamic>?>(
+                    future: userService.getUserData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.grey,
+                      );
+                      }
+
+                      if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                      return const CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.grey,
+                      );
+                      }
+
+                      final userData = snapshot.data!;
+                      final profilePictureBase64 = userData['profilePicture'];
+                      final profileImage = profilePictureBase64 != null
+                          ? Image.memory(base64Decode(profilePictureBase64)).image
+                          : const AssetImage('../assets/images/placeholder_image.png');
+
+                      return InkWell(
                         onTap: () {
                           Navigator.pushNamed(context, '/perfil');
                         },
                         child: CircleAvatar(
                           radius: 20,
-                          backgroundImage:
-                              NetworkImage('../assets/images/placeholder_image.png'),
+                          backgroundImage: profileImage,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      FutureBuilder<Map<String, dynamic>?>(
-                        future: userService.getUserData(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Text(
-                              'Carregando...',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            );
-                          }
+                      );
+                    },
+                    ),
+                    const SizedBox(width: 8),
+                    FutureBuilder<Map<String, dynamic>?>(
+                    future: userService.getUserData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        'Carregando...',
+                        style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        ),
+                      );
+                      }
 
                           if (snapshot.hasError) {
                             return const Text(

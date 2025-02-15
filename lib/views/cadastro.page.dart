@@ -185,11 +185,12 @@ class _CadastroPageState extends State<CadastroPage> {
             _cpfController.text,
             _nomeController.text,
           );
-          if (user != null) {
+            if (user != null) {
             await _userService.createUserDocument(
               user,
               _nomeController.text,
               _cpfController.text,
+              null, // profileImage
             );
             Navigator.pushReplacementNamed(context, '/inicial');
           } else {
