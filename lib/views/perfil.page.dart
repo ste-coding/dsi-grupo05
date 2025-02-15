@@ -1,11 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore;
 import 'package:brasil_fields/brasil_fields.dart';
-import 'package:path_provider/path_provider.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -18,7 +21,7 @@ class _PerfilPageState extends State<PerfilPage> {
   String _firstName = '';
   String _email = '';
   String _cpf = '';
-  String? _profileImagePath;
+  String? _profileImageBase64;
   final UserService _userService = UserService();
   final AuthController _authController = AuthController();
 
@@ -41,7 +44,7 @@ class _PerfilPageState extends State<PerfilPage> {
         _firstName = userData['nome'];
         _email = userData['email'];
         _cpf = maskFormatter(userData['cpf']);
-        _profileImagePath = userData['profileImagePath'];
+        _profileImageBase64 = userData['profilePicture'];
         _firstNameController.text = _firstName;
         _emailController.text = _email;
         _cpfController.text = _cpf;
@@ -49,28 +52,22 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
-  Future<void> _saveProfileImage(File image) async {
+  Future<void> _updateProfileImage(Uint8List imageBytes) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath = '${directory.path}/profile_image.png';
-      await image.copy(imagePath);
-      await _userService.userRef.update({'profileImagePath': imagePath});
-      setState(() {
-        _profileImagePath = imagePath;
+      String base64image = base64Encode(imageBytes);
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'profilePicture': base64image,
       });
+      setState(() {
+        _profileImageBase64 = base64image;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imagem atualizada com sucesso!')),
+      );
     } catch (e) {
-      print('Erro ao salvar imagem de perfil: $e');
-    }
-  }
-
-  Future<void> _deleteAccount() async {
-    try {
-      await _authController.signOut();
-      await _userService.userRef.delete();
-      await FirebaseAuth.instance.currentUser!.delete();
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      print('Erro ao excluir conta: $e');
+      print('Erro ao atualizar imagem: $e');
     }
   }
 
@@ -78,8 +75,8 @@ class _PerfilPageState extends State<PerfilPage> {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      final file = File(image.path);
-      await _saveProfileImage(file);
+      final bytes = await image.readAsBytes();
+      await _updateProfileImage(bytes);
     }
   }
 
@@ -100,6 +97,17 @@ class _PerfilPageState extends State<PerfilPage> {
       );
     } catch (e) {
       print('Erro ao atualizar dados: $e');
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      await _authController.signOut();
+      await _userService.userRef.delete();
+      await FirebaseAuth.instance.currentUser!.delete();
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      print('Erro ao excluir conta: $e');
     }
   }
 
@@ -138,10 +146,10 @@ class _PerfilPageState extends State<PerfilPage> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey[300],
-                    backgroundImage: _profileImagePath != null
-                        ? FileImage(File(_profileImagePath!))
+                    backgroundImage: _profileImageBase64 != null
+                        ? MemoryImage(base64Decode(_profileImageBase64!))
                         : null,
-                    child: _profileImagePath == null
+                    child: _profileImageBase64 == null
                         ? Icon(Icons.camera_alt, color: Colors.white)
                         : null,
                   ),
@@ -191,44 +199,48 @@ class _PerfilPageState extends State<PerfilPage> {
               ),
               SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Color(0xFF266B70), width: 2),
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Color(0xFF266B70), width: 2),
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      "Cancelar",
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        color: Color(0xFF266B70),
+                      child: Text(
+                        "Cancelar",
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Color(0xFF266B70),
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _updateUserData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Color(0xFF266B70),
-                      side: BorderSide(color: Color(0xFF266B70), width: 2),
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _updateUserData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Color(0xFF266B70),
+                        side: BorderSide(color: Color(0xFF266B70), width: 2),
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      "Salvar",
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        color: Color(0xFF266B70),
+                      child: Text(
+                        "Salvar",
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Color(0xFF266B70),
+                        ),
                       ),
                     ),
                   ),
