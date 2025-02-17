@@ -156,12 +156,12 @@ class AvaliacaoFormPage extends StatefulWidget {
   final Function(Map<String, dynamic>) onSave;
 
   const AvaliacaoFormPage({
-    Key? key,
+    super.key,
     this.index,
     this.avaliacao,
     required this.locaisVisitados,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _AvaliacaoFormPageState createState() => _AvaliacaoFormPageState();

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class ItineraryBottomSheet extends StatefulWidget {
   final LocalModel local;
 
-  const ItineraryBottomSheet({Key? key, required this.local}) : super(key: key);
+  const ItineraryBottomSheet({super.key, required this.local});
 
   @override
   _ItineraryBottomSheetState createState() => _ItineraryBottomSheetState();

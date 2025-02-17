@@ -100,7 +100,7 @@ class ItinerariosPage extends StatelessWidget {
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
                     onDismissed: (direction) async {
-                      await itinerariosService.deleteItinerario(itinerario.id!);
+                      await itinerariosService.deleteItinerario(itinerario.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Itinerário '${itinerario.titulo}' excluído."),

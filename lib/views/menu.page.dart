@@ -27,7 +27,7 @@ class _MenuPageState extends State<MenuPage> {
   void _loadLocais() {
     final localController =
         Provider.of<LocalController>(context, listen: false);
-    localController.fetchLocais('', 'Brasil');
+    localController.fetchLocais('','Brasil');
   }
 
   @override
@@ -271,7 +271,7 @@ class _MenuPageState extends State<MenuPage> {
                     _buildNavItem(Icons.map, 'Itinerários', false),
                     _buildNavItem(Icons.search, 'Buscar', false),
                     _buildNavItem(Icons.star_border, 'Avaliações', false),
-                    _buildNavItem(Icons.person_outline, 'Perfil', false),
+                    _buildNavItem(Icons.gps_fixed, 'Mapa', false),
                   ],
                 ),
               ),
@@ -305,8 +305,8 @@ class _MenuPageState extends State<MenuPage> {
           case 'Avaliações':
             Navigator.pushNamed(context, '/avaliacoes');
             break;
-          case 'Perfil':
-            Navigator.pushNamed(context, '/perfil');
+          case 'Mapa':
+            Navigator.pushNamed(context, '/mapa');
             break;
         }
       },

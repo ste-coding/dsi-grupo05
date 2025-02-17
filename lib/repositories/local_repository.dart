@@ -29,7 +29,7 @@ class LocalRepository {
 
   Future<Either<String, LocalDetailModel>> fetchLocalDetalhes(String fsqId) async {
     try {
-      final localDetalhesJson = await _foursquareService.fetchLocalDetails(fsqId);
+      final localDetalhesJson = await _foursquareService.fetchLocalDetails(fsqId) as Map<String, dynamic>;
 
       return Right(LocalDetailModel.fromJson(localDetalhesJson));
     } catch (e) {
