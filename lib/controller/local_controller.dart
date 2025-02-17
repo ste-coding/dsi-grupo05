@@ -11,6 +11,7 @@ import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../models/itinerario_model.dart';
 
+
 class LocalController with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final LocalRepository repository;
@@ -156,12 +157,14 @@ class LocalController with ChangeNotifier {
       );
 
       _locaisProximos.clear();
-      _locaisProximos.addAll(places
-          .where((place) => place.latitude != 0.0 && place.longitude != 0.0)
-          .toList());
+      _locaisProximos.addAll(places.where((place) => 
+        place.latitude != 0.0 && place.longitude != 0.0
+      ).toList());
+
 
       _isLoading = false;
       notifyListeners();
+
     } catch (e) {
       _errorMessage = "Erro ao carregar locais próximos: $e";
       _isLoading = false;
@@ -213,8 +216,7 @@ class LocalController with ChangeNotifier {
           .collection('itinerarios')
           .get();
 
-      print(
-          "Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
+      print("Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
 
       if (snapshot.docs.isEmpty) {
         print("Nenhum itinerário encontrado.");
