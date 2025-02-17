@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import '../services/foursquare_service.dart';
+
 import '../models/local_model.dart';
 import '../models/local_response_model.dart';
 import '../repositories/local_repository.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../models/itinerario_model.dart';
+
 
 class LocalController with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,12 +22,15 @@ class LocalController with ChangeNotifier {
   bool _finishLoading = false;
   String? _errorMessage;
   final List<LocalModel> _locais = [];
+  final List<LocalModel> _locaisProximos = [];
   int _page = 0;
+  Position? _userPosition;
 
   bool get isLoading => _isLoading;
   bool get finishLoading => _finishLoading;
   String? get errorMessage => _errorMessage;
   List<LocalModel> get locais => _locais;
+  List<LocalModel> get locaisProximos => _locaisProximos;
 
   LocalController(
       this.repository, this.favoritosService, this.itinerariosService);
@@ -33,6 +40,136 @@ class LocalController with ChangeNotifier {
     _page = 0;
     _finishLoading = false;
     notifyListeners();
+  }
+
+  Future<void> _initializeLocation() async {
+    final hasPermission = await _checkLocationPermission();
+    if (!hasPermission) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      _userPosition = position;
+      _isLoading = false;
+      notifyListeners();
+
+      // Buscar locais próximos
+      await fetchLocaisProximos();
+
+      Geolocator.getPositionStream().listen((position) {
+        _userPosition = position;
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = 'Erro ao obter localização: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _checkLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _errorMessage = 'Ative os serviços de localização';
+      notifyListeners();
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _errorMessage = 'Permissão de localização negada';
+        notifyListeners();
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _errorMessage = 'Permissão permanente negada. Ative nas configurações';
+      await Geolocator.openAppSettings();
+      notifyListeners();
+    }
+
+    return true;
+  }
+
+  Future<void> fetchLocais(String query, String location) async {
+    if (_isLoading || _finishLoading) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _initializeLocation();
+
+      final result =
+          await repository.fetchLocais(query, location, offset: _page * 20);
+
+      result.fold(
+        (error) {
+          _errorMessage = error;
+          _isLoading = false;
+          notifyListeners();
+        },
+        (response) {
+          if (response.locais.isEmpty) {
+            _finishLoading = true;
+          } else {
+            _locais.addAll(response.locais);
+            _page++;
+          }
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Erro ao carregar locais: $e";
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchLocaisProximos() async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      if (_userPosition == null) {
+        await _initializeLocation();
+      }
+
+      if (_userPosition == null) {
+        _errorMessage = 'Não foi possível obter a localização atual';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final places = await FoursquareService().fetchPlaces(
+        '',
+        '${_userPosition!.latitude},${_userPosition!.longitude}',
+      );
+
+      _locaisProximos.clear();
+      _locaisProximos.addAll(places.where((place) => 
+        place.latitude != 0.0 && place.longitude != 0.0
+      ).toList());
+
+
+      _isLoading = false;
+      notifyListeners();
+
+    } catch (e) {
+      _errorMessage = "Erro ao carregar locais próximos: $e";
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> addToFavoritos(String localId) async {
@@ -65,90 +202,56 @@ class LocalController with ChangeNotifier {
     }
   }
 
-  Future<void> fetchLocais(String query, String location) async {
-    if (_isLoading || _finishLoading) return;
+  Future<List<ItinerarioModel>> getUserItinerarios() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        print("Usuário não autenticado");
+        return [];
+      }
 
-    _isLoading = true;
-    notifyListeners();
-
-    final result =
-        await repository.fetchLocais(query, location, offset: _page * 20);
-
-    result.fold(
-      (error) {
-        _errorMessage = error;
-        _isLoading = false;
-        notifyListeners();
-      },
-      (response) {
-        if (response.locais.isEmpty) {
-          _finishLoading = true;
-        } else {
-          _locais.addAll(response.locais);
-          _page++;
-        }
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
-  }
-
-  // Função para buscar os itinerários do usuário
-Future<List<ItinerarioModel>> getUserItinerarios() async {
-  try {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) {
-      print("Usuário não autenticado");
-      return [];
-    }
-
-    // Buscar itinerários do Firestore
-    final snapshot = await _firestore
-        .collection('viajantes')
-        .doc(userId)
-        .collection('itinerarios')
-        .get();
-
-    print("Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
-
-    if (snapshot.docs.isEmpty) {
-      print("Nenhum itinerário encontrado.");
-      return [];
-    }
-
-    List<ItinerarioModel> itinerarios = [];
-
-    for (var doc in snapshot.docs) {
-      var itinerarioData = doc.data();
-      String itinerarioId = doc.id;
-
-      // Buscar os locais do itinerário na subcoleção 'roteiro'
-      var locaisSnapshot = await _firestore
+      final snapshot = await _firestore
           .collection('viajantes')
           .doc(userId)
           .collection('itinerarios')
-          .doc(itinerarioId)
-          .collection('roteiro')
           .get();
 
-      List<ItinerarioItem> locais = locaisSnapshot.docs
-          .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data()))
-          .toList();
+      print("Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
 
-      // Agora, criamos o itinerário passando os locais encontrados
-      itinerarios.add(ItinerarioModel.fromFirestore(itinerarioData, locais));
+      if (snapshot.docs.isEmpty) {
+        print("Nenhum itinerário encontrado.");
+        return [];
+      }
+
+      List<ItinerarioModel> itinerarios = [];
+
+      for (var doc in snapshot.docs) {
+        var itinerarioData = doc.data();
+        String itinerarioId = doc.id;
+
+        var locaisSnapshot = await _firestore
+            .collection('viajantes')
+            .doc(userId)
+            .collection('itinerarios')
+            .doc(itinerarioId)
+            .collection('roteiro')
+            .get();
+
+        List<ItinerarioItem> locais = locaisSnapshot.docs
+            .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data()))
+            .toList();
+
+        itinerarios.add(ItinerarioModel.fromFirestore(itinerarioData, locais));
+      }
+
+      print("Itinerários carregados: ${itinerarios.length}");
+      return itinerarios;
+    } catch (e) {
+      print('Erro ao buscar itinerários: $e');
+      return [];
     }
-
-    print("Itinerários carregados: ${itinerarios.length}");
-    return itinerarios;
-  } catch (e) {
-    print('Erro ao buscar itinerários: $e');
-    return [];
   }
-}
 
-
-  // Função para adicionar local ao itinerário
   Future<void> addLocalToRoteiro(
       String itinerarioId, LocalModel local, DateTime visitDate) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -172,7 +275,7 @@ Future<List<ItinerarioModel>> getUserItinerarios() async {
     final itinerarioItem = ItinerarioItem(
       localId: local.id,
       localName: local.nome,
-      visitDate: visitDate, // Usando a data selecionada
+      visitDate: visitDate,
       comment: 'Comentário opcional',
     );
 
