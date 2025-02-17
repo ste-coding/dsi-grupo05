@@ -210,7 +210,7 @@ class AddTaskPage extends StatelessWidget {
   final String itinerarioId;
   final TextEditingController _taskController = TextEditingController();
 
-  AddTaskPage({required this.checklistService, required this.itinerarioId});
+  AddTaskPage({super.key, required this.checklistService, required this.itinerarioId});
 
   void _addTask(BuildContext context) async {
     final taskName = _taskController.text.trim();
@@ -290,7 +290,7 @@ class EditTaskPage extends StatelessWidget {
   final ChecklistService checklistService;
   final TextEditingController _taskController = TextEditingController();
 
-  EditTaskPage({required this.docID, required this.currentTask, required this.checklistService}) {
+  EditTaskPage({super.key, required this.docID, required this.currentTask, required this.checklistService}) {
     _taskController.text = currentTask;
   }
 

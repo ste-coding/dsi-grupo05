@@ -5,6 +5,7 @@ import 'package:flutter_application_1/views/login.page.dart';
 import 'package:flutter_application_1/views/cadastro.page.dart';
 import 'package:flutter_application_1/views/inicial.page.dart';
 import 'package:flutter_application_1/views/menu.page.dart';
+import 'package:flutter_application_1/views/open_street_map.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
 import 'package:flutter_application_1/views/avaliacoes.page.dart';
@@ -89,6 +90,7 @@ class MyApp extends StatelessWidget {
           '/favoritos': (context) => const FavoritesPage(),
           '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
+          '/mapa': (context) => const OpenStreetMapPage(),
         },
       ),
     );
