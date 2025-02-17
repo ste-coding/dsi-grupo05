@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_application_1/models/itinerario_model.dart';
 import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:flutter_application_1/widgets/itinerario_card.dart';
 import 'package:flutter_application_1/views/criar_itinerario.page.dart';
+import 'package:flutter_application_1/views/itinerario_detalhes.page.dart';
+import 'package:flutter_application_1/views/checklist_page.dart';
 
 class ItinerariosPage extends StatelessWidget {
   final String userId;
@@ -16,7 +17,7 @@ class ItinerariosPage extends StatelessWidget {
     final itinerariosService = ItinerariosService(userId);
 
     return Scaffold(
-      backgroundColor: Colors.white, // Cor de fundo
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Itinerários',
@@ -45,8 +46,9 @@ class ItinerariosPage extends StatelessWidget {
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-                child: Text('Nenhum itinerário encontrado.',
-                    style: TextStyle(fontFamily: 'Poppins')));
+              child: Text('Nenhum itinerário encontrado.',
+                  style: TextStyle(fontFamily: 'Poppins')),
+            );
           }
 
           final itinerarios = snapshot.data!.docs.map((doc) async {
@@ -74,14 +76,18 @@ class ItinerariosPage extends StatelessWidget {
 
               if (futureSnapshot.hasError) {
                 return Center(
-                    child: Text("Erro ao carregar itinerários: ${futureSnapshot.error}",
-                        style: TextStyle(fontFamily: 'Poppins')));
+                  child: Text(
+                    "Erro ao carregar itinerários: ${futureSnapshot.error}",
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                );
               }
 
               if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
                 return const Center(
-                    child: Text('Nenhum itinerário encontrado.',
-                        style: TextStyle(fontFamily: 'Poppins')));
+                  child: Text('Nenhum itinerário encontrado.',
+                      style: TextStyle(fontFamily: 'Poppins')),
+                );
               }
 
               final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
@@ -90,8 +96,12 @@ class ItinerariosPage extends StatelessWidget {
                 itemCount: itinerarios.length,
                 itemBuilder: (context, index) {
                   final itinerario = itinerarios[index];
+
+                  String itinerarioId =
+                      itinerario.id ?? 'id_${index.toString()}';
+
                   return Dismissible(
-                    key: Key(itinerario.id ?? ''),
+                    key: Key(itinerarioId),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       color: Colors.red,
@@ -100,18 +110,53 @@ class ItinerariosPage extends StatelessWidget {
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
                     onDismissed: (direction) async {
-                      await itinerariosService.deleteItinerario(itinerario.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Itinerário '${itinerario.titulo}' excluído."),
-                        ),
-                      );
+                      if (itinerario.id != null) {
+                        await itinerariosService
+                            .deleteItinerario(itinerario.id!);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                "Itinerário '${itinerario.titulo}' excluído."),
+                          ),
+                        );
+                      }
                     },
-                    child: GestureDetector(
-                      onTap: () {
-                        // Handle card tap
-                      },
-                      child: ItineraryCard(itinerario: itinerario),
+                    child: Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ItinerarioDetalhesPage(
+                                  itinerario: itinerario,
+                                ),
+                              ),
+                            );
+                          },
+                          child: ItineraryCard(itinerario: itinerario),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.checklist,
+                                color: Color(0xFF266B70), size: 28),
+                            onPressed: () {
+                              if (itinerario.id != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChecklistPage(
+                                      itinerarioId: itinerario.id!,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },

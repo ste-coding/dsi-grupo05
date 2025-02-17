@@ -14,7 +14,8 @@ class LocalRepository {
       String query, String location,
       {int offset = 0}) async {
     try {
-      final locais = await _foursquareService.fetchPlaces(query, location, offset: offset);
+      final locais =
+          await _foursquareService.fetchPlaces(query, location, offset: offset);
 
       return Right(LocalResponseModel(
         totalLocais: locais.length,
@@ -27,9 +28,11 @@ class LocalRepository {
     }
   }
 
-  Future<Either<String, LocalDetailModel>> fetchLocalDetalhes(String fsqId) async {
+  Future<Either<String, LocalDetailModel>> fetchLocalDetalhes(
+      String fsqId) async {
     try {
-      final localDetalhesJson = await _foursquareService.fetchLocalDetails(fsqId) as Map<String, dynamic>;
+      final localDetalhesJson =
+          await _foursquareService.fetchLocalDetails(fsqId);
 
       return Right(LocalDetailModel.fromJson(localDetalhesJson));
     } catch (e) {

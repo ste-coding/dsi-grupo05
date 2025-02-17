@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/firestore/itinerarios.service.dart';
 import 'package:flutter_application_1/models/itinerario_model.dart';
+import 'package:intl/intl.dart';
 
 class CreateItinerarioPage extends StatefulWidget {
   final String userId;
@@ -17,182 +18,206 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   final _observationsController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
-  final _imageUrlController = TextEditingController();
+  late ItinerariosService itinerariosService;
+
+  @override
+  void initState() {
+    super.initState();
+    itinerariosService = ItinerariosService(widget.userId);
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData(
+            primaryColor: const Color(0xFF266B70),
+            colorScheme: ColorScheme.light(primary: const Color(0xFF266B70)),
+            buttonTheme:
+                const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final itinerariosService = ItinerariosService(widget.userId);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Criar Itinerário',
           style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+              fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _tituloController,
-                decoration: InputDecoration(
-                  labelText: 'Título',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira um título.';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _observationsController,
-                decoration: InputDecoration(
-                  labelText: 'Observações',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(
-                  labelText: 'URL da Imagem',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Row(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  TextButton(
-                    onPressed: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          _startDate = date;
-                        });
-                      }
-                    },
-                    child: Text(
-                      _startDate == null ? 'Início' : _startDate!.toIso8601String(),
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        color: Color(0xFF266B70),
+                  TextFormField(
+                    controller: _tituloController,
+                    decoration: InputDecoration(
+                      labelText: 'Título',
+                      labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    cursorColor: Colors.black,
+                    textAlign: TextAlign.left,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Insira um título'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _observationsController,
+                    decoration: InputDecoration(
+                      labelText: 'Observações',
+                      labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    cursorColor: Colors.black,
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Selecione as Datas',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Column(
+                                children: [
+                                  const Text('Data de Início',
+                                      style:
+                                          TextStyle(color: Color(0xFF266B70))),
+                                  TextButton(
+                                    onPressed: () => _selectDate(context, true),
+                                    child: Text(
+                                      _startDate == null
+                                          ? 'Selecione'
+                                          : DateFormat('dd/MM/yyyy')
+                                              .format(_startDate!),
+                                      style: const TextStyle(
+                                          color: Color(0xFF266B70)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  const Text('Data de Fim',
+                                      style:
+                                          TextStyle(color: Color(0xFF266B70))),
+                                  TextButton(
+                                    onPressed: () =>
+                                        _selectDate(context, false),
+                                    child: Text(
+                                      _endDate == null
+                                          ? 'Selecione'
+                                          : DateFormat('dd/MM/yyyy')
+                                              .format(_endDate!),
+                                      style: const TextStyle(
+                                          color: Color(0xFF266B70)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
-                  TextButton(
-                    onPressed: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (date != null) {
-                        setState(() {
-                          _endDate = date;
-                        });
-                      }
-                    },
-                    child: Text(
-                      _endDate == null ? 'Fim' : _endDate!.toIso8601String(),
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        color: Color(0xFF266B70),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: 200,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate() &&
+                            _startDate != null &&
+                            _endDate != null) {
+                          if (_startDate!.isAfter(_endDate!)) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'A data de início deve ser antes da data de fim.')),
+                            );
+                            return;
+                          }
+
+                          final itinerario = ItinerarioModel(
+                            id: '',
+                            userId: widget.userId,
+                            titulo: _tituloController.text,
+                            startDate: _startDate!,
+                            endDate: _endDate!,
+                            observations: _observationsController.text,
+                            locais: [],
+                          );
+
+                          await itinerariosService
+                              .addItinerario(itinerario.toFirestore());
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF266B70),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: const Text('Salvar',
+                          style: TextStyle(color: Colors.white, fontSize: 18)),
                     ),
                   ),
                 ],
               ),
-              Spacer(),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.4,
-                child: OutlinedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate() &&
-                        _startDate != null &&
-                        _endDate != null) {
-                      if (_startDate!.isAfter(_endDate!)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'A data de início deve ser antes da data de fim.')),
-                        );
-                        return;
-                      }
-
-                      final itinerario = ItinerarioModel(
-                        id: '', //ver se está gerando o id automatico
-                        userId: widget.userId,
-                        titulo: _tituloController.text,
-                        startDate: _startDate!,
-                        endDate: _endDate!,
-                        observations: _observationsController.text,
-                        imageUrl: _imageUrlController.text,
-                        locais: [],
-                      );
-
-                      await itinerariosService.addItinerario(itinerario.toFirestore());
-                      Navigator.pop(context);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF266B70),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Salvar',
-                    style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 18, 
-                        color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
