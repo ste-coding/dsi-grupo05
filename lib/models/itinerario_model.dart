@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ItinerarioModel {
-  final String id;
-  final String userId;
-  final String titulo;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String observations;
-  final String imageUrl;
-  final List<ItinerarioItem> locais;
+  String id;
+  String userId;
+  String titulo;
+  DateTime startDate;
+  DateTime endDate;
+  String observations;
+  String? imageUrl;
+  List<ItinerarioItem> locais;
 
   ItinerarioModel({
     required this.id,
@@ -17,11 +17,12 @@ class ItinerarioModel {
     required this.startDate,
     required this.endDate,
     required this.observations,
-    required String imageUrl,
+    this.imageUrl,
     required this.locais,
-  }) : imageUrl = imageUrl.isNotEmpty ? imageUrl : 'assets/images/placeholder_image.png';
+  });
 
-  factory ItinerarioModel.fromFirestore(Map<String, dynamic> data, List<ItinerarioItem> locais) {
+  factory ItinerarioModel.fromFirestore(
+      Map<String, dynamic> data, List<ItinerarioItem> locais) {
     return ItinerarioModel(
       id: data['id'],
       userId: data['userId'],
@@ -29,7 +30,7 @@ class ItinerarioModel {
       startDate: (data['startDate'] as Timestamp).toDate(),
       endDate: (data['endDate'] as Timestamp).toDate(),
       observations: data['observations'] ?? '',
-      imageUrl: data['imageUrl'] ?? '',
+      imageUrl: data['imageUrl'],
       locais: locais,
     );
   }
@@ -42,18 +43,18 @@ class ItinerarioModel {
       'startDate': Timestamp.fromDate(startDate),
       'endDate': Timestamp.fromDate(endDate),
       'observations': observations,
-      'imageUrl': imageUrl == 'assets/images/placeholder_image.png' ? '' : imageUrl,
+      'imageUrl': imageUrl,
       'locais': locais.map((e) => e.toFirestore()).toList(),
     };
   }
 }
 
 class ItinerarioItem {
-  final String localId;
-  final String? localName;
-  final DateTime visitDate;
-  final String comment;
-  final String? itinerarioId;
+  String localId;
+  String? localName;
+  DateTime visitDate;
+  String comment;
+  String? itinerarioId;
 
   ItinerarioItem({
     required this.localId,

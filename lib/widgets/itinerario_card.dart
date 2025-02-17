@@ -18,7 +18,8 @@ class ItineraryCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ItinerarioDetalhesPage(itinerario: itinerario),
+              builder: (context) =>
+                  ItinerarioDetalhesPage(itinerario: itinerario),
             ),
           );
         },
@@ -26,19 +27,28 @@ class ItineraryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.network(
-                itinerario.imageUrl.isNotEmpty
-                    ? itinerario.imageUrl
-                    : 'https://via.placeholder.com/150',
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 150,
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.image_not_supported, size: 50),
-                ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: SizedBox(
+                height: 180, // Limita a altura da imagem
+                child: itinerario.imageUrl != null &&
+                        itinerario.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        itinerario.imageUrl!,
+                        fit: BoxFit.cover,
+                        width: double
+                            .infinity, // Para garantir que a imagem ocupe toda a largura
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[300],
+                          child:
+                              const Icon(Icons.image_not_supported, size: 50),
+                        ),
+                      )
+                    : Image.asset(
+                        'assets/images/placeholder_image.png',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
               ),
             ),
             Padding(
