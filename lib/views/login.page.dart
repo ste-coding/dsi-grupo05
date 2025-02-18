@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
-import 'package:flutter_application_1/services/firestore/user.service.dart' as firestore; // Alteração aqui
+import 'package:flutter_application_1/services/firestore/user.service.dart'
+    as firestore;
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -117,18 +118,21 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/senha');
-                  },
-                  child: const Text(
-                    'Esqueci minha senha',
-                    style: TextStyle(
-                      color: Color(0xFF266B70),
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
+              SizedBox(
+                width: 300,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/senha');
+                    },
+                    child: const Text(
+                      'Esqueci minha senha',
+                      style: TextStyle(
+                        color: Color(0xFF266B70),
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -141,7 +145,8 @@ class _LoginPageState extends State<LoginPage> {
                       child: OutlinedButton(
                         onPressed: _handleLogin,
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF266B70), width: 2),
+                          side: const BorderSide(
+                              color: Color(0xFF266B70), width: 2),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -164,7 +169,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Função de login com integração Firestore
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -173,8 +177,8 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         User? user = await _authController.signInWithEmailPassword(
-          _emailController.text, 
-          _passwordController.text
+          _emailController.text,
+          _passwordController.text,
         );
 
         if (user != null) {
@@ -184,7 +188,8 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacementNamed(context, '/menu');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Dados do usuário não encontrados.')),
+              const SnackBar(
+                  content: Text('Dados do usuário não encontrados.')),
             );
           }
         } else {

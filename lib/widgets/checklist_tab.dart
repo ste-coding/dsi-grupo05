@@ -242,7 +242,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
         onPressed: () {
           _showTaskDialog(); // Chama o diálogo de adicionar tarefa
         },
-        backgroundColor: const Color(0xFF266B70), // Cor do botão flutuante
+        backgroundColor: const Color(0xFF01A897), // Cor do botão flutuante
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
