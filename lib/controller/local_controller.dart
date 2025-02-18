@@ -1,16 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/foursquare_service.dart';
-
 import '../models/local_model.dart';
 import '../models/local_response_model.dart';
 import '../repositories/local_repository.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../models/itinerario_model.dart';
-
 
 class LocalController with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -39,14 +38,18 @@ class LocalController with ChangeNotifier {
     _locais.clear();
     _page = 0;
     _finishLoading = false;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   Future<void> _initializeLocation() async {
     final hasPermission = await _checkLocationPermission();
     if (!hasPermission) {
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return;
     }
 
@@ -54,19 +57,24 @@ class LocalController with ChangeNotifier {
       final position = await Geolocator.getCurrentPosition();
       _userPosition = position;
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
 
-      // Buscar locais próximos
       await fetchLocaisProximos();
 
       Geolocator.getPositionStream().listen((position) {
         _userPosition = position;
-        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
       });
     } catch (e) {
       _errorMessage = 'Erro ao obter localização: $e';
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -74,7 +82,9 @@ class LocalController with ChangeNotifier {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       _errorMessage = 'Ative os serviços de localização';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
       return false;
     }
 
@@ -83,7 +93,9 @@ class LocalController with ChangeNotifier {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         _errorMessage = 'Permissão de localização negada';
-        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
         return false;
       }
     }
@@ -91,7 +103,9 @@ class LocalController with ChangeNotifier {
     if (permission == LocationPermission.deniedForever) {
       _errorMessage = 'Permissão permanente negada. Ative nas configurações';
       await Geolocator.openAppSettings();
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
 
     return true;
@@ -101,7 +115,9 @@ class LocalController with ChangeNotifier {
     if (_isLoading || _finishLoading) return;
 
     _isLoading = true;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       await _initializeLocation();
@@ -113,7 +129,9 @@ class LocalController with ChangeNotifier {
         (error) {
           _errorMessage = error;
           _isLoading = false;
-          notifyListeners();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            notifyListeners();
+          });
         },
         (response) {
           if (response.locais.isEmpty) {
@@ -123,13 +141,17 @@ class LocalController with ChangeNotifier {
             _page++;
           }
           _isLoading = false;
-          notifyListeners();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            notifyListeners();
+          });
         },
       );
     } catch (e) {
       _errorMessage = "Erro ao carregar locais: $e";
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -137,7 +159,9 @@ class LocalController with ChangeNotifier {
     if (_isLoading) return;
 
     _isLoading = true;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     try {
       if (_userPosition == null) {
@@ -147,7 +171,9 @@ class LocalController with ChangeNotifier {
       if (_userPosition == null) {
         _errorMessage = 'Não foi possível obter a localização atual';
         _isLoading = false;
-        notifyListeners();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
         return;
       }
 
@@ -161,44 +187,59 @@ class LocalController with ChangeNotifier {
         place.latitude != 0.0 && place.longitude != 0.0
       ).toList());
 
-
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
 
     } catch (e) {
       _errorMessage = "Erro ao carregar locais próximos: $e";
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
   Future<void> addToFavoritos(String localId) async {
     try {
       await favoritosService.addFavorito(localId);
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       _errorMessage = 'Erro ao adicionar favorito: $e';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
   Future<void> removeFromFavoritos(String localId) async {
     try {
       await favoritosService.removeFavorito(localId);
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       _errorMessage = 'Erro ao remover favorito: $e';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
   Future<void> addToItinerario(Map<String, dynamic> itinerario) async {
     try {
       await itinerariosService.addItinerario(itinerario);
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       _errorMessage = 'Erro ao adicionar ao itinerário: $e';
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
 
@@ -291,7 +332,9 @@ class LocalController with ChangeNotifier {
           .add(localData);
 
       print("Local adicionado ao roteiro com sucesso!");
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     } catch (e) {
       print("Erro ao adicionar local ao roteiro: $e");
     }
