@@ -11,11 +11,29 @@ class ItinerariosService {
             .doc(userId)
             .collection('itinerarios');
 
+  Future<void> atualizarItinerario(
+      String itinerarioId, Map<String, dynamic> data) async {
+    try {
+      if (itinerarioId.isEmpty) {
+        throw Exception("ID do itinerário está vazio");
+      }
+
+      await itinerarios.doc(itinerarioId).update(data);
+      print("Itinerário atualizado com sucesso!");
+    } catch (e) {
+      print("Erro ao atualizar itinerário: $e");
+      rethrow;
+    }
+  }
+
+  /// Adiciona um novo itinerário ao Firestore
   Future<void> addItinerario(Map<String, dynamic> itinerario) async {
     try {
+      // Cria uma nova referência de documento com ID gerado automaticamente
       DocumentReference itinerarioRef = await itinerarios.add(itinerario);
       print("Itinerário adicionado com sucesso! ID: ${itinerarioRef.id}");
 
+      // Atualiza o documento com o ID gerado
       await itinerarioRef.update({'id': itinerarioRef.id});
       print("ID do itinerário adicionado ao Firestore: ${itinerarioRef.id}");
     } catch (e) {
@@ -24,7 +42,9 @@ class ItinerariosService {
     }
   }
 
-  Future<void> addLocalToRoteiro(String itinerarioId, Map<String, dynamic> local) async {
+  /// Adiciona um local ao roteiro de um itinerário
+  Future<void> addLocalToRoteiro(
+      String itinerarioId, Map<String, dynamic> local) async {
     try {
       final itinerarioDoc = await itinerarios.doc(itinerarioId).get();
       if (!itinerarioDoc.exists) {
@@ -51,12 +71,11 @@ class ItinerariosService {
     }
   }
 
+  /// Obtém um itinerário com seus locais
   Future<ItinerarioModel> getItinerarioWithLocais(String itinerarioId) async {
     try {
-      DocumentSnapshot itinerarioDoc = await _firestore
-          .collection('viajantes')
-          .doc(itinerarioId)
-          .get();
+      DocumentSnapshot itinerarioDoc =
+          await itinerarios.doc(itinerarioId).get();
 
       if (!itinerarioDoc.exists) {
         throw Exception('Itinerário não encontrado para o ID: $itinerarioId');
@@ -65,11 +84,8 @@ class ItinerariosService {
       var itinerarioData = itinerarioDoc.data() as Map<String, dynamic>;
 
       List<ItinerarioItem> locais = [];
-      var locaisSnapshot = await _firestore
-          .collection('viajantes')
-          .doc(itinerarioId)
-          .collection('roteiro')
-          .get();
+      var locaisSnapshot =
+          await itinerarios.doc(itinerarioId).collection('roteiro').get();
 
       for (var localDoc in locaisSnapshot.docs) {
         var localData = localDoc.data();
@@ -83,29 +99,82 @@ class ItinerariosService {
     }
   }
 
+  /// Retorna um stream dos itinerários ordenados por data de início
   Stream<QuerySnapshot> getItinerariosStream() {
     return itinerarios.orderBy('startDate', descending: true).snapshots();
   }
 
+  /// Obtém os locais de um itinerário
   Future<QuerySnapshot> getLocaisByItinerarioId(String itinerarioId) async {
     try {
-      return await _firestore
-          .collection('viajantes')
-          .doc(itinerarioId)
-          .collection('roteiro')
-          .get();
+      return await itinerarios.doc(itinerarioId).collection('roteiro').get();
     } catch (e) {
       print("Erro ao obter locais para itinerário $itinerarioId: $e");
       rethrow;
     }
   }
 
+  /// Exclui um itinerário do Firestore
   Future<void> deleteItinerario(String itinerarioId) async {
     try {
       await itinerarios.doc(itinerarioId).delete();
       print("Itinerário $itinerarioId excluído com sucesso.");
     } catch (e) {
       print("Erro ao excluir itinerário: $e");
+      rethrow;
+    }
+  }
+
+  /// Exclui um local do roteiro de um itinerário no Firestore
+  Future<void> deleteLocalFromRoteiro(
+      String itinerarioId, String localId) async {
+    try {
+      var roteiroCollection =
+          itinerarios.doc(itinerarioId).collection('roteiro');
+
+      var querySnapshot = await roteiroCollection.get();
+
+      for (var doc in querySnapshot.docs) {
+        var data = doc.data();
+        if (data.containsKey('localId') && data['localId'] == localId) {
+          await doc.reference.delete();
+          print("Local $localId removido com sucesso do roteiro.");
+          return; // Sai do loop após encontrar e deletar o local
+        }
+      }
+
+      print(
+          "Nenhum local encontrado com localId: $localId no itinerário: $itinerarioId.");
+    } catch (e) {
+      print("Erro ao remover local do roteiro: $e");
+      rethrow;
+    }
+  }
+
+  /// Cria um itinerário e retorna o ID gerado
+  Future<String> criarItinerario({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String observations,
+  }) async {
+    try {
+      // Cria uma nova referência de documento com ID gerado automaticamente
+      DocumentReference itinerarioRef = await itinerarios.add({
+        'startDate': Timestamp.fromDate(startDate),
+        'endDate': Timestamp.fromDate(endDate),
+        'observations': observations,
+      });
+
+      String itineraryId = itinerarioRef.id; // ID gerado automaticamente
+      print("Itinerário criado com sucesso! ID: $itineraryId");
+
+      // Atualiza o documento com o ID gerado
+      await itinerarioRef.update({'id': itineraryId});
+      print("ID do itinerário adicionado ao Firestore: $itineraryId");
+
+      return itineraryId; // Retorna o ID gerado
+    } catch (e) {
+      print("Erro ao criar itinerário: $e");
       rethrow;
     }
   }

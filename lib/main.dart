@@ -8,7 +8,7 @@ import 'package:flutter_application_1/views/menu.page.dart';
 import 'package:flutter_application_1/views/open_street_map.page.dart';
 import 'package:flutter_application_1/views/redefinir_senha.page.dart';
 import 'package:flutter_application_1/views/esqueceu_senha.page.dart';
-import 'package:flutter_application_1/views/avaliacoes.page.dart';
+
 import 'package:flutter_application_1/controller/menu_controller.dart'
     as custom_menu;
 import 'package:flutter_application_1/controller/local_controller.dart';
@@ -88,7 +88,6 @@ class MyApp extends StatelessWidget {
             return ItinerariosPage(userId: userId);
           },
           '/favoritos': (context) => const FavoritesPage(),
-          '/avaliacoes': (context) => const AvaliacoesPage(),
           '/perfil': (context) => const PerfilPage(),
           '/mapa': (context) => const OpenStreetMapPage(),
         },

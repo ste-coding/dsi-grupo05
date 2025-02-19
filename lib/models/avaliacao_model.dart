@@ -1,36 +1,44 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class AvaliacaoModel {
   final String id;
-  final String comentario;
+  final String localId;
   final String userId;
-  final DateTime data;
-  final int nota;
+  final String userName;
+  final int rating;
+  final String comment;
+  final DateTime timestamp;
 
   AvaliacaoModel({
     required this.id,
-    required this.comentario,
+    required this.localId,
     required this.userId,
-    required this.data,
-    required this.nota,
+    required this.userName,
+    required this.rating,
+    required this.comment,
+    required this.timestamp,
   });
 
-  factory AvaliacaoModel.fromFirestore(Map<String, dynamic> data, String id) {
-    return AvaliacaoModel(
-      id: id,
-      comentario: data['comentario'],
-      userId: data['userId'],
-      data: (data['data'] as Timestamp).toDate(),
-      nota: data['nota'],
-    );
-  }
-
+  // Converte o modelo para um Map (para salvar no Firestore)
   Map<String, dynamic> toFirestore() {
     return {
-      'comentario': comentario,
+      'localId': localId,
       'userId': userId,
-      'data': data,
-      'nota': nota,
+      'userName': userName,
+      'rating': rating,
+      'comment': comment,
+      'timestamp': timestamp,
     };
+  }
+
+  // Cria um modelo a partir de um Map (para ler do Firestore)
+  factory AvaliacaoModel.fromFirestore(String id, Map<String, dynamic> data) {
+    return AvaliacaoModel(
+      id: id,
+      localId: data['localId'],
+      userId: data['userId'],
+      userName: data['userName'],
+      rating: data['rating'],
+      comment: data['comment'],
+      timestamp: data['timestamp'].toDate(),
+    );
   }
 }

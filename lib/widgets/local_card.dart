@@ -27,7 +27,8 @@ class _LocalCardState extends State<LocalCard> {
   }
 
   Future<void> _checkIfFavorito() async {
-    final favorito = await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
+    final favorito =
+        await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
     setState(() {
       isFavorito = favorito;
     });
@@ -38,7 +39,8 @@ class _LocalCardState extends State<LocalCard> {
       if (isFavorito) {
         await widget.favoritosService.removeFavorito(widget.local.id);
       } else {
-        await widget.favoritosService.addFavorito(widget.local.id);
+        await widget.favoritosService
+            .addFavorito(widget.local); // ✅ Agora passamos o LocalModel inteiro
       }
 
       setState(() {
@@ -73,7 +75,8 @@ class _LocalCardState extends State<LocalCard> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                   child: widget.local.imagem.isNotEmpty
                       ? Image.network(
                           widget.local.imagem,
@@ -85,7 +88,8 @@ class _LocalCardState extends State<LocalCard> {
                           height: 180,
                           width: double.infinity,
                           color: Colors.grey[300],
-                          child: Icon(Icons.image, size: 50, color: Colors.grey[700]),
+                          child: Icon(Icons.image,
+                              size: 50, color: Colors.grey[700]),
                         ),
                 ),
                 Positioned(
@@ -117,12 +121,16 @@ class _LocalCardState extends State<LocalCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.local.nome,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          widget.local.nome,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
@@ -133,11 +141,15 @@ class _LocalCardState extends State<LocalCard> {
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
-                      Text(
-                        widget.local.mediaEstrelas.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          widget.local.mediaEstrelas.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
@@ -146,14 +158,19 @@ class _LocalCardState extends State<LocalCard> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                      const Icon(Icons.location_on,
+                          size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text(
-                        '${widget.local.cidade}, ${widget.local.estado}',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: Colors.grey[600],
-                          fontSize: 12,
+                      Expanded(
+                        child: Text(
+                          '${widget.local.cidade}, ${widget.local.estado}',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     ],
@@ -163,12 +180,16 @@ class _LocalCardState extends State<LocalCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text(
-                          '+${widget.local.totalAvaliacoes}',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                        Expanded(
+                          child: Text(
+                            '+${widget.local.totalAvaliacoes}',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
