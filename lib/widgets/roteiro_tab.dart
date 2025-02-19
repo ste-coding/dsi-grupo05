@@ -153,13 +153,17 @@ class _SelecionarLocalScreenState extends State<SelecionarLocalScreen> {
           if (controller.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (controller.locais.isEmpty) {
-            return const Center(child: Text('Nenhum local encontrado.'));
-          }
-          return ListView.builder(
-            itemCount: controller.locais.length,
-            itemBuilder: (context, index) {
-              final local = controller.locais[index];
+                  if (controller.featuredLocations.isEmpty) {
+                    return const Center(
+                      child: Text('Nenhum local encontrado.'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: controller.featuredLocations.length,
+                    itemBuilder: (context, index) {
+                      final local = controller.featuredLocations[index];
+
               return ListTile(
                 leading: const Icon(Icons.place, color: Colors.teal),
                 title: Text(local.nome),
