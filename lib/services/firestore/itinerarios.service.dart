@@ -125,6 +125,32 @@ class ItinerariosService {
     }
   }
 
+  /// Exclui um local do roteiro de um itinerário no Firestore
+  Future<void> deleteLocalFromRoteiro(
+      String itinerarioId, String localId) async {
+    try {
+      var roteiroCollection =
+          itinerarios.doc(itinerarioId).collection('roteiro');
+
+      var querySnapshot = await roteiroCollection.get();
+
+      for (var doc in querySnapshot.docs) {
+        var data = doc.data();
+        if (data.containsKey('localId') && data['localId'] == localId) {
+          await doc.reference.delete();
+          print("Local $localId removido com sucesso do roteiro.");
+          return; // Sai do loop após encontrar e deletar o local
+        }
+      }
+
+      print(
+          "Nenhum local encontrado com localId: $localId no itinerário: $itinerarioId.");
+    } catch (e) {
+      print("Erro ao remover local do roteiro: $e");
+      rethrow;
+    }
+  }
+
   /// Cria um itinerário e retorna o ID gerado
   Future<String> criarItinerario({
     required DateTime startDate,

@@ -273,6 +273,12 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                         hintStyle: TextStyle(
                                           fontFamily: 'Poppins',
                                         ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Color(0xFF266B70),
+                                            width: 2,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],

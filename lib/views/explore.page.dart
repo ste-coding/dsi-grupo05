@@ -4,6 +4,7 @@ import '../controller/local_controller.dart';
 import '../widgets/local_card.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../models/local_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ExplorePage extends StatefulWidget {
   final Function(LocalModel local) onSelectedLocal;
@@ -57,9 +58,19 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Explorar Locais')),
+        body: const Center(child: Text('Usuário não autenticado.')),
+      );
+    }
+
+    final favoritosService = FavoritosService(userId);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Explorar Locais',
           style: TextStyle(
             fontFamily: 'Poppins',
@@ -80,18 +91,16 @@ class _ExplorePageState extends State<ExplorePage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   labelText: 'Pesquisar por locais...',
-                  labelStyle: TextStyle(color: Colors.black),
+                  labelStyle: const TextStyle(color: Colors.black),
                   filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
                   border: OutlineInputBorder(
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () {
-                      _loadLocais();
-                    },
+                    icon: const Icon(Icons.search),
+                    onPressed: _loadLocais,
                   ),
                 ),
               ),
@@ -100,7 +109,7 @@ class _ExplorePageState extends State<ExplorePage> {
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
                   if (controller.isLoading && controller.locais.isEmpty) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (controller.errorMessage != null) {
@@ -108,7 +117,8 @@ class _ExplorePageState extends State<ExplorePage> {
                   }
 
                   if (controller.locais.isEmpty) {
-                    return Center(child: Text('Nenhum local encontrado.'));
+                    return const Center(
+                        child: Text('Nenhum local encontrado.'));
                   }
 
                   return NotificationListener<ScrollNotification>(
@@ -127,13 +137,10 @@ class _ExplorePageState extends State<ExplorePage> {
                           (controller.isLoading ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == controller.locais.length) {
-                          return Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         final local = controller.locais[index];
-
-                        final userId = 'user-id-aqui';
-
-                        final favoritosService = FavoritosService(userId);
 
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
