@@ -58,7 +58,8 @@ class FavoritesPage extends StatelessWidget {
             itemCount: favoritos.length,
             itemBuilder: (context, index) {
               final favorito = favoritos[index];
-              final local = localController.locais.firstWhere(
+              final local = localController.searchResults.firstWhere(
+
                 (local) => local.id == favorito.localId,
                 orElse: () => LocalModel(
                   id: '',

@@ -20,138 +20,100 @@ class LocalController with ChangeNotifier {
   bool _isLoading = false;
   bool _finishLoading = false;
   String? _errorMessage;
-  final List<LocalModel> _locais = [];
+  final List<LocalModel> _featuredLocations = [];
   final List<LocalModel> _locaisProximos = [];
+  final List<LocalModel> _searchResults = [];
   int _page = 0;
+
   Position? _userPosition;
 
   bool get isLoading => _isLoading;
   bool get finishLoading => _finishLoading;
   String? get errorMessage => _errorMessage;
-  List<LocalModel> get locais => _locais;
+  void clearErrorMessage() => _errorMessage = null;
+  List<LocalModel> get featuredLocations => _featuredLocations;
   List<LocalModel> get locaisProximos => _locaisProximos;
+  List<LocalModel> get searchResults => _searchResults;
 
-  LocalController(
-      this.repository, this.favoritosService, this.itinerariosService);
+  LocalController(this.repository, this.favoritosService, this.itinerariosService);
 
   void resetLocais() {
-    _locais.clear();
+    _searchResults.clear();
     _page = 0;
     _finishLoading = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
   }
 
-  Future<void> _initializeLocation() async {
-    final hasPermission = await _checkLocationPermission();
-    if (!hasPermission) {
-      _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-      return;
-    }
-
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      _userPosition = position;
-      _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-
-      await fetchLocaisProximos();
-
-      Geolocator.getPositionStream().listen((position) {
-        _userPosition = position;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
-      });
-    } catch (e) {
-      _errorMessage = 'Erro ao obter localização: $e';
-      _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<bool> _checkLocationPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _errorMessage = 'Ative os serviços de localização';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-      return false;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _errorMessage = 'Permissão de localização negada';
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
-        return false;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      _errorMessage = 'Permissão permanente negada. Ative nas configurações';
-      await Geolocator.openAppSettings();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    }
-
-    return true;
+  void resetFeaturedLocations() {
+    _featuredLocations.clear();
+    notifyListeners();
   }
 
   Future<void> fetchLocais(String query, String location) async {
-    if (_isLoading || _finishLoading) return;
+    if (_isLoading) return;
 
+    // Clear results for new searches
+    if (_page == 0) {
+      _searchResults.clear();
+    }
+
+    // Set default location to Brazil only when there's no query
+    if (query.isEmpty) {
+      location = 'Brasil';
+    }
+
+    _errorMessage = null;
+    _finishLoading = false;
     _isLoading = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
 
     try {
       await _initializeLocation();
 
-      final result =
-          await repository.fetchLocais(query, location, offset: _page * 20);
+      final result = await repository.fetchLocais(query, location, offset: _page * 10)
+          .timeout(const Duration(seconds: 10));
 
       result.fold(
         (error) {
           _errorMessage = error;
           _isLoading = false;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            notifyListeners();
-          });
+          // Only mark as finished loading if it's a real error
+          if (error != 'Nenhum local encontrado') {
+            _finishLoading = true;
+          }
+          notifyListeners();
         },
         (response) {
           if (response.locais.isEmpty) {
             _finishLoading = true;
           } else {
-            _locais.addAll(response.locais);
+            final validLocais = response.locais.where((local) => 
+              local.latitude != 0.0 && local.longitude != 0.0
+            ).toList();
+            
+            if (validLocais.isEmpty) {
+              _errorMessage = 'Nenhum local válido encontrado';
+              _finishLoading = true;
+              notifyListeners();
+              return;
+            }
+
+            if (query.isEmpty && location == 'Brasil') {
+              _featuredLocations.addAll(validLocais);
+            } else {
+              _searchResults.addAll(validLocais);
+            }
+            
             _page++;
           }
           _isLoading = false;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            notifyListeners();
-          });
+          notifyListeners();
         },
       );
     } catch (e) {
       _errorMessage = "Erro ao carregar locais: $e";
       _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     }
   }
 
@@ -159,9 +121,7 @@ class LocalController with ChangeNotifier {
     if (_isLoading) return;
 
     _isLoading = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      notifyListeners();
-    });
+    notifyListeners();
 
     try {
       if (_userPosition == null) {
@@ -171,9 +131,7 @@ class LocalController with ChangeNotifier {
       if (_userPosition == null) {
         _errorMessage = 'Não foi possível obter a localização atual';
         _isLoading = false;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
+        notifyListeners();
         return;
       }
 
@@ -188,68 +146,92 @@ class LocalController with ChangeNotifier {
       ).toList());
 
       _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-
+      notifyListeners();
     } catch (e) {
       _errorMessage = "Erro ao carregar locais próximos: $e";
       _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> _initializeLocation() async {
+    final hasPermission = await _checkLocationPermission();
+    if (!hasPermission) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      _userPosition = position;
+      _isLoading = false;
+      notifyListeners();
+
+      await fetchLocaisProximos();
+
+      Geolocator.getPositionStream().listen((position) {
+        _userPosition = position;
         notifyListeners();
       });
+    } catch (e) {
+      _errorMessage = 'Erro ao obter localização: $e';
+      _isLoading = false;
+      notifyListeners();
     }
+  }
+
+  Future<bool> _checkLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _errorMessage = 'Ative os serviços de localização';
+      notifyListeners();
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _errorMessage = 'Permissão de localização negada';
+        notifyListeners();
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _errorMessage = 'Permissão permanente negada. Ative nas configurações';
+      await Geolocator.openAppSettings();
+      notifyListeners();
+    }
+
+    return true;
   }
 
   Future<void> addToFavoritos(String localId) async {
     try {
       await favoritosService.addFavorito(localId);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     } catch (e) {
       _errorMessage = 'Erro ao adicionar favorito: $e';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     }
   }
 
   Future<void> removeFromFavoritos(String localId) async {
     try {
       await favoritosService.removeFavorito(localId);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     } catch (e) {
       _errorMessage = 'Erro ao remover favorito: $e';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    }
-  }
-
-  Future<void> addToItinerario(Map<String, dynamic> itinerario) async {
-    try {
-      await itinerariosService.addItinerario(itinerario);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
-    } catch (e) {
-      _errorMessage = 'Erro ao adicionar ao itinerário: $e';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     }
   }
 
   Future<List<ItinerarioModel>> getUserItinerarios() async {
     try {
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) {
-        print("Usuário não autenticado");
-        return [];
-      }
+      if (userId == null) return [];
 
       final snapshot = await _firestore
           .collection('viajantes')
@@ -257,15 +239,7 @@ class LocalController with ChangeNotifier {
           .collection('itinerarios')
           .get();
 
-      print("Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
-
-      if (snapshot.docs.isEmpty) {
-        print("Nenhum itinerário encontrado.");
-        return [];
-      }
-
       List<ItinerarioModel> itinerarios = [];
-
       for (var doc in snapshot.docs) {
         var itinerarioData = doc.data();
         String itinerarioId = doc.id;
@@ -285,7 +259,6 @@ class LocalController with ChangeNotifier {
         itinerarios.add(ItinerarioModel.fromFirestore(itinerarioData, locais));
       }
 
-      print("Itinerários carregados: ${itinerarios.length}");
       return itinerarios;
     } catch (e) {
       print('Erro ao buscar itinerários: $e');
@@ -296,10 +269,7 @@ class LocalController with ChangeNotifier {
   Future<void> addLocalToRoteiro(
       String itinerarioId, LocalModel local, DateTime visitDate) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) {
-      print("Usuário não autenticado");
-      return;
-    }
+    if (userId == null) return;
 
     final itinerarioDoc = await _firestore
         .collection('viajantes')
@@ -308,10 +278,7 @@ class LocalController with ChangeNotifier {
         .doc(itinerarioId)
         .get();
 
-    if (!itinerarioDoc.exists) {
-      print("Erro: itinerário não encontrado para o ID: $itinerarioId");
-      return;
-    }
+    if (!itinerarioDoc.exists) return;
 
     final itinerarioItem = ItinerarioItem(
       localId: local.id,
@@ -330,11 +297,7 @@ class LocalController with ChangeNotifier {
           .doc(itinerarioId)
           .collection('roteiro')
           .add(localData);
-
-      print("Local adicionado ao roteiro com sucesso!");
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        notifyListeners();
-      });
+      notifyListeners();
     } catch (e) {
       print("Erro ao adicionar local ao roteiro: $e");
     }

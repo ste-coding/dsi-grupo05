@@ -17,11 +17,12 @@ class ExplorePage extends StatefulWidget {
 class _ExplorePageState extends State<ExplorePage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
-    _loadLocais();
     _scrollController.addListener(_onScroll);
   }
 
@@ -29,19 +30,8 @@ class _ExplorePageState extends State<ExplorePage> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  void _loadLocais() {
-    final localController =
-        Provider.of<LocalController>(context, listen: false);
-    String searchTerm = _searchController.text.trim();
-    String location = 'Brasil';
-    if (searchTerm.isNotEmpty) {
-      localController.fetchLocais(searchTerm, location);
-    } else {
-      localController.fetchLocais('', location);
-    }
   }
 
   void _onScroll() {
@@ -49,9 +39,60 @@ class _ExplorePageState extends State<ExplorePage> {
         _scrollController.position.maxScrollExtent) {
       final localController =
           Provider.of<LocalController>(context, listen: false);
-      if (!localController.isLoading && !localController.finishLoading) {
-        _loadLocais();
+      String searchTerm = _searchController.text.trim();
+      
+      if (searchTerm.isNotEmpty && 
+          !localController.isLoading && 
+          !localController.finishLoading) {
+        setState(() {
+          _isLoadingMore = true;
+        });
+        
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (!localController.isLoading && 
+              !localController.finishLoading) {
+            _loadLocais();
+          }
+          setState(() {
+            _isLoadingMore = false;
+          });
+        });
       }
+    }
+  }
+
+  Future<void> _loadLocais() async {
+    final localController =
+        Provider.of<LocalController>(context, listen: false);
+    String searchTerm = _searchController.text.trim();
+    
+    if (localController.isLoading || searchTerm.isEmpty) {
+      return;
+    }
+
+    localController.clearErrorMessage();
+
+    try {
+      if (localController.searchResults.isEmpty) {
+        localController.resetLocais();
+      }
+      
+      await localController.fetchLocais(searchTerm, searchTerm);
+      
+      if (localController.searchResults.isEmpty && 
+          localController.errorMessage == null) {
+        return;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao buscar locais. Tente novamente.'),
+          action: SnackBarAction(
+            label: 'Tentar novamente',
+            onPressed: _loadLocais,
+          ),
+        )
+      );
     }
   }
 
@@ -79,62 +120,78 @@ class _ExplorePageState extends State<ExplorePage> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  labelText: 'Pesquisar por locais...',
-                  labelStyle: TextStyle(color: Colors.black),
-                  filled: true,
-                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
+                  hintText: 'Digite o nome do local...',
                   border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[400]!),
                   ),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.search),
-                    onPressed: () {
-                      _loadLocais();
-                    },
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintStyle: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Colors.grey[600],
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey[600],
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: Colors.grey[600],
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            _loadLocais();
+                          },
+                        )
+                      : null,
                 ),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                ),
+                onSubmitted: (value) {
+                  _searchFocusNode.unfocus();
+                  _loadLocais();
+                },
               ),
             ),
             Expanded(
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
-                  if (controller.isLoading && controller.locais.isEmpty) {
+                  if (controller.isLoading && controller.searchResults.isEmpty) {
                     return Center(child: CircularProgressIndicator());
                   }
 
-                  if (controller.errorMessage != null) {
-                    return Center(child: Text(controller.errorMessage!));
+                  if (controller.errorMessage != null && 
+                      controller.searchResults.isEmpty) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(controller.errorMessage!),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadLocais,
+                          child: Text('Tentar novamente'),
+                        ),
+                      ],
+                    );
                   }
 
-                  if (controller.locais.isEmpty) {
-                    return Center(child: Text('Nenhum local encontrado.'));
-                  }
-
-                  return NotificationListener<ScrollNotification>(
-                    onNotification: (ScrollNotification scrollInfo) {
-                      if (!controller.isLoading &&
-                          !controller.finishLoading &&
-                          scrollInfo.metrics.pixels ==
-                              scrollInfo.metrics.maxScrollExtent) {
-                        _loadLocais();
-                      }
-                      return true;
-                    },
-                    child: ListView.builder(
-                      controller: _scrollController,
-                      itemCount: controller.locais.length +
-                          (controller.isLoading ? 1 : 0),
+                  if (_searchController.text.isEmpty) {
+                    return ListView.builder(
+                      itemCount: controller.locaisProximos.length,
                       itemBuilder: (context, index) {
-                        if (index == controller.locais.length) {
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        final local = controller.locais[index];
-
+                        final local = controller.locaisProximos[index];
                         final userId = 'user-id-aqui';
-
                         final favoritosService = FavoritosService(userId);
-
+                        
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: LocalCard(
@@ -143,7 +200,76 @@ class _ExplorePageState extends State<ExplorePage> {
                           ),
                         );
                       },
-                    ),
+                    );
+                  }
+
+                  if (controller.searchResults.isEmpty && 
+                      _searchController.text.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Nenhum local encontrado',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadLocais,
+                            child: Text('Tentar novamente'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Resultados para "${_searchController.text}"',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (ScrollNotification scrollInfo) {
+                            if (!controller.isLoading &&
+                                !controller.finishLoading &&
+                                scrollInfo.metrics.pixels ==
+                                    scrollInfo.metrics.maxScrollExtent) {
+                              _loadLocais();
+                            }
+                            return true;
+                          },
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            itemCount: controller.searchResults.length +
+                                (_isLoadingMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == controller.searchResults.length) {
+                                return Center(child: CircularProgressIndicator());
+                              }
+                              final local = controller.searchResults[index];
+                              final userId = 'user-id-aqui';
+                              final favoritosService = FavoritosService(userId);
+
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: LocalCard(
+                                  local: local,
+                                  favoritosService: favoritosService,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
