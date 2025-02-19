@@ -61,14 +61,17 @@ class _MenuPageState extends State<MenuPage> {
                         FutureBuilder<Map<String, dynamic>?>(
                           future: userService.getUserData(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const CircleAvatar(
                                 radius: 20,
                                 backgroundColor: Colors.grey,
                               );
                             }
 
-                            if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                            if (snapshot.hasError ||
+                                !snapshot.hasData ||
+                                snapshot.data == null) {
                               return const CircleAvatar(
                                 radius: 20,
                                 backgroundColor: Colors.grey,
@@ -76,9 +79,12 @@ class _MenuPageState extends State<MenuPage> {
                             }
 
                             final userData = snapshot.data!;
-                            final profilePictureBase64 = userData['profilePicture'];
+                            final profilePictureBase64 =
+                                userData['profilePicture'];
                             final profileImage = profilePictureBase64 != null
-                                ? Image.memory(base64Decode(profilePictureBase64)).image
+                                ? Image.memory(
+                                        base64Decode(profilePictureBase64))
+                                    .image
                                 : null;
 
                             return InkWell(
@@ -96,7 +102,8 @@ class _MenuPageState extends State<MenuPage> {
                         FutureBuilder<Map<String, dynamic>?>(
                           future: userService.getUserData(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const Text(
                                 'Carregando...',
                                 style: TextStyle(
@@ -228,40 +235,40 @@ class _MenuPageState extends State<MenuPage> {
                   ],
                 ),
               ),
-                SizedBox(
+              SizedBox(
                 height: 320,
                 child: Consumer<LocalController>(
                   builder: (context, controller, child) {
-                  if (controller.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                    if (controller.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (controller.locais.isEmpty) {
-                    return const Center(child: Text('Nenhum local encontrado.'));
-                  }
+                    if (controller.locais.isEmpty) {
+                      return const Center(
+                          child: Text('Nenhum local encontrado.'));
+                    }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.locais.length,
-                    itemBuilder: (context, index) {
-                    final local = controller.locais[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: SizedBox(
-                      width: 280,
-                        child: LocalCard(
-                        local: local,
-                        favoritosService: FavoritosService(userId),
-                        
-                        ),
-                      ),
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.locais.length,
+                      itemBuilder: (context, index) {
+                        final local = controller.locais[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: SizedBox(
+                            width: 280,
+                            child: LocalCard(
+                              local: local,
+                              favoritosService: FavoritosService(userId),
+                            ),
+                          ),
+                        );
+                      },
                     );
-                    },
-                  );
                   },
                 ),
-                ),
+              ),
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -279,40 +286,40 @@ class _MenuPageState extends State<MenuPage> {
                   ],
                 ),
               ),
-                SizedBox(
-                  height: 320, 
-                  child: Consumer<LocalController>(
+              SizedBox(
+                height: 320,
+                child: Consumer<LocalController>(
                   builder: (context, controller, child) {
-                  if (controller.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-          
-                  if (controller.locaisProximos.isEmpty) {
-                    return const Center(child: Text('Nenhum local próximo encontrado.'));
-                  }
-          
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: controller.locaisProximos.length,
-                    itemBuilder: (context, index) {
-                    final local = controller.locaisProximos[index];
-                    return Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: SizedBox(
-                    width: 280,
-                    child: LocalCard(
-                      local: local, 
-                      favoritosService: FavoritosService(userId),
-                    ),
-                    ),
+                    if (controller.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (controller.locaisProximos.isEmpty) {
+                      return const Center(
+                          child: Text('Nenhum local próximo encontrado.'));
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.locaisProximos.length,
+                      itemBuilder: (context, index) {
+                        final local = controller.locaisProximos[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: SizedBox(
+                            width: 280,
+                            child: LocalCard(
+                              local: local,
+                              favoritosService: FavoritosService(userId),
+                            ),
+                          ),
+                        );
+                      },
                     );
-                    },
-                  );
                   },
-                  ),
                 ),
-                
+              ),
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -332,7 +339,6 @@ class _MenuPageState extends State<MenuPage> {
                       _buildNavItem(Icons.home, 'Home', true),
                       _buildNavItem(Icons.map, 'Itinerários', false),
                       _buildNavItem(Icons.search, 'Buscar', false),
-                      _buildNavItem(Icons.star_border, 'Avaliações', false),
                       _buildNavItem(Icons.gps_fixed, 'Mapa', false),
                     ],
                   ),
@@ -358,11 +364,12 @@ class _MenuPageState extends State<MenuPage> {
           case 'Buscar':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ExplorePage(onSelectedLocal:(local) {
-                              print("Local selecionado: ${local.nome}");
-                            },
-                            )),
-
+              MaterialPageRoute(
+                  builder: (context) => ExplorePage(
+                        onSelectedLocal: (local) {
+                          print("Local selecionado: ${local.nome}");
+                        },
+                      )),
             );
             break;
           case 'Avaliações':
@@ -378,14 +385,18 @@ class _MenuPageState extends State<MenuPage> {
         children: [
           Icon(
             icon,
-            color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
+            color: isSelected
+                ? const Color.fromARGB(255, 1, 168, 151)
+                : Colors.grey,
           ),
           Text(
             label,
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
-              color: isSelected ? const Color.fromARGB(255, 1, 168, 151) : Colors.grey,
+              color: isSelected
+                  ? const Color.fromARGB(255, 1, 168, 151)
+                  : Colors.grey,
             ),
           ),
         ],

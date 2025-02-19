@@ -27,7 +27,8 @@ class _LocalCardState extends State<LocalCard> {
   }
 
   Future<void> _checkIfFavorito() async {
-    final favorito = await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
+    final favorito =
+        await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
     setState(() {
       isFavorito = favorito;
     });
@@ -38,7 +39,8 @@ class _LocalCardState extends State<LocalCard> {
       if (isFavorito) {
         await widget.favoritosService.removeFavorito(widget.local.id);
       } else {
-        await widget.favoritosService.addFavorito(widget.local.id);
+        await widget.favoritosService
+            .addFavorito(widget.local); // ✅ Agora passamos o LocalModel inteiro
       }
 
       setState(() {
@@ -73,7 +75,8 @@ class _LocalCardState extends State<LocalCard> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                   child: widget.local.imagem.isNotEmpty
                       ? Image.network(
                           widget.local.imagem,
@@ -85,7 +88,8 @@ class _LocalCardState extends State<LocalCard> {
                           height: 180,
                           width: double.infinity,
                           color: Colors.grey[300],
-                          child: Icon(Icons.image, size: 50, color: Colors.grey[700]),
+                          child: Icon(Icons.image,
+                              size: 50, color: Colors.grey[700]),
                         ),
                 ),
                 Positioned(
@@ -131,7 +135,6 @@ class _LocalCardState extends State<LocalCard> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -151,12 +154,12 @@ class _LocalCardState extends State<LocalCard> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                      const Icon(Icons.location_on,
+                          size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -172,7 +175,6 @@ class _LocalCardState extends State<LocalCard> {
                       ),
                     ],
                   ),
-
                   if (widget.local.totalAvaliacoes > 0) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -192,7 +194,6 @@ class _LocalCardState extends State<LocalCard> {
                         ),
                       ],
                     ),
-
                   ],
                 ],
               ),
