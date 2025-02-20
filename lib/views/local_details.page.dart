@@ -741,9 +741,17 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
             TextField(
               controller: comentarioController,
               decoration: InputDecoration(
-                labelText: "Comentário",
-                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                border: OutlineInputBorder(),
+                labelText: 'Tarefa',
+                labelStyle: const TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Color(0xFF266B70),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
               style: TextStyle(fontFamily: 'Poppins'),
             ),
@@ -768,7 +776,7 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
             ),
             SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
