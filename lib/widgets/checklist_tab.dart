@@ -13,7 +13,6 @@ class ChecklistTab extends StatefulWidget {
 }
 
 class _ChecklistTabState extends State<ChecklistTab> {
-  final TextEditingController _taskController = TextEditingController();
   late ChecklistService _checklistService;
 
   @override
@@ -26,95 +25,18 @@ class _ChecklistTabState extends State<ChecklistTab> {
     _checklistService = ChecklistService(userId, widget.itinerarioId);
   }
 
-  void _showTaskDialog({String? docID, String? currentTask}) {
-    if (currentTask != null) {
-      _taskController.text = currentTask;
-    } else {
-      _taskController.clear();
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            docID == null ? 'Adicionar Tarefa' : 'Editar Tarefa',
-            style: TextStyle(
-              color: Color(0xFF266B70), // Cor do título do popup
-            ),
-          ),
-          content: TextField(
-            controller: _taskController,
-            decoration: InputDecoration(
-              labelText: 'Tarefa',
-              hintText: 'Digite o nome da tarefa...',
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF266B70)), // Cor de foco
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(
-                    color: Color(0xFF266B70)), // Cor do botão "Cancelar"
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                final task = _taskController.text;
-                if (task.isNotEmpty) {
-                  if (docID == null) {
-                    _addTask(task);
-                  } else {
-                    _editTask(docID, task);
-                  }
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text(
-                docID == null ? 'Adicionar' : 'Salvar',
-                style: TextStyle(
-                    color: Color(
-                        0xFF266B70)), // Cor do botão "Adicionar" ou "Salvar"
-              ),
-            ),
-          ],
-        );
-      },
+  void _navigateToAddEditTaskScreen({String? docID, String? currentTask}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddEditTaskScreen(
+          docID: docID,
+          currentTask: currentTask,
+          checklistService: _checklistService,
+          itinerarioId: widget.itinerarioId,
+        ),
+      ),
     );
-  }
-
-  void _addTask(String task) async {
-    try {
-      await _checklistService.addTask({
-        'task': task,
-        'itinerarioId': widget.itinerarioId,
-        'completed': false,
-      });
-    } catch (e) {
-      _showErrorSnackbar('Erro ao adicionar tarefa.');
-    }
-  }
-
-  void _toggleTaskCompletion(String docID, bool completed) async {
-    try {
-      await _checklistService.updateTaskStatus(docID, !completed);
-    } catch (e) {
-      _showErrorSnackbar('Erro ao atualizar status da tarefa.');
-    }
-  }
-
-  void _editTask(String docID, String updatedTask) async {
-    try {
-      await _checklistService.updateTask(docID, updatedTask);
-    } catch (e) {
-      _showErrorSnackbar('Erro ao editar tarefa.');
-    }
   }
 
   void _removeTask(String docID) async {
@@ -208,12 +130,13 @@ class _ChecklistTabState extends State<ChecklistTab> {
                             ),
                           ),
                           child: ListTile(
-                            onTap: () => _showTaskDialog(
+                            onTap: () => _navigateToAddEditTaskScreen(
                                 docID: taskId, currentTask: taskName),
                             leading: Checkbox(
                               value: completed,
                               onChanged: (value) {
-                                _toggleTaskCompletion(taskId, completed);
+                                _checklistService.updateTaskStatus(
+                                    taskId, !completed);
                               },
                               activeColor:
                                   Color(0xFF266B70), // Cor da caixa de seleção
@@ -240,10 +163,118 @@ class _ChecklistTabState extends State<ChecklistTab> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showTaskDialog(); // Chama o diálogo de adicionar tarefa
+          _navigateToAddEditTaskScreen(); // Navega para a tela de adicionar tarefa
         },
         backgroundColor: const Color(0xFF01A897), // Cor do botão flutuante
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class AddEditTaskScreen extends StatefulWidget {
+  final String? docID;
+  final String? currentTask;
+  final ChecklistService checklistService;
+  final String itinerarioId;
+
+  const AddEditTaskScreen({
+    Key? key,
+    required this.checklistService,
+    required this.itinerarioId,
+    this.docID,
+    this.currentTask,
+  }) : super(key: key);
+
+  @override
+  _AddEditTaskScreenState createState() => _AddEditTaskScreenState();
+}
+
+class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
+  final TextEditingController _taskController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.currentTask != null) {
+      _taskController.text = widget.currentTask!;
+    }
+  }
+
+  void _saveTask() async {
+    final task = _taskController.text.trim();
+    if (task.isEmpty) return;
+
+    if (widget.docID == null) {
+      await widget.checklistService.addTask({
+        'task': task,
+        'itinerarioId': widget.itinerarioId,
+        'completed': false,
+      });
+    } else {
+      await widget.checklistService.updateTask(widget.docID!, task);
+    }
+
+    Navigator.pop(context); // Retorna à tela anterior
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          title:
+              Text(widget.docID == null ? 'Adicionar Tarefa' : 'Editar Tarefa'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          )),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _taskController,
+              decoration: InputDecoration(
+                labelText: 'Tarefa',
+                labelStyle: const TextStyle(
+                  fontFamily: 'Poppins',
+                  color: Color(0xFF266B70),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              child: ElevatedButton(
+                onPressed: _saveTask,
+                child: Text(
+                  widget.docID == null ? 'Adicionar' : 'Salvar',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF266B70),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

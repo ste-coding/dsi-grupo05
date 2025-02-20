@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'dart:io';
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:flutter_application_1/services/firestore/user.service.dart'
@@ -55,6 +58,60 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  Future<void> _updateProfileImage(Uint8List imageBytes) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      String base64image = base64Encode(imageBytes);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'profilePicture': base64image,
+      });
+      setState(() {
+        _profileImageBase64 = base64image;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imagem atualizada com sucesso!')),
+      );
+    } catch (e) {
+      print('Erro ao atualizar imagem: $e');
+    }
+  }
+
+  Future<void> _updateProfileData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'nome': _firstNameController.text,
+        'email': _emailController.text,
+        'cpf': _cpfController.text,
+      });
+
+      // Se a imagem do perfil foi alterada, atualiza a imagem também
+      if (_profileImageBase64 != null) {
+        await _updateProfileImage(base64Decode(_profileImageBase64!));
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Perfil atualizado com sucesso!')),
+      );
+    } catch (e) {
+      print('Erro ao atualizar perfil: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar perfil. Tente novamente.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,7 +157,9 @@ class _PerfilPageState extends State<PerfilPage> {
                       _buildOutlinedButton(
                           'Cancelar', () => Navigator.pop(context)),
                       const SizedBox(width: 12),
-                      _buildElevatedButton('Salvar', () {}),
+                      _buildElevatedButton('Salvar', () async {
+                        await _updateProfileData();
+                      }),
                     ],
                   ),
                   const SizedBox(height: 40),
