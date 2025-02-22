@@ -622,12 +622,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
           backgroundColor: Colors.white,
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.star_border),
-          label: 'Avaliações',
-          tooltip: 'Avaliações',
-          backgroundColor: Colors.white,
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           label: 'Perfil',
           tooltip: 'Perfil',
@@ -654,9 +648,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
             );
             break;
           case 3:
-            Navigator.pushNamed(context, '/avaliacoes');
-            break;
-          case 4:
             Navigator.pushNamed(context, '/perfil');
             break;
         }

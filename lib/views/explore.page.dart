@@ -87,14 +87,31 @@ class _ExplorePageState extends State<ExplorePage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao buscar locais. Tente novamente.'),
+          content: Text(
+            'Erro ao buscar locais. Tente novamente.',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
           action: SnackBarAction(
             label: 'Tentar novamente',
             onPressed: _loadLocais,
+            textColor: const Color(0xFF266B70),
           ),
         )
       );
     }
+  }
+
+  Widget _buildElevatedButton(String text, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF266B70),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 16, fontFamily: 'Poppins')),
+    );
   }
 
   @override
@@ -249,6 +266,7 @@ class _ExplorePageState extends State<ExplorePage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
                           ),
                         ),
                       ),
