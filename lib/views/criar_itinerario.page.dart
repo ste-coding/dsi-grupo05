@@ -66,116 +66,112 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  TextFormField(
-                    controller: _tituloController,
-                    decoration: InputDecoration(
-                      labelText: 'Título',
-                      labelStyle: const TextStyle(color: Color(0xFF266B70)),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    cursorColor: Colors.black,
-                    textAlign: TextAlign.left,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Insira um título'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _observationsController,
-                    decoration: InputDecoration(
-                      labelText: 'Observações',
-                      labelStyle: const TextStyle(color: Color(0xFF266B70)),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    cursorColor: Colors.black,
-                    textAlign: TextAlign.left,
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Alinha o conteúdo ao topo
+              children: [
+                TextFormField(
+                  controller: _tituloController,
+                  decoration: InputDecoration(
+                    labelText: 'Título',
+                    labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Selecione as Datas',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Column(
-                                children: [
-                                  const Text('Data de Início',
-                                      style:
-                                          TextStyle(color: Color(0xFF266B70))),
-                                  TextButton(
-                                    onPressed: () => _selectDate(context, true),
-                                    child: Text(
-                                      _startDate == null
-                                          ? 'Selecione'
-                                          : DateFormat('dd/MM/yyyy')
-                                              .format(_startDate!),
-                                      style: const TextStyle(
-                                          color: Color(0xFF266B70)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                children: [
-                                  const Text('Data de Fim',
-                                      style:
-                                          TextStyle(color: Color(0xFF266B70))),
-                                  TextButton(
-                                    onPressed: () =>
-                                        _selectDate(context, false),
-                                    child: Text(
-                                      _endDate == null
-                                          ? 'Selecione'
-                                          : DateFormat('dd/MM/yyyy')
-                                              .format(_endDate!),
-                                      style: const TextStyle(
-                                          color: Color(0xFF266B70)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: 200,
-                    height: 45,
+                  cursorColor: Colors.black,
+                  textAlign: TextAlign.left,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Insira um título'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _observationsController,
+                  decoration: InputDecoration(
+                    labelText: 'Observações',
+                    labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  cursorColor: Colors.black,
+                  textAlign: TextAlign.left,
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Selecione as Datas',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                const Text('Data de Início',
+                                    style: TextStyle(color: Color(0xFF266B70))),
+                                TextButton(
+                                  onPressed: () => _selectDate(context, true),
+                                  child: Text(
+                                    _startDate == null
+                                        ? 'Selecione'
+                                        : DateFormat('dd/MM/yyyy')
+                                            .format(_startDate!),
+                                    style: const TextStyle(
+                                        color: Color(0xFF266B70)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                const Text('Data de Fim',
+                                    style: TextStyle(color: Color(0xFF266B70))),
+                                TextButton(
+                                  onPressed: () => _selectDate(context, false),
+                                  child: Text(
+                                    _endDate == null
+                                        ? 'Selecione'
+                                        : DateFormat('dd/MM/yyyy')
+                                            .format(_endDate!),
+                                    style: const TextStyle(
+                                        color: Color(0xFF266B70)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Centralizando o botão
+                Center(
+                  child: SizedBox(
                     child: ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate() &&
@@ -208,15 +204,21 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF266B70),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('Salvar',
-                          style: TextStyle(color: Colors.white, fontSize: 18)),
+                      child: const Text(
+                        'Salvar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontFamily: 'Poppins', // Aplica a fonte Poppins
+                        ),
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
