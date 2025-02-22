@@ -123,14 +123,14 @@ class _ExplorePageState extends State<ExplorePage> {
                   hintText: 'Digite o nome do local...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
+                    borderSide: BorderSide.none,
                   ),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Color(0xFFD9D9D9).withOpacity(0.5),
                   hintStyle: TextStyle(
                     fontFamily: 'Poppins',
                     color: Colors.grey[600],
