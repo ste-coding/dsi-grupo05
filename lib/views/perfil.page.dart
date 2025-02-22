@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'dart:io';
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
 import 'package:flutter_application_1/services/firestore/user.service.dart'
@@ -25,6 +28,7 @@ class _PerfilPageState extends State<PerfilPage> {
   final TextEditingController _cpfController = TextEditingController();
 
   final maskFormatter = UtilBrasilFields.obterCpf;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -55,15 +59,86 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  Future<void> _updateProfileImage(Uint8List imageBytes) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      String base64image = base64Encode(imageBytes);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'profilePicture': base64image,
+      });
+      setState(() {
+        _profileImageBase64 = base64image;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imagem atualizada com sucesso!')),
+      );
+    } catch (e) {
+      print('Erro ao atualizar imagem: $e');
+    }
+  }
+
+  Future<void> _updateProfileData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'nome': _firstNameController.text,
+        'email': _emailController.text,
+        'cpf': _cpfController.text,
+      });
+
+      // Se a imagem do perfil foi alterada, atualiza a imagem também
+      if (_profileImageBase64 != null) {
+        await _updateProfileImage(base64Decode(_profileImageBase64!));
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Perfil atualizado com sucesso!')),
+      );
+    } catch (e) {
+      print('Erro ao atualizar perfil: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar perfil. Tente novamente.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Perfil',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/menu');
+          },
+        ),
+        actions: [
+          if (!_isEditing)
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                setState(() {
+                  _isEditing = true;
+                });
+              },
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -75,7 +150,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 children: <Widget>[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: _isEditing ? _pickImage : null,
                     child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey[300],
@@ -88,21 +163,37 @@ class _PerfilPageState extends State<PerfilPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField(_firstNameController, 'Nome'),
+                  _isEditing
+                      ? _buildTextField(_firstNameController, 'Nome')
+                      : _buildInfoText(_firstNameController.text),
                   const SizedBox(height: 16),
-                  _buildTextField(_emailController, 'Email'),
+                  _isEditing
+                      ? _buildTextField(_emailController, 'Email')
+                      : _buildInfoText(_emailController.text),
                   const SizedBox(height: 16),
-                  _buildTextField(_cpfController, 'CPF'),
+                  _isEditing
+                      ? _buildTextField(_cpfController, 'CPF')
+                      : _buildInfoText(_cpfController.text),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildOutlinedButton(
-                          'Cancelar', () => Navigator.pop(context)),
-                      const SizedBox(width: 12),
-                      _buildElevatedButton('Salvar', () {}),
-                    ],
-                  ),
+                  if (_isEditing)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildOutlinedButton(
+                            'Cancelar', () {
+                          setState(() {
+                            _isEditing = false;
+                          });
+                        }),
+                        const SizedBox(width: 12),
+                        _buildElevatedButton('Salvar', () async {
+                          await _updateProfileData();
+                          setState(() {
+                            _isEditing = false;
+                          });
+                        }),
+                      ],
+                    ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -127,8 +218,10 @@ class _PerfilPageState extends State<PerfilPage> {
       height: 48,
       child: TextField(
         controller: controller,
+        style: const TextStyle(fontFamily: 'Poppins'),
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(fontFamily: 'Poppins'),
           filled: true,
           fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
           border: OutlineInputBorder(
@@ -136,6 +229,17 @@ class _PerfilPageState extends State<PerfilPage> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoText(String value) {
+    return SizedBox(
+      width: 300,
+      child: Text(
+        value,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 16, fontFamily: 'Poppins'),
       ),
     );
   }
@@ -148,6 +252,7 @@ class _PerfilPageState extends State<PerfilPage> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
@@ -162,6 +267,7 @@ class _PerfilPageState extends State<PerfilPage> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
@@ -174,6 +280,7 @@ class _PerfilPageState extends State<PerfilPage> {
         side: const BorderSide(color: Color(0xFF266B70), width: 1),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text,
           style: const TextStyle(fontSize: 16, color: Color(0xFF266B70))),

@@ -280,7 +280,7 @@ class _MenuPageState extends State<MenuPage> {
               const Text(
                 'Locais pertinho de você',
                 style: TextStyle(
-                  fontFamily: 'Popsins',
+                  fontFamily: 'Poppins',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -357,7 +357,6 @@ class _MenuPageState extends State<MenuPage> {
             _buildNavItem(Icons.home, 'Home', true),
             _buildNavItem(Icons.map, 'Itinerários', false),
             _buildNavItem(Icons.search, 'Buscar', false),
-            _buildNavItem(Icons.star_border, 'Avaliações', false),
             _buildNavItem(Icons.gps_fixed, 'Mapa', false),
           ],
         ),
@@ -386,9 +385,6 @@ class _MenuPageState extends State<MenuPage> {
                 ),
               ),
             );
-            break;
-          case 'Avaliações':
-            Navigator.pushNamed(context, '/avaliacoes');
             break;
           case 'Mapa':
             Navigator.pushNamed(context, '/mapa');

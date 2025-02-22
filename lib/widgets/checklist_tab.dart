@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore/checklist.service.dart';
+import '/views/checklist_page.dart';
 
 class ChecklistTab extends StatefulWidget {
   final String itinerarioId;
@@ -11,9 +12,7 @@ class ChecklistTab extends StatefulWidget {
   @override
   _ChecklistTabState createState() => _ChecklistTabState();
 }
-
 class _ChecklistTabState extends State<ChecklistTab> {
-  final TextEditingController _taskController = TextEditingController();
   late ChecklistService _checklistService;
 
   @override
@@ -26,79 +25,17 @@ class _ChecklistTabState extends State<ChecklistTab> {
     _checklistService = ChecklistService(userId, widget.itinerarioId);
   }
 
-  void _showTaskDialog({String? docID, String? currentTask}) {
-    if (currentTask != null) {
-      _taskController.text = currentTask;
-    } else {
-      _taskController.clear();
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            docID == null ? 'Adicionar Tarefa' : 'Editar Tarefa',
-            style: TextStyle(
-              color: Color(0xFF266B70), // Cor do título do popup
-            ),
-          ),
-          content: TextField(
-            controller: _taskController,
-            decoration: InputDecoration(
-              labelText: 'Tarefa',
-              hintText: 'Digite o nome da tarefa...',
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF266B70)), // Cor de foco
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(
-                    color: Color(0xFF266B70)), // Cor do botão "Cancelar"
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                final task = _taskController.text;
-                if (task.isNotEmpty) {
-                  if (docID == null) {
-                    _addTask(task);
-                  } else {
-                    _editTask(docID, task);
-                  }
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text(
-                docID == null ? 'Adicionar' : 'Salvar',
-                style: TextStyle(
-                    color: Color(
-                        0xFF266B70)), // Cor do botão "Adicionar" ou "Salvar"
-              ),
-            ),
-          ],
-        );
-      },
+  void _navigateToTaskPage({String? docID, String? currentTask}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChecklistPage(
+          itinerarioId: widget.itinerarioId,
+          docID: docID,
+          currentTask: currentTask,
+        ),
+      ),
     );
-  }
-
-  void _addTask(String task) async {
-    try {
-      await _checklistService.addTask({
-        'task': task,
-        'itinerarioId': widget.itinerarioId,
-        'completed': false,
-      });
-    } catch (e) {
-      _showErrorSnackbar('Erro ao adicionar tarefa.');
-    }
   }
 
   void _toggleTaskCompletion(String docID, bool completed) async {
@@ -106,14 +43,6 @@ class _ChecklistTabState extends State<ChecklistTab> {
       await _checklistService.updateTaskStatus(docID, !completed);
     } catch (e) {
       _showErrorSnackbar('Erro ao atualizar status da tarefa.');
-    }
-  }
-
-  void _editTask(String docID, String updatedTask) async {
-    try {
-      await _checklistService.updateTask(docID, updatedTask);
-    } catch (e) {
-      _showErrorSnackbar('Erro ao editar tarefa.');
     }
   }
 
@@ -208,7 +137,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
                             ),
                           ),
                           child: ListTile(
-                            onTap: () => _showTaskDialog(
+                            onTap: () => _navigateToTaskPage(
                                 docID: taskId, currentTask: taskName),
                             leading: Checkbox(
                               value: completed,
@@ -240,7 +169,7 @@ class _ChecklistTabState extends State<ChecklistTab> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showTaskDialog(); // Chama o diálogo de adicionar tarefa
+          _navigateToTaskPage(); // Navega para a página de adicionar tarefa
         },
         backgroundColor: const Color(0xFF01A897), // Cor do botão flutuante
         child: const Icon(Icons.add, color: Colors.white),
