@@ -141,19 +141,12 @@ class _ExplorePageState extends State<ExplorePage> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Digite o nome do local...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  hintStyle: const TextStyle(fontFamily: 'Poppins'),
                   filled: true,
-                  fillColor: Colors.white,
-                  hintStyle: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.grey[600],
+                  fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   prefixIcon: Icon(
                     Icons.search,
@@ -232,8 +225,15 @@ class _ExplorePageState extends State<ExplorePage> {
                           ),
                           SizedBox(height: 16),
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF266B70),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              textStyle: const TextStyle(fontFamily: 'Poppins'),
+                            ),
                             onPressed: _loadLocais,
-                            child: Text('Tentar novamente'),
+                            child: Text('Tentar novamente', style: const TextStyle(fontSize: 16)),
                           ),
                         ],
                       ),
@@ -249,6 +249,7 @@ class _ExplorePageState extends State<ExplorePage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
                           ),
                         ),
                       ),
