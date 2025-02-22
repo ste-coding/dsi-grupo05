@@ -310,8 +310,7 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                   const SizedBox(height: 24),
                   _buildDescription(),
                   const SizedBox(height: 24),
-                  _buildAddToItineraryButton(),
-                  const SizedBox(height: 24),
+
                   // Seção de avaliações
                   const Text(
                     'Avaliações',
@@ -568,31 +567,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAddToItineraryButton() {
-    return ElevatedButton(
-      onPressed: () {
-        _showItineraryBottomSheet(context);
-      },
-      style: ElevatedButton.styleFrom(
-        side: BorderSide(color: Color(0xFF266B70), width: 2),
-        padding: EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: Color(0xFF266B70),
-        textStyle: const TextStyle(
-          fontFamily: 'Poppins',
-          color: Colors.white,
-        ),
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: const Text(
-        'Adicionar a Itinerário',
-        style: TextStyle(color: Colors.white),
-      ),
     );
   }
 

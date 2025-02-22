@@ -8,6 +8,7 @@ class RoteiroService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final String itinerarioCollection = 'roteiros';
+
   Future<void> saveActivities(String roteiroId, DateTime date,
       List<Map<String, dynamic>> activities) async {
     try {
@@ -43,12 +44,13 @@ class RoteiroService {
 
         String timeString = doc['time']; // Hora está como string
 
-        // Converte para TimeOfDay
-        TimeOfDay activityTime = RoteiroModel.stringToTimeOfDay(timeString);
+        // Converte a string de horário para um formato adequado
+        // Agora, tratamos 'time' como uma string e não mais como TimeOfDay
+        String formattedTime = timeString; // Apenas mantemos o formato original
 
         return {
           'name': doc['name'],
-          'time': activityTime,
+          'time': formattedTime, // Hora já formatada como string
           'date': activityDate.toString(),
           'id': doc.id,
         };

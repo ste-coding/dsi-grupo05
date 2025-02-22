@@ -37,29 +37,23 @@ class _RoteiroPageState extends State<RoteiroPage> {
       activities[day] = [];
     }
     _loadActivities(); // Carregar atividades do Firestore
+
+    // Seleciona a primeira data ao inicializar
+    selectedDay = travelDays.first;
   }
 
   void _loadActivities() async {
     try {
       final fetchedActivities =
           await roteiroService.getActivities(widget.roteiroId);
-      print(fetchedActivities); // Verifique o conteúdo aqui
       setState(() {
         for (var activity in fetchedActivities) {
-          DateTime activityDate = DateTime.parse(activity['date']);
-
-          // Converte a string de horário para TimeOfDay
-          String timeStr = activity['time'];
-          List<String> timeParts = timeStr.split(':');
-          TimeOfDay activityTime = TimeOfDay(
-            hour: int.parse(timeParts[0]),
-            minute: int.parse(timeParts[1]),
-          );
+          DateTime activityDate = DateTime.parse(activity['date']).toLocal();
 
           if (activities.containsKey(activityDate)) {
             activities[activityDate]?.add({
               'name': activity['name'],
-              'time': activityTime,
+              'time': activity['time'], // A hora agora é uma string
               'id': activity['id'],
             });
           }
@@ -91,10 +85,6 @@ class _RoteiroPageState extends State<RoteiroPage> {
             date,
             [newActivity], // Salvar a nova atividade
           );
-          setState(() {
-            activities[date]?.last['id'] =
-                DateTime.now().toString(); // Gerando um ID temporário
-          });
         } catch (e) {
           print('Erro ao salvar a atividade: $e');
         }
@@ -111,7 +101,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
       MaterialPageRoute(
         builder: (context) => CreateActivityPage(
           date: date,
-          roteiroId: widget.roteiroId, // Passando o ID do roteiro
+          roteiroId: widget.roteiroId,
           activityIndex: index,
           activity: activity,
         ),
@@ -128,6 +118,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
     });
   }
 
+  // Método para excluir uma atividade
   void _deleteActivity(DateTime date, int index) async {
     final activity = activities[date]?[index];
     if (activity == null) return;
@@ -142,10 +133,9 @@ class _RoteiroPageState extends State<RoteiroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Roteiro de Viagem")),
       body: Column(
         children: [
-          // Gerenciamento das datas do itinerário
+          SizedBox(height: 10),
           Container(
             height: 60,
             child: ListView.builder(
@@ -160,8 +150,8 @@ class _RoteiroPageState extends State<RoteiroPage> {
                     });
                   },
                   child: Container(
-                    width: 80,
-                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    width: 60,
+                    margin: const EdgeInsets.symmetric(horizontal: 2.0),
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
                       color: selectedDay == day
@@ -171,12 +161,8 @@ class _RoteiroPageState extends State<RoteiroPage> {
                     ),
                     child: Center(
                       child: Text(
-                        DateFormat('dd/MM').format(day),
-                        style: TextStyle(
-                          color:
-                              selectedDay == day ? Colors.white : Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        DateFormat('dd/MM').format(day), // Exibe a data
+                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
                     ),
                   ),
@@ -187,57 +173,53 @@ class _RoteiroPageState extends State<RoteiroPage> {
           Expanded(
             child: selectedDay == null
                 ? Center(child: Text("Selecione uma data"))
-                : Column(
-                    children: [
-                      ...?activities[selectedDay]?.isEmpty ?? true
-                          ? [Text("Nenhuma atividade disponível")]
-                          : activities[selectedDay]!
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                              int idx = entry.key;
-                              Map<String, dynamic> activity = entry.value;
-                              return Dismissible(
-                                key: Key(activity["name"]),
-                                onDismissed: (direction) {
-                                  _deleteActivity(selectedDay!, idx);
-                                },
-                                background: Container(color: Colors.red),
-                                child: GestureDetector(
-                                  onTap: () => _editActivity(selectedDay!, idx),
-                                  child: Card(
-                                    margin: const EdgeInsets.all(8.0),
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.all(10),
-                                      title: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(activity["name"] ?? ""),
-                                          Text(
-                                            "Horário: ${activity["time"].format(context)}",
-                                            style: TextStyle(
-                                                color: Color(0xFF01A897)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                : ListView.builder(
+                    itemCount: activities[selectedDay]?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final activity = activities[selectedDay]![index];
+                      return Dismissible(
+                        key: Key(activity["name"]),
+                        onDismissed: (direction) {
+                          _deleteActivity(selectedDay!, index);
+                        },
+                        background: Container(color: Colors.red),
+                        child: GestureDetector(
+                          onTap: () => _editActivity(selectedDay!, index),
+                          child: Card(
+                            margin: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(10),
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(activity["name"] ?? ""),
+                                  Text(
+                                    "Horário: ${activity["time"]}",
+                                    style: TextStyle(color: Color(0xFF266B70)),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                    ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-          )
+          ),
         ],
       ),
       floatingActionButton: selectedDay == null
           ? null
-          : FloatingActionButton(
-              onPressed: () => _addActivity(selectedDay!),
-              backgroundColor: const Color(0xFF266B70),
-              child: const Icon(Icons.add, color: Colors.white),
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: FloatingActionButton(
+                onPressed: () => _addActivity(selectedDay!),
+                backgroundColor: const Color(0xFF01A897),
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
             ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
@@ -262,21 +244,22 @@ class CreateActivityPage extends StatefulWidget {
 
 class _CreateActivityPageState extends State<CreateActivityPage> {
   late TextEditingController nameController;
-  late TimeOfDay selectedTime;
+  late TextEditingController timeController; // Controlador para o horário
 
   @override
   void initState() {
     super.initState();
     nameController =
         TextEditingController(text: widget.activity?["name"] ?? "");
-    selectedTime = widget.activity?["time"] ?? TimeOfDay(hour: 9, minute: 0);
+    timeController = TextEditingController(
+        text: widget.activity?["time"] ?? "09:00"); // Valor default
   }
 
   void _saveActivity() {
-    if (nameController.text.isNotEmpty) {
+    if (nameController.text.isNotEmpty && timeController.text.isNotEmpty) {
       final newActivity = {
         "name": nameController.text,
-        "time": selectedTime,
+        "time": timeController.text, // Agora o horário é uma string
       };
 
       Navigator.pop(context, newActivity);
@@ -310,50 +293,37 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                   : null,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Text("Horário: ${selectedTime.format(context)}"),
-                IconButton(
-                  icon: Icon(
-                    Icons.access_time,
-                    color: Color(0xFF01A897),
-                  ),
-                  onPressed: () async {
-                    TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: selectedTime,
-                      builder: (context, child) {
-                        return Theme(
-                          data: ThemeData.light().copyWith(
-                            primaryColor: Color(0xFF01A897),
-                            colorScheme: ColorScheme.light(
-                              primary: Color(0xFF01A897),
-                              secondary: Color(
-                                  0xFF01A897), // Usado no lugar do accentColor
-                            ),
-                            buttonTheme: ButtonThemeData(
-                              textTheme: ButtonTextTheme.primary,
-                            ),
-                          ),
-                          child: child!,
-                        );
-                      },
-                    );
-                    if (pickedTime != null) {
-                      setState(() {
-                        selectedTime = pickedTime;
-                      });
-                    }
-                  },
+            TextFormField(
+              controller: timeController, // Campo de horário
+              decoration: InputDecoration(
+                labelText: 'Horário (HH:mm)',
+                labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
-              ],
+              ),
+              cursorColor: Colors.black,
+              keyboardType:
+                  TextInputType.datetime, // Permite entrada de horário
+              validator: (value) {
+                // Validação simples para garantir o formato correto
+                if (value == null ||
+                    value.isEmpty ||
+                    !RegExp(r'^\d{2}:\d{2}$').hasMatch(value)) {
+                  return 'Insira o horário no formato HH:mm';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
                 onPressed: _saveActivity,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF01A897),
+                  backgroundColor: const Color(0xFF266B70),
                   textStyle: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,

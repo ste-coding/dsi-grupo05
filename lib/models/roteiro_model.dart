@@ -4,8 +4,8 @@ class RoteiroModel {
   String id;
   String titulo;
   String descricao;
-  String data;
-  TimeOfDay time; // Agora armazenado corretamente
+  String data; // Data como string
+  String time; // Horário como string
 
   RoteiroModel({
     required this.id,
@@ -22,7 +22,7 @@ class RoteiroModel {
       titulo: json['titulo'] ?? '',
       descricao: json['descricao'] ?? '',
       data: json['data'] ?? '',
-      time: stringToTimeOfDay(json['time'] ?? '00:00'), // Conversão correta
+      time: json['time'] ?? '00:00', // Hora como string
     );
   }
 
@@ -32,20 +32,8 @@ class RoteiroModel {
       'id': id,
       'titulo': titulo,
       'descricao': descricao,
-      'data': data,
-      'time': timeOfDayToString(time), // Salvar como string
+      'data': data, // Mantém a data como string
+      'time': time, // Mantém a hora como string
     };
-  }
-
-  static TimeOfDay stringToTimeOfDay(String timeString) {
-    List<String> timeParts = timeString.split(':');
-    return TimeOfDay(
-      hour: int.parse(timeParts[0]),
-      minute: int.parse(timeParts[1]),
-    );
-  }
-
-  static String timeOfDayToString(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 }
