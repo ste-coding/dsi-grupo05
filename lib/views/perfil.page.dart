@@ -28,6 +28,7 @@ class _PerfilPageState extends State<PerfilPage> {
   final TextEditingController _cpfController = TextEditingController();
 
   final maskFormatter = UtilBrasilFields.obterCpf;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -117,10 +118,27 @@ class _PerfilPageState extends State<PerfilPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Perfil',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/menu');
+          },
+        ),
+        actions: [
+          if (!_isEditing)
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                setState(() {
+                  _isEditing = true;
+                });
+              },
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -132,7 +150,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 children: <Widget>[
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: _isEditing ? _pickImage : null,
                     child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey[300],
@@ -145,23 +163,37 @@ class _PerfilPageState extends State<PerfilPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  _buildTextField(_firstNameController, 'Nome'),
+                  _isEditing
+                      ? _buildTextField(_firstNameController, 'Nome')
+                      : _buildInfoText(_firstNameController.text),
                   const SizedBox(height: 16),
-                  _buildTextField(_emailController, 'Email'),
+                  _isEditing
+                      ? _buildTextField(_emailController, 'Email')
+                      : _buildInfoText(_emailController.text),
                   const SizedBox(height: 16),
-                  _buildTextField(_cpfController, 'CPF'),
+                  _isEditing
+                      ? _buildTextField(_cpfController, 'CPF')
+                      : _buildInfoText(_cpfController.text),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildOutlinedButton(
-                          'Cancelar', () => Navigator.pop(context)),
-                      const SizedBox(width: 12),
-                      _buildElevatedButton('Salvar', () async {
-                        await _updateProfileData();
-                      }),
-                    ],
-                  ),
+                  if (_isEditing)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildOutlinedButton(
+                            'Cancelar', () {
+                          setState(() {
+                            _isEditing = false;
+                          });
+                        }),
+                        const SizedBox(width: 12),
+                        _buildElevatedButton('Salvar', () async {
+                          await _updateProfileData();
+                          setState(() {
+                            _isEditing = false;
+                          });
+                        }),
+                      ],
+                    ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -186,8 +218,10 @@ class _PerfilPageState extends State<PerfilPage> {
       height: 48,
       child: TextField(
         controller: controller,
+        style: const TextStyle(fontFamily: 'Poppins'),
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: const TextStyle(fontFamily: 'Poppins'),
           filled: true,
           fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
           border: OutlineInputBorder(
@@ -195,6 +229,17 @@ class _PerfilPageState extends State<PerfilPage> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoText(String value) {
+    return SizedBox(
+      width: 300,
+      child: Text(
+        value,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 16, fontFamily: 'Poppins'),
       ),
     );
   }
@@ -207,6 +252,7 @@ class _PerfilPageState extends State<PerfilPage> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
@@ -221,6 +267,7 @@ class _PerfilPageState extends State<PerfilPage> {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
@@ -233,6 +280,7 @@ class _PerfilPageState extends State<PerfilPage> {
         side: const BorderSide(color: Color(0xFF266B70), width: 1),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
       ),
       child: Text(text,
           style: const TextStyle(fontSize: 16, color: Color(0xFF266B70))),
