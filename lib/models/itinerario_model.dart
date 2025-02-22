@@ -51,23 +51,23 @@ class ItinerarioModel {
 
 class ItinerarioItem {
   String localId;
-  String? localName;
+  String localName;
   DateTime visitDate;
-  String comment;
+  String? comment;
   String? itinerarioId;
 
   ItinerarioItem({
     required this.localId,
-    this.localName,
+    required this.localName,
     required this.visitDate,
-    required this.comment,
+    this.comment,
     this.itinerarioId,
   });
 
   factory ItinerarioItem.fromFirestore(Map<String, dynamic> data) {
     return ItinerarioItem(
       localId: data['localId'],
-      localName: data['localName'],
+      localName: data['localName'] ?? 'Nome não disponível',
       visitDate: (data['visitDate'] as Timestamp).toDate(),
       comment: data['comment'],
       itinerarioId: data['itinerarioId'],

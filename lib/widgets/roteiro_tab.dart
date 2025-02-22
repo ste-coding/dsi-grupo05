@@ -1,180 +1,379 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/itinerario_model.dart';
 import 'package:intl/intl.dart';
-import '../services/firestore/itinerarios.service.dart';
-import '../controller/local_controller.dart';
-import '../models/local_model.dart';
+import 'package:flutter_application_1/services/firestore/roteiro.service.dart';
 
-class RoteiroTab extends StatefulWidget {
-  final ItinerarioModel itinerario;
+class RoteiroPage extends StatefulWidget {
+  final DateTime startDate;
+  final DateTime endDate;
+  final String roteiroId; // Adicionado para salvar/atualizar/excluir atividades
 
-  const RoteiroTab({super.key, required this.itinerario});
+  const RoteiroPage({
+    super.key,
+    required this.startDate,
+    required this.endDate,
+    required this.roteiroId, // Recebendo o ID do roteiro
+  });
 
   @override
-  _RoteiroTabState createState() => _RoteiroTabState();
+  _RoteiroPageState createState() => _RoteiroPageState();
 }
 
-class _RoteiroTabState extends State<RoteiroTab> {
-  late DateTime _selectedDate;
-  final Map<DateTime, List<ItinerarioItem>> _groupedLocais = {};
+class _RoteiroPageState extends State<RoteiroPage> {
+  late List<DateTime> travelDays;
+  Map<DateTime, List<Map<String, dynamic>>> activities = {};
+  DateTime? selectedDay;
+  late RoteiroService roteiroService;
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.itinerario.startDate;
-    _groupLocaisByDate();
+    roteiroService = RoteiroService();
+    travelDays = List.generate(
+      widget.endDate.difference(widget.startDate).inDays + 1,
+      (index) => widget.startDate.add(Duration(days: index)),
+    );
+    // Inicializa o mapa de atividades
+    for (var day in travelDays) {
+      activities[day] = [];
+    }
+    _loadActivities(); // Carregar atividades do Firestore
   }
 
-  void _groupLocaisByDate() {
-    _groupedLocais.clear();
-    for (var local in widget.itinerario.locais) {
-      final date = DateUtils.dateOnly(local.visitDate);
-      if (!_groupedLocais.containsKey(date)) {
-        _groupedLocais[date] = [];
-      }
-      _groupedLocais[date]!.add(local);
+  void _loadActivities() async {
+    try {
+      final fetchedActivities =
+          await roteiroService.getActivities(widget.roteiroId);
+      print(fetchedActivities); // Verifique o conteúdo aqui
+      setState(() {
+        for (var activity in fetchedActivities) {
+          DateTime activityDate = DateTime.parse(activity['date']);
+
+          // Converte a string de horário para TimeOfDay
+          String timeStr = activity['time'];
+          List<String> timeParts = timeStr.split(':');
+          TimeOfDay activityTime = TimeOfDay(
+            hour: int.parse(timeParts[0]),
+            minute: int.parse(timeParts[1]),
+          );
+
+          if (activities.containsKey(activityDate)) {
+            activities[activityDate]?.add({
+              'name': activity['name'],
+              'time': activityTime,
+              'id': activity['id'],
+            });
+          }
+        }
+      });
+    } catch (e) {
+      print('Erro ao carregar atividades: $e');
     }
   }
 
-  void _navigateToAddActivity() {
+  void _addActivity(DateTime date) async {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SelecionarLocalScreen()),
-    );
-  }
+      MaterialPageRoute(
+        builder: (context) => CreateActivityPage(
+          date: date,
+          roteiroId: widget.roteiroId,
+        ),
+      ),
+    ).then((newActivity) async {
+      if (newActivity != null) {
+        setState(() {
+          activities[date]?.add(newActivity);
+        });
 
-  void _removeLocal(DateTime date, ItinerarioItem local) {
-    setState(() {
-      _groupedLocais[date]?.remove(local);
-      if (_groupedLocais[date]?.isEmpty ?? false) {
-        _groupedLocais.remove(date);
+        try {
+          await roteiroService.saveActivities(
+            widget.roteiroId,
+            date,
+            [newActivity], // Salvar a nova atividade
+          );
+          setState(() {
+            activities[date]?.last['id'] =
+                DateTime.now().toString(); // Gerando um ID temporário
+          });
+        } catch (e) {
+          print('Erro ao salvar a atividade: $e');
+        }
       }
     });
   }
 
+  void _editActivity(DateTime date, int index) async {
+    final activity = activities[date]?[index];
+    if (activity == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateActivityPage(
+          date: date,
+          roteiroId: widget.roteiroId, // Passando o ID do roteiro
+          activityIndex: index,
+          activity: activity,
+        ),
+      ),
+    ).then((updatedActivity) {
+      if (updatedActivity != null) {
+        setState(() {
+          activities[date]?[index] = updatedActivity;
+        });
+        // Atualizar no Firestore
+        roteiroService.updateActivity(
+            widget.roteiroId, activity['id'], updatedActivity);
+      }
+    });
+  }
+
+  void _deleteActivity(DateTime date, int index) async {
+    final activity = activities[date]?[index];
+    if (activity == null) return;
+
+    setState(() {
+      activities[date]?.removeAt(index);
+    });
+    // Excluir no Firestore
+    roteiroService.deleteActivity(widget.roteiroId, activity['id']);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Roteiro do Itinerário',
-          style: TextStyle(
-              fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 24),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _groupedLocais.keys.length,
-        itemBuilder: (context, index) {
-          final date = _groupedLocais.keys.toList()[index];
-          final locais = _groupedLocais[date]!;
-
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    DateFormat('dd/MM/yyyy').format(date),
-                    style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
+      appBar: AppBar(title: const Text("Roteiro de Viagem")),
+      body: Column(
+        children: [
+          // Gerenciamento das datas do itinerário
+          Container(
+            height: 60,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: travelDays.length,
+              itemBuilder: (context, index) {
+                DateTime day = travelDays[index];
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedDay = day;
+                    });
+                  },
+                  child: Container(
+                    width: 80,
+                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: selectedDay == day
+                          ? const Color(0xFF266B70)
+                          : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        DateFormat('dd/MM').format(day),
+                        style: TextStyle(
+                          color:
+                              selectedDay == day ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Column(
-                    children: locais
-                        .map((local) => Dismissible(
-                              key: Key(local.localId),
-                              direction: DismissDirection.endToStart,
-                              onDismissed: (direction) {
-                                _removeLocal(date, local);
-                              },
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                color: Colors.red,
-                                child: const Icon(Icons.delete,
-                                    color: Colors.white),
-                              ),
-                              child: ListTile(
-                                leading: const Icon(Icons.location_on,
-                                    color: Colors.teal),
-                                title: Text(
-                                    local.localName ?? 'Nome não disponível'),
-                                subtitle:
-                                    Text(local.comment ?? 'Sem comentário'),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: selectedDay == null
+                ? Center(child: Text("Selecione uma data"))
+                : Column(
+                    children: [
+                      ...?activities[selectedDay]?.isEmpty ?? true
+                          ? [Text("Nenhuma atividade disponível")]
+                          : activities[selectedDay]!
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                              int idx = entry.key;
+                              Map<String, dynamic> activity = entry.value;
+                              return Dismissible(
+                                key: Key(activity["name"]),
+                                onDismissed: (direction) {
+                                  _deleteActivity(selectedDay!, idx);
+                                },
+                                background: Container(color: Colors.red),
+                                child: GestureDetector(
+                                  onTap: () => _editActivity(selectedDay!, idx),
+                                  child: Card(
+                                    margin: const EdgeInsets.all(8.0),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.all(10),
+                                      title: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(activity["name"] ?? ""),
+                                          Text(
+                                            "Horário: ${activity["time"].format(context)}",
+                                            style: TextStyle(
+                                                color: Color(0xFF01A897)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                    ],
+                  ),
+          )
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddActivity,
-        backgroundColor: Colors.teal,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      floatingActionButton: selectedDay == null
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _addActivity(selectedDay!),
+              backgroundColor: const Color(0xFF266B70),
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
     );
   }
 }
 
-class SelecionarLocalScreen extends StatefulWidget {
+class CreateActivityPage extends StatefulWidget {
+  final DateTime date;
+  final String roteiroId; // Recebendo o ID do roteiro
+  final int? activityIndex;
+  final Map<String, dynamic>? activity;
+
+  const CreateActivityPage({
+    super.key,
+    required this.date,
+    required this.roteiroId, // Passando o ID do roteiro
+    this.activityIndex,
+    this.activity,
+  });
+
   @override
-  _SelecionarLocalScreenState createState() => _SelecionarLocalScreenState();
+  _CreateActivityPageState createState() => _CreateActivityPageState();
 }
 
-class _SelecionarLocalScreenState extends State<SelecionarLocalScreen> {
+class _CreateActivityPageState extends State<CreateActivityPage> {
+  late TextEditingController nameController;
+  late TimeOfDay selectedTime;
+
   @override
   void initState() {
     super.initState();
-    Provider.of<LocalController>(context, listen: false)
-        .fetchLocais('', 'Brasil');
+    nameController =
+        TextEditingController(text: widget.activity?["name"] ?? "");
+    selectedTime = widget.activity?["time"] ?? TimeOfDay(hour: 9, minute: 0);
+  }
+
+  void _saveActivity() {
+    if (nameController.text.isNotEmpty) {
+      final newActivity = {
+        "name": nameController.text,
+        "time": selectedTime,
+      };
+
+      Navigator.pop(context, newActivity);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Selecionar Local')),
-      body: Consumer<LocalController>(
-        builder: (context, controller, child) {
-          if (controller.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-                  if (controller.featuredLocations.isEmpty) {
-                    return const Center(
-                      child: Text('Nenhum local encontrado.'),
+      appBar: AppBar(title: const Text("Criar Atividade")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Nome da Atividade',
+                labelStyle: const TextStyle(color: Color(0xFF266B70)),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              cursorColor: Colors.black,
+              textAlign: TextAlign.left,
+              validator: (value) => value == null || value.isEmpty
+                  ? 'Insira um nome para a atividade'
+                  : null,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text("Horário: ${selectedTime.format(context)}"),
+                IconButton(
+                  icon: Icon(
+                    Icons.access_time,
+                    color: Color(0xFF01A897),
+                  ),
+                  onPressed: () async {
+                    TimeOfDay? pickedTime = await showTimePicker(
+                      context: context,
+                      initialTime: selectedTime,
+                      builder: (context, child) {
+                        return Theme(
+                          data: ThemeData.light().copyWith(
+                            primaryColor: Color(0xFF01A897),
+                            colorScheme: ColorScheme.light(
+                              primary: Color(0xFF01A897),
+                              secondary: Color(
+                                  0xFF01A897), // Usado no lugar do accentColor
+                            ),
+                            buttonTheme: ButtonThemeData(
+                              textTheme: ButtonTextTheme.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
                     );
-                  }
-
-                  return ListView.builder(
-                    itemCount: controller.featuredLocations.length,
-                    itemBuilder: (context, index) {
-                      final local = controller.featuredLocations[index];
-
-              return ListTile(
-                leading: const Icon(Icons.place, color: Colors.teal),
-                title: Text(local.nome),
-                subtitle: Text(local.estado ?? 'estado não disponível'),
-                onTap: () {
-                  Navigator.pop(context, local);
-                },
-              );
-            },
-          );
-        },
+                    if (pickedTime != null) {
+                      setState(() {
+                        selectedTime = pickedTime;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: _saveActivity,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF01A897),
+                  textStyle: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Salvar Atividade',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
