@@ -46,21 +46,25 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
 
     try {
       final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+          isLoading = false;
+        });
+      }
+
 
       // Buscar locais do Foursquare
       await _fetchNearbyPlaces();
 
       Geolocator.getPositionStream().listen((position) {
-        if (position.longitude != null) {
+        if (mounted) {
           setState(() {
             _currentLocation = LatLng(position.latitude, position.longitude);
           });
         }
-      });
+
+            });
     } catch (e) {
       setState(() => isLoading = false);
       errorMessage('Erro ao obter localização');
@@ -76,11 +80,14 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
         '${_currentLocation!.latitude},${_currentLocation!.longitude}',
       );
 
-      setState(() {
-        _places = places.where((place) => 
-          place.latitude != 0.0 && place.longitude != 0.0
-        ).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _places = places.where((place) => 
+            place.latitude != 0.0 && place.longitude != 0.0
+          ).toList();
+        });
+      }
+
     } catch (e) {
       errorMessage('Erro ao carregar locais próximos');
     }
@@ -88,11 +95,14 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
 
   // Usar coordenadas do local selecionado
   void _onPlaceSelected(LocalModel place) {
-    setState(() {
-      _selectedPlace = place;
-      _destination = LatLng(place.latitude, place.longitude);
-      _locationController.text = place.nome;
-    });
+    if (mounted) {
+      setState(() {
+        _selectedPlace = place;
+        _destination = LatLng(place.latitude, place.longitude);
+        _locationController.text = place.nome;
+      });
+    }
+
     _fetchRoute();
   }
 
@@ -131,9 +141,12 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
         final coordinates = data[0];
         final latitude = double.parse(coordinates['lat']);
         final longitude = double.parse(coordinates['lon']);
-        setState(() {
-          _destination = LatLng(latitude, longitude);
-        });
+        if (mounted) {
+          setState(() {
+            _destination = LatLng(latitude, longitude);
+          });
+        }
+
         await _fetchRoute();
       } else {
         errorMessage('Localização não encontrada');
@@ -167,11 +180,14 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
     final List<PointLatLng> decodedPoints = 
         polylinePoints.decodePolyline(encodedPolyline);
 
-    setState(() {
-      _route = decodedPoints
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
-    });
+    if (mounted) {
+      setState(() {
+        _route = decodedPoints
+            .map((point) => LatLng(point.latitude, point.longitude))
+            .toList();
+      });
+    }
+
   }
 
   Future<void> _userCurrentLocation() async {

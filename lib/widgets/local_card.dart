@@ -29,12 +29,9 @@ class _LocalCardState extends State<LocalCard> {
   Future<void> _checkIfFavorito() async {
     final favorito =
         await widget.favoritosService.checkIfFavoritoExists(widget.local.id);
-    if (mounted) {
-      setState(() {
-        isFavorito = favorito;
-      });
-    }
-
+    setState(() {
+      isFavorito = favorito;
+    });
   }
 
   Future<void> _toggleFavorito() async {
@@ -46,12 +43,9 @@ class _LocalCardState extends State<LocalCard> {
             .addFavorito(widget.local); // ✅ Agora passamos o LocalModel inteiro
       }
 
-      if (mounted) {
-        setState(() {
-          isFavorito = !isFavorito;
-        });
-      }
-
+      setState(() {
+        isFavorito = !isFavorito;
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao atualizar favorito: $e')),

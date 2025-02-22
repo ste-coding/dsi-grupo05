@@ -1,86 +1,342 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../controller/local_controller.dart';
-import '../services/firestore/favoritos.service.dart';
-import '../widgets/local_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:geolocator/geolocator.dart';
+import '../services/foursquare_service.dart';
 import '../models/local_model.dart';
+import '../models/local_response_model.dart';
+import '../repositories/local_repository.dart';
+import '../services/firestore/favoritos.service.dart';
+import '../services/firestore/itinerarios.service.dart';
+import '../models/itinerario_model.dart';
 
-class FavoritesPage extends StatelessWidget {
-  const FavoritesPage({super.key});
+class LocalController with ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LocalRepository repository;
+  final FavoritosService favoritosService;
+  final ItinerariosService itinerariosService;
 
-  @override
-  Widget build(BuildContext context) {
-    final localController = Provider.of<LocalController>(context);
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+  bool _isLoading = false;
+  bool _finishLoading = false;
+  String? _errorMessage;
+  final List<LocalModel> _locais = [];
+  final List<LocalModel> _locaisProximos = [];
+  int _page = 0;
+  Position? _userPosition;
 
-    if (userId == null) {
-      return const Center(child: Text('Usuário não autenticado.'));
+  bool get isLoading => _isLoading;
+  bool get finishLoading => _finishLoading;
+  String? get errorMessage => _errorMessage;
+  List<LocalModel> get locais => _locais;
+  List<LocalModel> get locaisProximos => _locaisProximos;
+
+  LocalController(
+      this.repository, this.favoritosService, this.itinerariosService);
+
+  void resetLocais() {
+    _locais.clear();
+    _page = 0;
+    _finishLoading = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+  }
+
+  Future<void> _initializeLocation() async {
+    final hasPermission = await _checkLocationPermission();
+    if (!hasPermission) {
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+      return;
     }
 
-    final favoritosService = FavoritosService(userId);
+    try {
+      final position = await Geolocator.getCurrentPosition();
+      _userPosition = position;
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Favoritos',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: StreamBuilder<List<LocalModel>>(
-        stream: favoritosService.getFavoritosStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      await fetchLocaisProximos();
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Erro: ${snapshot.error}'));
-          }
+      Geolocator.getPositionStream().listen((position) {
+        _userPosition = position;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
+      });
+    } catch (e) {
+      _errorMessage = 'Erro ao obter localização: $e';
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
 
-          final favoritos = snapshot.data ?? [];
+  Future<bool> _checkLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _errorMessage = 'Ative os serviços de localização';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+      return false;
+    }
 
-          if (favoritos.isEmpty) {
-            return const Center(child: Text('Nenhum favorito encontrado.'));
-          }
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _errorMessage = 'Permissão de localização negada';
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
+        return false;
+      }
+    }
 
-          return ListView.builder(
-            itemCount: favoritos.length,
-            itemBuilder: (context, index) {
-              final local = favoritos[index];
+    if (permission == LocationPermission.deniedForever) {
+      _errorMessage = 'Permissão permanente negada. Ative nas configurações';
+      await Geolocator.openAppSettings();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
 
-              return Dismissible(
-                key: Key(local.id),
-                direction: DismissDirection.endToStart,
-                onDismissed: (direction) async {
-                  await favoritosService.removeFavorito(local.id);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('${local.nome} removido dos favoritos')),
-                  );
-                },
-                background: Container(
-                  color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(right: 20),
-                  child: Icon(Icons.delete, color: Colors.white),
-                ),
-                child: LocalCard(
-                  local: local,
-                  favoritosService: favoritosService,
-                ),
-              );
-            },
-          );
+    return true;
+  }
+
+  Future<void> fetchLocais(String query, String location) async {
+    if (_isLoading || _finishLoading) return;
+
+    _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+
+    try {
+      await _initializeLocation();
+
+      final result =
+          await repository.fetchLocais(query, location, offset: _page * 20);
+
+      result.fold(
+        (error) {
+          _errorMessage = error;
+          _isLoading = false;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            notifyListeners();
+          });
         },
-      ),
+        (response) {
+          if (response.locais.isEmpty) {
+            _finishLoading = true;
+          } else {
+            _locais.addAll(response.locais);
+            _page++;
+          }
+          _isLoading = false;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            notifyListeners();
+          });
+        },
+      );
+    } catch (e) {
+      _errorMessage = "Erro ao carregar locais: $e";
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<void> fetchLocaisProximos() async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
+
+    try {
+      if (_userPosition == null) {
+        await _initializeLocation();
+      }
+
+      if (_userPosition == null) {
+        _errorMessage = 'Não foi possível obter a localização atual';
+        _isLoading = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          notifyListeners();
+        });
+        return;
+      }
+
+      final places = await FoursquareService().fetchPlaces(
+        '',
+        '${_userPosition!.latitude},${_userPosition!.longitude}',
+      );
+
+      _locaisProximos.clear();
+      _locaisProximos.addAll(places
+          .where((place) => place.latitude != 0.0 && place.longitude != 0.0)
+          .toList());
+
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = "Erro ao carregar locais próximos: $e";
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<void> addToFavoritos(LocalModel local) async {
+    try {
+      await favoritosService.addFavorito(local);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = 'Erro ao adicionar favorito: $e';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<void> removeFromFavoritos(String localId) async {
+    try {
+      await favoritosService.removeFavorito(localId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = 'Erro ao remover favorito: $e';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<void> addToItinerario(Map<String, dynamic> itinerario) async {
+    try {
+      await itinerariosService.addItinerario(itinerario);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = 'Erro ao adicionar ao itinerário: $e';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    }
+  }
+
+  Future<List<ItinerarioModel>> getUserItinerarios() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        print("Usuário não autenticado");
+        return [];
+      }
+
+      final snapshot = await _firestore
+          .collection('viajantes')
+          .doc(userId)
+          .collection('itinerarios')
+          .get();
+
+      print(
+          "Snapshot de itinerários recuperado. Total de documentos: ${snapshot.docs.length}");
+
+      if (snapshot.docs.isEmpty) {
+        print("Nenhum itinerário encontrado.");
+        return [];
+      }
+
+      List<ItinerarioModel> itinerarios = [];
+
+      for (var doc in snapshot.docs) {
+        var itinerarioData = doc.data();
+        String itinerarioId = doc.id;
+
+        var locaisSnapshot = await _firestore
+            .collection('viajantes')
+            .doc(userId)
+            .collection('itinerarios')
+            .doc(itinerarioId)
+            .collection('roteiro')
+            .get();
+
+        List<ItinerarioItem> locais = locaisSnapshot.docs
+            .map((localDoc) => ItinerarioItem.fromFirestore(localDoc.data()))
+            .toList();
+
+        itinerarios.add(ItinerarioModel.fromFirestore(itinerarioData, locais));
+      }
+
+      print("Itinerários carregados: ${itinerarios.length}");
+      return itinerarios;
+    } catch (e) {
+      print('Erro ao buscar itinerários: $e');
+      return [];
+    }
+  }
+
+  Future<void> addLocalToRoteiro(
+      String itinerarioId, LocalModel local, DateTime visitDate) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      print("Usuário não autenticado");
+      return;
+    }
+
+    final itinerarioDoc = await _firestore
+        .collection('viajantes')
+        .doc(userId)
+        .collection('itinerarios')
+        .doc(itinerarioId)
+        .get();
+
+    if (!itinerarioDoc.exists) {
+      print("Erro: itinerário não encontrado para o ID: $itinerarioId");
+      return;
+    }
+
+    final itinerarioItem = ItinerarioItem(
+      localId: local.id,
+      localName: local.nome,
+      visitDate: visitDate,
+      comment: 'Comentário opcional',
     );
+
+    final localData = itinerarioItem.toFirestore();
+
+    try {
+      await _firestore
+          .collection('viajantes')
+          .doc(userId)
+          .collection('itinerarios')
+          .doc(itinerarioId)
+          .collection('roteiro')
+          .add(localData);
+
+      print("Local adicionado ao roteiro com sucesso!");
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
+    } catch (e) {
+      print("Erro ao adicionar local ao roteiro: $e");
+    }
   }
 }
