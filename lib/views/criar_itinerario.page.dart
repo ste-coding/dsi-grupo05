@@ -19,6 +19,18 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   DateTime? _startDate;
   DateTime? _endDate;
   late ItinerariosService itinerariosService;
+  String? _selectedImage;
+
+  final List<String> _availableImages = [
+    'assets/images/inverno.jpg',
+    'assets/images/acampamento.jpg',
+    'assets/images/festivais.jpg',
+    'assets/images/cidades_antigas.jpg',
+    'assets/images/praia.jpg',
+    'assets/images/por_do_sol.jpg',
+    'assets/images/trabalho.jpg',
+    'assets/images/trilha.jpg',
+  ];
 
   @override
   void initState() {
@@ -72,148 +84,35 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start, // Alinha o conteúdo ao topo
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
-                  controller: _tituloController,
-                  decoration: InputDecoration(
-                    labelText: 'Título',
-                    labelStyle: const TextStyle(color: Color(0xFF266B70)),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  cursorColor: Colors.black,
-                  textAlign: TextAlign.left,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Insira um título'
-                      : null,
-                ),
+                _buildTextField(_tituloController, 'Título', true),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _observationsController,
-                  decoration: InputDecoration(
-                    labelText: 'Observações',
-                    labelStyle: const TextStyle(color: Color(0xFF266B70)),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  cursorColor: Colors.black,
-                  textAlign: TextAlign.left,
-                ),
+                _buildTextField(_observationsController, 'Observações', false),
                 const SizedBox(height: 16),
-                Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Selecione as Datas',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
-                              children: [
-                                const Text('Data de Início',
-                                    style: TextStyle(color: Color(0xFF266B70))),
-                                TextButton(
-                                  onPressed: () => _selectDate(context, true),
-                                  child: Text(
-                                    _startDate == null
-                                        ? 'Selecione'
-                                        : DateFormat('dd/MM/yyyy')
-                                            .format(_startDate!),
-                                    style: const TextStyle(
-                                        color: Color(0xFF266B70)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                const Text('Data de Fim',
-                                    style: TextStyle(color: Color(0xFF266B70))),
-                                TextButton(
-                                  onPressed: () => _selectDate(context, false),
-                                  child: Text(
-                                    _endDate == null
-                                        ? 'Selecione'
-                                        : DateFormat('dd/MM/yyyy')
-                                            .format(_endDate!),
-                                    style: const TextStyle(
-                                        color: Color(0xFF266B70)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildDateSelection(),
+                const SizedBox(height: 16),
+                _buildImageSelection(),
                 const SizedBox(height: 24),
-                // Centralizando o botão
                 Center(
-                  child: SizedBox(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate() &&
-                            _startDate != null &&
-                            _endDate != null) {
-                          if (_startDate!.isAfter(_endDate!)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'A data de início deve ser antes da data de fim.')),
-                            );
-                            return;
-                          }
-
-                          final itinerario = ItinerarioModel(
-                            id: '',
-                            userId: widget.userId,
-                            titulo: _tituloController.text,
-                            startDate: _startDate!,
-                            endDate: _endDate!,
-                            observations: _observationsController.text,
-                            locais: [],
-                          );
-
-                          await itinerariosService
-                              .addItinerario(itinerario.toFirestore());
-                          Navigator.pop(context);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF266B70),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                  child: ElevatedButton(
+                    onPressed: _saveItinerario,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF266B70),
+                      textStyle: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: const Text(
-                        'Salvar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontFamily: 'Poppins', // Aplica a fonte Poppins
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Salvar Atividade',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -224,5 +123,131 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, bool isRequired) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Color(0xFF266B70)),
+        filled: true,
+        fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      validator: isRequired
+          ? (value) =>
+              value == null || value.isEmpty ? 'Insira um $label' : null
+          : null,
+    );
+  }
+
+  Widget _buildDateSelection() {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const Text('Selecione as Datas',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildDateButton('Data de Início', _startDate, true),
+                _buildDateButton('Data de Fim', _endDate, false),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateButton(String label, DateTime? date, bool isStartDate) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Color(0xFF266B70))),
+        TextButton(
+          onPressed: () => _selectDate(context, isStartDate),
+          child: Text(
+            date == null ? 'Selecione' : DateFormat('dd/MM/yyyy').format(date),
+            style: const TextStyle(color: Color(0xFF266B70)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Escolha uma imagem:',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        SizedBox(
+          height: 120, // Altura ajustada para acomodar melhor as imagens
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _availableImages.length,
+            itemBuilder: (context, index) {
+              final image = _availableImages[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedImage = image;
+                  });
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _selectedImage == image
+                          ? Colors.blue
+                          : Colors.transparent,
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(image, fit: BoxFit.cover),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _saveItinerario() async {
+    if (_formKey.currentState!.validate() &&
+        _startDate != null &&
+        _endDate != null &&
+        _selectedImage != null) {
+      final itinerario = ItinerarioModel(
+        id: '',
+        userId: widget.userId,
+        titulo: _tituloController.text,
+        startDate: _startDate!,
+        endDate: _endDate!,
+        observations: _observationsController.text,
+        imageUrl: _selectedImage!,
+        locais: [],
+      );
+      await itinerariosService.addItinerario(itinerario.toFirestore());
+      Navigator.pop(context);
+    }
   }
 }
