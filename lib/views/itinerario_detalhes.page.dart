@@ -77,16 +77,14 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
         );
       },
     );
-    if (selectedDate != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = selectedDate;
-        } else {
-          _endDate = selectedDate;
-        }
-      });
+    setState(() {
+      if (isStartDate) {
+        _startDate = selectedDate ?? _startDate;
+      } else {
+        _endDate = selectedDate ?? _endDate;
+      }
+    });
     }
-  }
 
   void _saveItinerarioChanges() {
     widget.itinerario.startDate = _startDate;

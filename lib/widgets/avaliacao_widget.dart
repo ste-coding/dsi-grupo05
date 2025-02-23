@@ -25,7 +25,7 @@ class AvaliacoesWidget extends StatelessWidget {
         const SizedBox(height: 8),
         if (avaliacoes.isEmpty)
           const Text(
-            'Nenhuma avaliação ainda. Adicione uma!',
+            'Nenhuma avaliação ainda. Seja o primeiro a avaliar.',
             style: TextStyle(fontFamily: 'Poppins', color: Colors.grey),
           )
         else

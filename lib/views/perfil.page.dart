@@ -205,83 +205,88 @@ class _PerfilPageState extends State<PerfilPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'Gráfico de Itinerários Mensais',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
         Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: const Color(0xFF266B70),
           elevation: 4,
           child: Container(
             padding: const EdgeInsets.all(16),
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(months[value.toInt()],
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontFamily: 'Poppins')),
-                        );
-                      },
-                      interval: 1,
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(value.toInt().toString(),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontFamily: 'Poppins'));
-                      },
-                      interval: 1,
-                    ),
-                  ),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 11,
-                minY: 0,
-                maxY: (monthlyItineraries.reduce((a, b) => a > b ? a : b)).toDouble() + 1,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: monthlyItineraries.asMap().entries.map((entry) {
-                      return FlSpot(entry.key.toDouble(), entry.value.toDouble());
-                    }).toList(),
-                    isCurved: true,
+            height: 240,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Gráfico de Itinerários Mensais',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    barWidth: 2,
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                    dotData: FlDotData(show: false),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: LineChart(
+                    LineChartData(
+                      gridData: FlGridData(show: false),
+                      titlesData: FlTitlesData(
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(months[value.toInt()],
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontFamily: 'Poppins')),
+                              );
+                            },
+                            interval: 1,
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              return Text(value.toInt().toString(),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontFamily: 'Poppins'));
+                            },
+                            interval: 1,
+                          ),
+                        ),
+                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: 11,
+                      minY: 0,
+                      maxY: (monthlyItineraries.reduce((a, b) => a > b ? a : b)).toDouble() + 1,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: monthlyItineraries.asMap().entries.map((entry) {
+                            return FlSpot(entry.key.toDouble(), entry.value.toDouble());
+                          }).toList(),
+                          isCurved: true,
+                          color: Colors.white,
+                          barWidth: 2,
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                          dotData: FlDotData(show: false),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -292,12 +297,15 @@ class _PerfilPageState extends State<PerfilPage> {
   Widget _buildDashboard() {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildTaskDashboard(),
-            _buildInsightCard('Total de Itinerários', _totalItinerarios.toString()),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildTaskDashboard(),
+              _buildInsightCard('Total de Itinerários', _totalItinerarios.toString()),
+            ],
+          ),
         ),
         const SizedBox(height: 20),
         _buildLineChart(),
@@ -344,7 +352,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   GestureDetector(
                     onTap: _isEditing ? _pickImage : null,
                     child: CircleAvatar(
-                      radius: 50,
+                      radius: 70,
                       backgroundColor: Colors.grey[300],
                       backgroundImage: _profileImageBase64 != null
                           ? MemoryImage(base64Decode(_profileImageBase64!))
@@ -354,41 +362,49 @@ class _PerfilPageState extends State<PerfilPage> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20), // Reduced height from 30 to 20
                   _isEditing
                       ? _buildTextField(_firstNameController, 'Nome')
                       : _buildInfoText(_firstNameController.text),
                   const SizedBox(height: 16),
-                  _isEditing
-                      ? _buildTextField(_emailController, 'Email')
-                      : _buildInfoText(_emailController.text),
-                  const SizedBox(height: 16),
-                  _isEditing
-                      ? _buildTextField(_cpfController, 'CPF')
-                      : _buildInfoText(_cpfController.text),
-                  const SizedBox(height: 24),
-                  if (_isEditing)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  Visibility(
+                    visible: _isEditing,
+                    child: Column(
                       children: [
-                        _buildOutlinedButton(
-                            'Cancelar', () {
-                          setState(() {
-                            _isEditing = false;
-                          });
-                        }),
-                        const SizedBox(width: 12),
-                        _buildElevatedButton('Salvar', () async {
-                          await _updateProfileData();
-                          setState(() {
-                            _isEditing = false;
-                          });
-                        }),
+                        _buildTextField(_emailController, 'Email'),
+                        const SizedBox(height: 16),
+                        _buildTextField(_cpfController, 'CPF'),
                       ],
                     ),
-                  const SizedBox(height: 40),
+                  ),
+                  const SizedBox(height: 24),
+                  if (_isEditing)
+                    Column(
+                      children: [
+                        _buildPasswordResetButton(),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildOutlinedButton('Cancelar', () {
+                              setState(() {
+                                _isEditing = false;
+                              });
+                            }),
+                            const SizedBox(width: 12),
+                            _buildElevatedButton('Salvar', () async {
+                              await _updateProfileData();
+                              setState(() {
+                                _isEditing = false;
+                              });
+                            }),
+                          ],
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 10), 
                   if (!_isEditing) _buildDashboard(),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10), 
                 ],
               ),
             ),
@@ -413,7 +429,6 @@ class _PerfilPageState extends State<PerfilPage> {
   Widget _buildTaskDashboard() {
     double completedPercentage = _totalTasks > 0 ? (_completedTasks / _totalTasks) * 100 : 0;
     double remainingPercentage = 100 - completedPercentage;
-
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -421,7 +436,7 @@ class _PerfilPageState extends State<PerfilPage> {
       color: const Color(0xFF266B70), // Verde água
       elevation: 4,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.45, // Aproximadamente metade da tela
+        width: MediaQuery.of(context).size.width * 0.45, 
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,44 +450,64 @@ class _PerfilPageState extends State<PerfilPage> {
                 color: Colors.white, // Texto em branco para contraste
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 3),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  height: 60,
-                  width: 150,
-                  child: PieChart(
-                    PieChartData(
-                      sections: [
-                        PieChartSectionData(
-                          color: Colors.white, // Parte concluída em branco
-                          value: completedPercentage,
-                          title: '${completedPercentage.toStringAsFixed(1)}%',
-                          radius: 25,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF266B70), // Verde água
-                            fontFamily: 'Poppins',
+                  height: 100,
+                  width: 100,
+                  child: Stack(
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          sections: [
+                            PieChartSectionData(
+                              color: Colors.white, // Parte concluída em branco
+                              value: completedPercentage,
+                              title: '${completedPercentage.toStringAsFixed(1)}%',
+                              radius: 25,
+                              titleStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF266B70), // Verde água
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            PieChartSectionData(
+                              color: const Color(0xFF266B70), // Parte restante em verde água
+                              value: remainingPercentage,
+                              title: '${remainingPercentage.toStringAsFixed(1)}%',
+                              radius: 25,
+                              titleStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          ],
+                          sectionsSpace: 0,
+                          centerSpaceRadius: 30,
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                         ),
-                        PieChartSectionData(
-                          color: const Color(0xFF266B70), // Parte restante em verde água
-                          value: remainingPercentage,
-                          title: '${remainingPercentage.toStringAsFixed(1)}%',
-                          radius: 25,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontFamily: 'Poppins',
-                          ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
-                      ],
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 30,
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -545,15 +580,19 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Widget _buildInfoText(String value) {
-    return SizedBox(
-      width: 300,
-      child: Text(
-        value,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 16, fontFamily: 'Poppins'),
+  return SizedBox(
+    width: 300,
+    child: Text(
+      value, 
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        fontSize: 18, 
+        fontFamily: 'Poppins',
+        fontWeight: FontWeight.bold, 
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildElevatedButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
@@ -598,7 +637,7 @@ class _PerfilPageState extends State<PerfilPage> {
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
   }
-
+  
   Widget _buildOutlinedButton(String text, VoidCallback onPressed) {
     return OutlinedButton(
       onPressed: onPressed,
@@ -612,4 +651,20 @@ class _PerfilPageState extends State<PerfilPage> {
           style: const TextStyle(fontSize: 16, color: Color(0xFF266B70))),
     );
   }
+  Widget _buildPasswordResetButton() {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pushNamed(context, '/senha');
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF266B70),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
+      ),
+      child: const Text('Redefinir Senha', style: TextStyle(fontSize: 16)),
+    );
+  }
+
 }
