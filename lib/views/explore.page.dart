@@ -20,11 +20,15 @@ class _ExplorePageState extends State<ExplorePage> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _searchFocusNode = FocusNode();
   bool _isLoadingMore = false;
+  List<LocalModel> _allLocais = [];
+  List<LocalModel> _filteredLocais = [];
+  double _mediaEstrelasFilter = 0;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadAllLocais();
   }
 
   @override
@@ -36,23 +40,18 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      final localController =
-          Provider.of<LocalController>(context, listen: false);
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      final localController = Provider.of<LocalController>(context, listen: false);
       String searchTerm = _searchController.text.trim();
-      
-      if (searchTerm.isNotEmpty && 
-          !localController.isLoading && 
-          !localController.finishLoading) {
+
+      if (!localController.isLoading && !localController.finishLoading) {
         setState(() {
           _isLoadingMore = true;
         });
-        
+
         Future.delayed(const Duration(milliseconds: 300), () {
-          if (!localController.isLoading && 
-              !localController.finishLoading) {
-            _loadLocais();
+          if (!localController.isLoading && !localController.finishLoading) {
+            _loadLocais(searchTerm);
           }
           setState(() {
             _isLoadingMore = false;
@@ -62,26 +61,46 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
-  Future<void> _loadLocais() async {
-    final localController =
-        Provider.of<LocalController>(context, listen: false);
-    String searchTerm = _searchController.text.trim();
-    
-    if (localController.isLoading || searchTerm.isEmpty) {
-      return;
-    }
+  Future<void> _loadAllLocais() async {
+    final localController = Provider.of<LocalController>(context, listen: false);
 
+    try {
+      await localController.fetchLocais('', '');
+      _allLocais = localController.locaisProximos;
+      setState(() {
+        _filteredLocais = _allLocais;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao buscar locais. Tente novamente.'),
+          action: SnackBarAction(
+            label: 'Tentar novamente',
+            onPressed: () => _loadLocais(_searchController.text.trim()),
+            textColor: const Color(0xFF266B70),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadLocais(String searchTerm) async {
+    final localController = Provider.of<LocalController>(context, listen: false);
     localController.clearErrorMessage();
 
     try {
-      if (localController.searchResults.isEmpty) {
-        localController.resetLocais();
-      }
-      
-      await localController.fetchLocais(searchTerm, searchTerm);
-      
-      if (localController.searchResults.isEmpty && 
-          localController.errorMessage == null) {
+      final filteredResults = _allLocais.where((local) {
+        final matchesSearch = searchTerm.isEmpty ||
+            local.nome.toLowerCase().contains(searchTerm.toLowerCase());
+        final matchesRating = local.mediaEstrelas >= _mediaEstrelasFilter;
+        return matchesSearch && matchesRating;
+      }).toList();
+
+      setState(() {
+        _filteredLocais = filteredResults;
+      });
+
+      if (_filteredLocais.isEmpty && localController.errorMessage == null) {
         return;
       }
     } catch (e) {
@@ -93,25 +112,19 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
           action: SnackBarAction(
             label: 'Tentar novamente',
-            onPressed: _loadLocais,
+            onPressed: () => _loadLocais(searchTerm),
             textColor: const Color(0xFF266B70),
           ),
-        )
+        ),
       );
     }
   }
 
-  Widget _buildElevatedButton(String text, VoidCallback onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF266B70),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 16, fontFamily: 'Poppins')),
-    );
+  void _onMediaEstrelasChanged(double newRating) {
+    setState(() {
+      _mediaEstrelasFilter = newRating;
+      _loadLocais(_searchController.text.trim());
+    });
   }
 
   @override
@@ -154,91 +167,97 @@ class _ExplorePageState extends State<ExplorePage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Digite o nome do local...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[400]!),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Digite o nome do local...',
+                      hintStyle: const TextStyle(fontFamily: 'Poppins'),
+                      filled: true,
+                      fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey[600],
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.grey[600],
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                _loadLocais('');
+                              },
+                            )
+                          : null,
+                    ),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                    ),
+                    onChanged: (value) {
+                      _loadLocais(value);
+                    },
+                    onSubmitted: (value) {
+                      _searchFocusNode.unfocus();
+                      _loadLocais(value);
+                    },
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        'Filtrar por Média de Estrelas:',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Slider(
+                          value: _mediaEstrelasFilter,
+                          activeColor: Color(0xFF266B70),
+                          min: 0,
+                          max: 10,
+                          divisions: 10,
+                          label: _mediaEstrelasFilter.round().toString(),
+                          onChanged: _onMediaEstrelasChanged,
+                        ),
+                      ),
+                    ],
                   ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintStyle: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.grey[600],
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Colors.grey[600],
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.clear,
-                            color: Colors.grey[600],
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            _loadLocais();
-                          },
-                        )
-                      : null,
-                ),
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                ),
-                onSubmitted: (value) {
-                  _searchFocusNode.unfocus();
-                  _loadLocais();
-                },
+                ],
               ),
             ),
             Expanded(
               child: Consumer<LocalController>(
                 builder: (context, controller, child) {
-                  if (controller.isLoading && controller.searchResults.isEmpty) {
+                  if (controller.isLoading && _filteredLocais.isEmpty) {
                     return Center(child: CircularProgressIndicator());
                   }
 
-                  if (controller.errorMessage != null && 
-                      controller.searchResults.isEmpty) {
+                  if (controller.errorMessage != null && _filteredLocais.isEmpty) {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(controller.errorMessage!),
                         SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: _loadLocais,
+                          onPressed: () => _loadLocais(_searchController.text.trim()),
                           child: Text('Tentar novamente'),
                         ),
                       ],
                     );
                   }
 
-                  if (_searchController.text.isEmpty) {
-                    return ListView.builder(
-                      itemCount: controller.locaisProximos.length,
-                      itemBuilder: (context, index) {
-                        final local = controller.locaisProximos[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: LocalCard(
-                            local: local,
-                            favoritosService: favoritosService,
-                          ),
-                        );
-                      },
-                    );
-                  }
-
-                  if (controller.searchResults.isEmpty && 
-                      _searchController.text.isNotEmpty) {
+                  if (_filteredLocais.isEmpty && _searchController.text.isNotEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -249,59 +268,40 @@ class _ExplorePageState extends State<ExplorePage> {
                           ),
                           SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: _loadLocais,
-                            child: Text('Tentar novamente'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF266B70),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 30),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              textStyle: const TextStyle(fontFamily: 'Poppins'),
+                            ),
+                            onPressed: () => _loadLocais(_searchController.text.trim()),
+                            child: Text('Tentar novamente',
+                                style: const TextStyle(fontSize: 16)),
                           ),
                         ],
                       ),
                     );
                   }
 
-                  return Column(
-                    children: [
-                      Padding(
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: _filteredLocais.length + (_isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == _filteredLocais.length) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      final local = _filteredLocais[index];
+                      return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Resultados para "${_searchController.text}"',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                          ),
+                        child: LocalCard(
+                          local: local,
+                          favoritosService: favoritosService,
                         ),
-                      ),
-                      Expanded(
-                        child: NotificationListener<ScrollNotification>(
-                          onNotification: (ScrollNotification scrollInfo) {
-                            if (!controller.isLoading &&
-                                !controller.finishLoading &&
-                                scrollInfo.metrics.pixels ==
-                                    scrollInfo.metrics.maxScrollExtent) {
-                              _loadLocais();
-                            }
-                            return true;
-                          },
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            itemCount: controller.searchResults.length +
-                                (_isLoadingMore ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index == controller.searchResults.length) {
-                                return Center(child: CircularProgressIndicator());
-                              }
-                              final local = controller.searchResults[index];
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: LocalCard(
-                                  local: local,
-                                  favoritosService: favoritosService,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   );
                 },
               ),
