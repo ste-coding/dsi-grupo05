@@ -55,12 +55,10 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
       await _fetchNearbyPlaces();
 
       Geolocator.getPositionStream().listen((position) {
-        if (position.longitude != null) {
-          setState(() {
-            _currentLocation = LatLng(position.latitude, position.longitude);
-          });
-        }
-      });
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+        });
+            });
     } catch (e) {
       setState(() => isLoading = false);
       errorMessage('Erro ao obter localização');

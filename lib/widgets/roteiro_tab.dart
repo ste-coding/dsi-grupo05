@@ -132,6 +132,8 @@ class _RoteiroTabState extends State<RoteiroTab> {
 }
 
 class SelecionarLocalScreen extends StatefulWidget {
+  const SelecionarLocalScreen({super.key});
+
   @override
   _SelecionarLocalScreenState createState() => _SelecionarLocalScreenState();
 }

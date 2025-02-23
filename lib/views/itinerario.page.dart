@@ -158,7 +158,7 @@ class ItinerariosPage extends StatelessWidget {
                     ),
                     onDismissed: (direction) async {
                       await itinerariosService
-                          .deleteItinerario(itinerario.id!);
+                          .deleteItinerario(itinerario.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -192,7 +192,7 @@ class ItinerariosPage extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ChecklistPage(
-                                    itinerarioId: itinerario.id!,
+                                    itinerarioId: itinerario.id,
                                   ),
                                 ),
                               );
