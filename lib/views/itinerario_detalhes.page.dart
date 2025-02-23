@@ -313,8 +313,11 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                           ],
                         ),
                       ),
-                      RoteiroTab(
-                        itinerario: widget.itinerario,
+                      RoteiroPage(
+                        startDate: widget.itinerario.startDate,
+                        endDate: widget.itinerario.endDate,
+                        roteiroId:
+                            widget.itinerario.id, // Passando o id do itinerário
                       ),
                       ChecklistTab(
                         itinerarioId: widget.itinerario.id,

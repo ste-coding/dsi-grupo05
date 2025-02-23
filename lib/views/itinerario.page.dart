@@ -79,7 +79,8 @@ class ItinerariosPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.red),
                       const SizedBox(height: 16),
                       Text(
                         "Erro ao carregar itinerários",
@@ -91,7 +92,9 @@ class ItinerariosPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        futureSnapshot.error.toString().contains('não encontrado')
+                        futureSnapshot.error
+                                .toString()
+                                .contains('não encontrado')
                             ? "Itinerário não encontrado"
                             : "Por favor, tente novamente mais tarde",
                         style: const TextStyle(
@@ -105,37 +108,36 @@ class ItinerariosPage extends StatelessWidget {
                 );
               }
 
-
-          if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.assignment_outlined, size: 48, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Nenhum itinerário encontrado',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+              if (!futureSnapshot.hasData || futureSnapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.assignment_outlined,
+                          size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Nenhum itinerário encontrado',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Clique no botão "+" para criar um novo itinerário',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Clique no botão "+" para criar um novo itinerário',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
+                );
+              }
 
               final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
 
@@ -157,15 +159,14 @@ class ItinerariosPage extends StatelessWidget {
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
                     onDismissed: (direction) async {
-                      await itinerariosService
-                          .deleteItinerario(itinerario.id!);
+                      await itinerariosService.deleteItinerario(itinerario.id!);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                               "Itinerário '${itinerario.titulo}' excluído."),
                         ),
                       );
-                                        },
+                    },
                     child: Stack(
                       children: [
                         GestureDetector(
@@ -180,24 +181,6 @@ class ItinerariosPage extends StatelessWidget {
                             );
                           },
                           child: ItineraryCard(itinerario: itinerario),
-                        ),
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.checklist,
-                                color: Color(0xFF266B70), size: 28),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChecklistPage(
-                                    itinerarioId: itinerario.id!,
-                                  ),
-                                ),
-                              );
-                                                        },
-                          ),
                         ),
                       ],
                     ),

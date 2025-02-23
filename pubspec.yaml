@@ -61,9 +61,6 @@ dependencies:
   geolocator: ^13.0.2
   permission_handler: ^11.3.1
 
-
-
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,6 +78,14 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    - assets/images/inverno.jpg
+    - assets/images/acampamento.jpg
+    - assets/images/festivais.jpg
+    - assets/images/cidades_antigas.jpg
+    - assets/images/praia.jpg
+    - assets/images/por_do_sol.jpg
+    - assets/images/trabalho.jpg
+    - assets/images/trilha.jpg
     - assets/images/fundo.jpg
     - assets/images/mock_image.jpg
     - assets/images/placeholder_image.png
