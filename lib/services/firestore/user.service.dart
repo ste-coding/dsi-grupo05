@@ -63,4 +63,57 @@ class UserService {
       throw 'Erro ao criar o documento do usuário: $e';
     }
   }
+  // Para contar tarefas total de um itinerário
+  Future<int> getTotalTasks(String itinerarioId) async {
+    try {
+      QuerySnapshot checklistSnapshot = await _firestore
+          .collection('viajantes')
+          .doc(_auth.currentUser?.uid)
+          .collection('itinerarios')
+          .doc(itinerarioId)
+          .collection('checklist')
+          .get();
+
+      return checklistSnapshot.docs.length;
+    } catch (e) {
+      print('Erro ao buscar total de tarefas: $e');
+      return 0;
+    }
+  }
+
+  // Para contar tarefas concluídas
+  Future<int> getCompletedTasks(String itinerarioId) async {
+    try {
+      QuerySnapshot completedTasks = await _firestore
+          .collection('viajantes')
+          .doc(_auth.currentUser?.uid)
+          .collection('itinerarios')
+          .doc(itinerarioId)
+          .collection('checklist')
+          .where('completed', isEqualTo: true)
+          .get();
+
+      return completedTasks.docs.length;
+    } catch (e) {
+      print('Erro ao buscar tarefas concluídas: $e');
+      return 0;
+    }
+  }
+
+  // Para excluir a conta do usuário
+  Future<void> deleteUserAccount() async {
+    try {
+      // Exclui dados do Firestore
+      await _firestore
+          .collection('users')
+          .doc(_auth.currentUser?.uid)
+          .delete();
+
+      // Exclui a conta de autenticação
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      print('Erro ao excluir conta: $e');
+      rethrow;
+    }
+  }
 }

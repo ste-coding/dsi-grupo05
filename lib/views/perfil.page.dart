@@ -2,14 +2,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
-import 'package:flutter_application_1/services/firestore/user.service.dart'
-    as firestore;
+import 'package:flutter_application_1/services/firestore/user.service.dart' as user_service;
 import 'package:brasil_fields/brasil_fields.dart';
+import 'package:flutter_application_1/services/firestore/checklist.service.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -20,7 +20,7 @@ class PerfilPage extends StatefulWidget {
 
 class _PerfilPageState extends State<PerfilPage> {
   String? _profileImageBase64;
-  final UserService _userService = UserService();
+  final user_service.UserService _userService = user_service.UserService();
   final AuthController _authController = AuthController();
 
   final TextEditingController _firstNameController = TextEditingController();
@@ -30,10 +30,19 @@ class _PerfilPageState extends State<PerfilPage> {
   final maskFormatter = UtilBrasilFields.obterCpf;
   bool _isEditing = false;
 
+  int _totalTasks = 0;
+  int _completedTasks = 0;
+  int _totalItinerarios = 0;
+  List<int> monthlyItineraries = List.filled(12, 0);
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadItinerarioId();
+      _loadInsightsData();
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -48,14 +57,78 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  Future<void> _loadItinerarioId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final itinerarioSnapshot = await FirebaseFirestore.instance
+          .collection('viajantes')
+          .doc(user.uid)
+          .collection('itinerarios')
+          .get();
+      if (itinerarioSnapshot.docs.isNotEmpty) {
+        setState(() {
+          _totalItinerarios = itinerarioSnapshot.docs.length;
+        });
+        _loadTaskData(itinerarioSnapshot.docs);
+      }
+    }
+  }
+
+  Future<void> _loadTaskData(List<QueryDocumentSnapshot> itinerarios) async {
+    int totalTasks = 0;
+    int completedTasks = 0;
+
+    for (var itinerario in itinerarios) {
+      int itineraryTotalTasks = await _userService.getTotalTasks(itinerario.id);
+      int itineraryCompletedTasks = await _userService.getCompletedTasks(itinerario.id);
+
+      totalTasks += itineraryTotalTasks;
+      completedTasks += itineraryCompletedTasks;
+    }
+
+    setState(() {
+      _totalTasks = totalTasks;
+      _completedTasks = completedTasks;
+    });
+  }
+
+  Future<void> _loadInsightsData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final itinerariosSnapshot = await FirebaseFirestore.instance
+          .collection('viajantes')
+          .doc(user.uid)
+          .collection('itinerarios')
+          .get();
+
+      List<int> monthlyCounts = List.filled(12, 0);
+      for (var doc in itinerariosSnapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        DateTime startDate = (data['startDate'] as Timestamp).toDate();
+        DateTime endDate = (data['endDate'] as Timestamp).toDate();
+        
+        if (startDate.year == DateTime.now().year) {
+          monthlyCounts[startDate.month - 1]++;
+        }
+        
+        if (endDate.year == DateTime.now().year && endDate.month != startDate.month) {
+          monthlyCounts[endDate.month - 1]++;
+        }
+      }
+
+      setState(() {
+        _totalItinerarios = itinerariosSnapshot.docs.length;
+        monthlyItineraries = monthlyCounts;
+      });
+    }
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       final bytes = await image.readAsBytes();
-      setState(() {
-        _profileImageBase64 = base64Encode(bytes);
-      });
+      await _updateProfileImage(bytes);
     }
   }
 
@@ -111,6 +184,125 @@ class _PerfilPageState extends State<PerfilPage> {
         SnackBar(content: Text('Erro ao atualizar perfil. Tente novamente.')),
       );
     }
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      await _userService.deleteUserAccount();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Conta excluída com sucesso!')),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      print('Erro ao excluir conta: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao excluir conta. Tente novamente.')),
+      );
+    }
+  }
+
+  Widget _buildLineChart() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            'Gráfico de Itinerários Mensais',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: const Color(0xFF266B70),
+          elevation: 4,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            height: 200,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(show: false),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(months[value.toInt()],
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontFamily: 'Poppins')),
+                        );
+                      },
+                      interval: 1,
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        return Text(value.toInt().toString(),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontFamily: 'Poppins'));
+                      },
+                      interval: 1,
+                    ),
+                  ),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 11,
+                minY: 0,
+                maxY: (monthlyItineraries.reduce((a, b) => a > b ? a : b)).toDouble() + 1,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: monthlyItineraries.asMap().entries.map((entry) {
+                      return FlSpot(entry.key.toDouble(), entry.value.toDouble());
+                    }).toList(),
+                    isCurved: true,
+                    color: Colors.white,
+                    barWidth: 2,
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                    dotData: FlDotData(show: false),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboard() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildTaskDashboard(),
+            _buildInsightCard('Total de Itinerários', _totalItinerarios.toString()),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildLineChart(),
+      ],
+    );
   }
 
   @override
@@ -195,6 +387,8 @@ class _PerfilPageState extends State<PerfilPage> {
                       ],
                     ),
                   const SizedBox(height: 40),
+                  if (!_isEditing) _buildDashboard(),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -202,19 +396,136 @@ class _PerfilPageState extends State<PerfilPage> {
           Container(
             padding: const EdgeInsets.only(bottom: 20),
             alignment: Alignment.center,
-            child: _buildExitButton('Sair', () async {
-              await _authController.signOut();
-              Navigator.pushReplacementNamed(context, '/login');
-            }),
+            child: _isEditing
+                ? _buildDeleteButton('Excluir Conta', () async {
+                    await _deleteAccount();
+                  })
+                : _buildExitButton('Sair', () async {
+                    await _authController.signOut();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildTaskDashboard() {
+    double completedPercentage = _totalTasks > 0 ? (_completedTasks / _totalTasks) * 100 : 0;
+    double remainingPercentage = 100 - completedPercentage;
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: const Color(0xFF266B70), // Verde água
+      elevation: 4,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.45, // Aproximadamente metade da tela
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tasks concluídas',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 15,
+                fontWeight: FontWeight.normal,
+                color: Colors.white, // Texto em branco para contraste
+              ),
+            ),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 60,
+                  width: 150,
+                  child: PieChart(
+                    PieChartData(
+                      sections: [
+                        PieChartSectionData(
+                          color: Colors.white, // Parte concluída em branco
+                          value: completedPercentage,
+                          title: '${completedPercentage.toStringAsFixed(1)}%',
+                          radius: 25,
+                          titleStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF266B70), // Verde água
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        PieChartSectionData(
+                          color: const Color(0xFF266B70), // Parte restante em verde água
+                          value: remainingPercentage,
+                          title: '${remainingPercentage.toStringAsFixed(1)}%',
+                          radius: 25,
+                          titleStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                      sectionsSpace: 0,
+                      centerSpaceRadius: 30,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsightCard(String title, String value) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: const Color(0xFF266B70), // Verde água
+      elevation: 4,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.45, // Aproximadamente metade da tela
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 15,
+                fontWeight: FontWeight.normal,
+                color: Colors.white, // Texto em branco para contraste
+              ),
+            ),
+            const SizedBox(height: 50),
+            Center(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white, // Texto em branco para contraste
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextField(TextEditingController controller, String label) {
     return SizedBox(
-      width: 300,
+      width: 250, // Diminuir a largura
       height: 48,
       child: TextField(
         controller: controller,
@@ -264,6 +575,21 @@ class _PerfilPageState extends State<PerfilPage> {
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color.fromARGB(
             255, 198, 113, 107), // Cor específica para o botão "Sair"
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(fontFamily: 'Poppins'),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 16)),
+    );
+  }
+
+  Widget _buildDeleteButton(String text, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color.fromARGB(
+            255, 198, 113, 107), // Cor específica para o botão "Excluir Conta"
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
