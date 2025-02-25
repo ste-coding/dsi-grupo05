@@ -117,13 +117,32 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
             pinned: true,
             backgroundColor: Color(0xFF266B70), // Cor da barra do AppBar
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                widget.itinerario.titulo,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.bold,
+              title: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black54, Colors.transparent],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  widget.itinerario.titulo,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(1.0, 1.0),
+                        blurRadius: 3.0,
+                        color: Colors.black,
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
               background: widget.itinerario.imageUrl != null &&
                       widget.itinerario.imageUrl!.isNotEmpty

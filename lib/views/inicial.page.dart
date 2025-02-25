@@ -19,8 +19,8 @@ class _InicialPageState extends State<InicialPage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color.fromARGB(255, 179, 242, 252),
-                  Color.fromARGB(255, 76, 148, 153),
+                  Color.fromARGB(255, 228, 240, 242),
+                  Color.fromARGB(255, 254, 255, 255),
                 ],
               ),
             ),
@@ -90,7 +90,7 @@ class _InicialPageState extends State<InicialPage> {
                       Navigator.pushNamed(context, '/cadastro');
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white),
+                      side: const BorderSide(color: Color(0xFF266B70)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -100,7 +100,7 @@ class _InicialPageState extends State<InicialPage> {
                       'Cadastre-se',
                       style: TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: Color(0xFF266B70),
                         fontFamily: 'Poppins',
                       ),
                     ),
