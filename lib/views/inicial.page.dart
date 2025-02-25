@@ -14,105 +14,99 @@ class _InicialPageState extends State<InicialPage> {
       body: Stack(
         children: [
           Container(
-            width: double.infinity,
-            height: double.infinity,
             decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage('assets/images/fundo.jpg'),
-                  fit: BoxFit.cover),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromARGB(255, 179, 242, 252),
+                  Color.fromARGB(255, 76, 148, 153),
+                ],
+              ),
             ),
           ),
 
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  const SizedBox(height: 100),
-                  const Text(
-                    'Bora Lá',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 32,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Encontre destinos e \neventos próximos',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      color: Color.fromARGB(255, 40, 40, 41),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 385),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.6,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/login');
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide.none,
-                              backgroundColor: const Color(0xFF266B70),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.6,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/cadastro');
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xFF266B70)),
-                              backgroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                'Cadastre-se',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          // Brilho atrás da logo
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.2,
+            left: MediaQuery.of(context).size.width * 0.25,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery.of(context).size.width * 0.5,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.2),
               ),
+            ),
+          ),
+
+          // Conteúdo principal
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo com espaçamento melhorado
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: Image.asset('assets/images/logo2.png'),
+                ),
+
+
+                const SizedBox(height: 50),
+
+                // Botão Login
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/login');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF266B70),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Botão Cadastro
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cadastro');
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cadastre-se',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

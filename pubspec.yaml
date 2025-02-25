@@ -87,9 +87,8 @@ flutter:
     - assets/images/por_do_sol.jpg
     - assets/images/trabalho.jpg
     - assets/images/trilha.jpg
-    - assets/images/fundo.jpg
     - assets/images/mock_image.jpg
-    - assets/images/placeholder_image.png
+    - assets/images/logo2.png
     - assets/.env
 
   fonts:
