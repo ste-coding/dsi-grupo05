@@ -1,0 +1,2 @@
+C:/Users/vitor/Downloads/dsi-grupo05-main/dsi-grupo05-main/android/app/.cxx/Debug/6128442r/x86/CMakeFiles/edit_cache.dir
+C:/Users/vitor/Downloads/dsi-grupo05-main/dsi-grupo05-main/android/app/.cxx/Debug/6128442r/x86/CMakeFiles/rebuild_cache.dir
