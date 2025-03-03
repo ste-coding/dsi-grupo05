@@ -1,0 +1,2 @@
+C:/Users/ellen/Downloads/Documentos/dsi/dsi-grupo05/android/app/.cxx/RelWithDebInfo/2b1k3b65/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/ellen/Downloads/Documentos/dsi/dsi-grupo05/android/app/.cxx/RelWithDebInfo/2b1k3b65/armeabi-v7a/CMakeFiles/rebuild_cache.dir

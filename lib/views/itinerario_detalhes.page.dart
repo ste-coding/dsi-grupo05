@@ -84,7 +84,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
         _endDate = selectedDate ?? _endDate;
       }
     });
-    }
+  }
 
   void _saveItinerarioChanges() {
     widget.itinerario.startDate = _startDate;
@@ -115,10 +115,11 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
             expandedHeight: 200.0,
             floating: false,
             pinned: true,
-            backgroundColor: Color(0xFF266B70), // Cor da barra do AppBar
+            backgroundColor: Color(0xFF266B70),
             flexibleSpace: FlexibleSpaceBar(
               title: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.black54, Colors.transparent],
@@ -212,20 +213,23 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                                 _selectDate(context, true),
                                             decoration: InputDecoration(
                                               labelText: 'Data de Início',
-                                              labelStyle: TextStyle(
-                                                color: Color(0xFF266B70),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.black),
+                                              filled: true,
+                                              fillColor: const Color(0xFFD9D9D9)
+                                                  .withOpacity(0.5),
+                                              border: OutlineInputBorder(
+                                                borderSide: BorderSide.none,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               focusedBorder: OutlineInputBorder(
                                                 borderSide: BorderSide(
                                                   color: Color(0xFF266B70),
                                                   width: 2,
                                                 ),
-                                              ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: Color(0xFF266B70),
-                                                  width: 1,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                             ),
                                           ),
@@ -240,20 +244,23 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                                 _selectDate(context, false),
                                             decoration: InputDecoration(
                                               labelText: 'Data de Fim',
-                                              labelStyle: TextStyle(
-                                                color: Color(0xFF266B70),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.black),
+                                              filled: true,
+                                              fillColor: const Color(0xFFD9D9D9)
+                                                  .withOpacity(0.5),
+                                              border: OutlineInputBorder(
+                                                borderSide: BorderSide.none,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               focusedBorder: OutlineInputBorder(
                                                 borderSide: BorderSide(
                                                   color: Color(0xFF266B70),
                                                   width: 2,
                                                 ),
-                                              ),
-                                              enabledBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                  color: Color(0xFF266B70),
-                                                  width: 1,
-                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                             ),
                                           ),
@@ -284,17 +291,24 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                       controller: _descricaoController,
                                       maxLines: 4,
                                       decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        hintText:
-                                            'Adicione uma descrição da viagem...',
-                                        hintStyle: TextStyle(
-                                          fontFamily: 'Poppins',
+                                        labelText: 'Adicione uma descrição...',
+                                        labelStyle: const TextStyle(
+                                            color: Colors.black),
+                                        filled: true,
+                                        fillColor: const Color(0xFFD9D9D9)
+                                            .withOpacity(0.5),
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide.none,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                         focusedBorder: OutlineInputBorder(
                                           borderSide: BorderSide(
                                             color: Color(0xFF266B70),
                                             width: 2,
                                           ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                     ),
@@ -302,7 +316,7 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
                             Center(
                               child: ElevatedButton(
                                 onPressed: _saveItinerarioChanges,
