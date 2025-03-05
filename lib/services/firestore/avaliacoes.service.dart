@@ -5,12 +5,10 @@ class AvaliacoesService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Obtém a referência da coleção de avaliações para um local específico
   CollectionReference<Map<String, dynamic>> _obterReferenciasAvaliacoes(String localId) {
     return _firestore.collection('locais').doc(localId).collection('avaliacoes');
   }
 
-  /// Verifica se o usuário está autenticado e retorna o usuário atual
   Future<User?> _verificarUsuarioAutenticado() async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -19,7 +17,6 @@ class AvaliacoesService {
     return user;
   }
 
-  /// Salva ou atualiza uma avaliação no Firestore
   Future<void> salvarAvaliacao(String localId, Map<String, dynamic> avaliacao, {String? docId}) async {
     final user = await _verificarUsuarioAutenticado();
     if (user == null) return;
@@ -27,7 +24,7 @@ class AvaliacoesService {
     final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
     final data = {
       'userId': user.uid,
-      'nomeUsuario': avaliacao['local'],
+      'nomeUsuario': avaliacao['nomeUsuario'],
       'comentario': avaliacao['comentario'],
       'estrelas': avaliacao['estrelas'],
       'data': FieldValue.serverTimestamp(),
@@ -47,26 +44,27 @@ class AvaliacoesService {
     return querySnapshot.docs.map((doc) {
       final data = doc.data();
       return {
-        "local": data['nomeUsuario'],
+        "id": doc.id, 
+        "userId": data['userId'],
+        "nomeUsuario": data['nomeUsuario'],
         "comentario": data['comentario'],
         "estrelas": data['estrelas'],
       };
     }).toList();
   }
 
-  /// Exclui uma avaliação com base no comentário e no nome do usuário
-  Future<void> excluirAvaliacao(String localId, String comentario, String nomeUsuario) async {
+
+  Future<void> excluirAvaliacao(String localId, String docId) async {
     final user = await _verificarUsuarioAutenticado();
     if (user == null) return;
 
     final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
-    final querySnapshot = await avaliacoesRef
-        .where('comentario', isEqualTo: comentario)
-        .where('nomeUsuario', isEqualTo: nomeUsuario)
-        .get();
+    await avaliacoesRef.doc(docId).delete();
+  }
 
-    if (querySnapshot.docs.isNotEmpty) {
-      await querySnapshot.docs.first.reference.delete();
-    }
+  Future<bool> usuarioJaAvaliou(String localId, String userId) async {
+    final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
+    final querySnapshot = await avaliacoesRef.where('userId', isEqualTo: userId).get();
+    return querySnapshot.docs.isNotEmpty;
   }
 }

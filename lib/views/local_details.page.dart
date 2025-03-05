@@ -7,8 +7,9 @@ import '../models/itinerario_model.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../widgets/itinerary_bottom_sheet.dart';
 import '../services/firestore/user.service.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuth
-import 'package:cloud_firestore/cloud_firestore.dart'; // FirebaseFirestore
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/firestore/avaliacoes.service.dart';
 
 class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
@@ -20,16 +21,18 @@ class LocalDetailsPage extends StatefulWidget {
 }
 
 class _LocalDetailsPageState extends State<LocalDetailsPage> {
+  final AvaliacoesService avaliacoesService = AvaliacoesService();
   bool isFavorited = false;
-  List<Map<String, dynamic>> avaliacoes = []; // Lista de avaliações
-  String? nomeUsuario; // Nome do usuário logado
+  List<Map<String, dynamic>> avaliacoes = [];
+  String? nomeUsuario;
+  String? userId;
 
   @override
   void initState() {
     super.initState();
     _checkIfFavorited();
-    _carregarAvaliacoes(); // Carregar avaliações ao iniciar
-    _carregarNomeUsuario(); // Carregar o nome do usuário
+    _carregarAvaliacoes();
+    _carregarNomeUsuario();
   }
 
   Future<void> _carregarNomeUsuario() async {
@@ -42,106 +45,11 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     }
   }
 
-  Future<void> _checkIfFavorited() async {
-    final localController =
-        Provider.of<LocalController>(context, listen: false);
-    bool favoritado = await localController.favoritosService
-        .checkIfFavoritoExists(widget.local.id);
-    setState(() {
-      isFavorited = favoritado;
-    });
-  }
-
-  Future<void> _salvarAvaliacaoNoFirestore(Map<String, dynamic> avaliacao,
-      {String? docId}) async {
-    final user = await _verificarUsuarioAutenticado();
-    if (user == null) return;
-
-    final avaliacoesRef = _obterReferenciasAvaliacoes();
-
-    try {
-      await _salvarOuAtualizarAvaliacao(
-          avaliacoesRef, avaliacao, docId, user.uid);
-      _exibirMensagemSucesso();
-    } catch (e) {
-      _exibirMensagemErro(e);
-    }
-  }
-
-  /// Verifica se o usuário está autenticado.
-  Future<User?> _verificarUsuarioAutenticado() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      _exibirMensagemErro('Usuário não autenticado.');
-    }
-    return user;
-  }
-
-  /// Obtém a referência do Firestore para a coleção de avaliações.
-  CollectionReference<Map<String, dynamic>> _obterReferenciasAvaliacoes() {
-    final localId = widget.local.id;
-    return FirebaseFirestore.instance
-        .collection('locais')
-        .doc(localId)
-        .collection('avaliacoes');
-  }
-
-  /// Salva ou atualiza a avaliação no Firestore.
-  Future<void> _salvarOuAtualizarAvaliacao(
-    CollectionReference<Map<String, dynamic>> avaliacoesRef,
-    Map<String, dynamic> avaliacao,
-    String? docId,
-    String userId,
-  ) async {
-    final data = {
-      'userId': userId,
-      'nomeUsuario': avaliacao['local'],
-      'comentario': avaliacao['comentario'],
-      'estrelas': avaliacao['estrelas'],
-      'data': FieldValue.serverTimestamp(),
-    };
-
-    if (docId != null) {
-      // Atualiza a avaliação existente
-      await avaliacoesRef.doc(docId).update(data);
-    } else {
-      // Adiciona uma nova avaliação
-      await avaliacoesRef.add(data);
-    }
-  }
-
-  /// Exibe uma mensagem de sucesso.
-  void _exibirMensagemSucesso() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Avaliação salva!')),
-    );
-  }
-
-  /// Exibe uma mensagem de erro.
-  void _exibirMensagemErro(dynamic erro) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao salvar avaliação: $erro')),
-    );
-  }
-
   Future<void> _carregarAvaliacoes() async {
-    final localId = widget.local.id;
-    final avaliacoesRef = FirebaseFirestore.instance
-        .collection('locais')
-        .doc(localId)
-        .collection('avaliacoes');
-
     try {
-      final querySnapshot = await avaliacoesRef.get();
+      final avaliacoesCarregadas = await avaliacoesService.carregarAvaliacoes(widget.local.id);
       setState(() {
-        avaliacoes = querySnapshot.docs.map((doc) {
-          final data = doc.data();
-          return {
-            "local": data['nomeUsuario'],
-            "comentario": data['comentario'],
-            "estrelas": data['estrelas'],
-          };
-        }).toList();
+        avaliacoes = avaliacoesCarregadas;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,36 +68,21 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
 
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final localId = widget.local.id;
-    final avaliacoesRef = FirebaseFirestore.instance
-        .collection('locais')
-        .doc(localId)
-        .collection('avaliacoes');
 
-    // Consulta para verificar se o usuário já avaliou este local
-    final querySnapshot =
-        await avaliacoesRef.where('userId', isEqualTo: userId).get();
+    final usuarioJaAvaliou = await avaliacoesService.usuarioJaAvaliou(localId, userId);
 
-    if (querySnapshot.docs.isNotEmpty && index == null) {
-      // Se já existe uma avaliação e o usuário tenta adicionar outra, bloqueia
-      final avaliacaoExistente = querySnapshot.docs.first;
-
+    if (usuarioJaAvaliou && index == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Você já avaliou este local.'),
-        ),
+        const SnackBar(content: Text('Você já avaliou este local.')),
       );
       return;
     }
 
     if (index != null) {
       final avaliacao = avaliacoes[index];
-      final nomeUsuarioAvaliacao = avaliacao['local'];
-
-      if (nomeUsuario != nomeUsuarioAvaliacao) {
+      if (userId != avaliacao['userId']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Você não tem permissão para editar esta avaliação.')),
+          const SnackBar(content: Text('Você não tem permissão para editar esta avaliação.')),
         );
         return;
       }
@@ -208,41 +101,72 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
             avaliacao: index != null ? avaliacoes[index] : null,
             nomeUsuario: nomeUsuario!,
             onSave: (avaliacao) async {
-              final localId = widget.local.id;
-              final avaliacoesRef = FirebaseFirestore.instance
-                  .collection('locais')
-                  .doc(localId)
-                  .collection('avaliacoes');
-
-              if (index != null) {
-                // Obtém o ID do documento existente
-                final querySnapshot = await avaliacoesRef
-                    .where('comentario',
-                        isEqualTo: avaliacoes[index]["comentario"])
-                    .where('nomeUsuario', isEqualTo: avaliacoes[index]["local"])
-                    .get();
-
-                if (querySnapshot.docs.isNotEmpty) {
-                  final docId = querySnapshot.docs.first.id;
-                  await _salvarAvaliacaoNoFirestore(avaliacao, docId: docId);
-                }
-              } else {
-                await _salvarAvaliacaoNoFirestore(avaliacao);
-              }
-
-              setState(() {
+              try {
+                avaliacao['nomeUsuario'] = nomeUsuario;
                 if (index != null) {
-                  avaliacoes[index] = avaliacao;
+                  await avaliacoesService.salvarAvaliacao(
+                    localId,
+                    avaliacao,
+                    docId: avaliacoes[index]['id'],
+                  );
                 } else {
-                  avaliacoes.add(avaliacao);
+                  await avaliacoesService.salvarAvaliacao(localId, avaliacao);
                 }
-              });
-              Navigator.pop(context);
+                await _carregarAvaliacoes(); 
+                Navigator.pop(context);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Erro ao salvar avaliação: $e')),
+                );
+              }
             },
           ),
         );
       },
     );
+  }
+
+  Future<void> _excluirAvaliacao(int index) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuário não autenticado.')),
+      );
+      return;
+    }
+
+    final avaliacao = avaliacoes[index];
+    if (avaliacao['userId'] != userId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
+      );
+      return;
+    }
+
+    try {
+      await avaliacoesService.excluirAvaliacao(widget.local.id, avaliacao['id']);
+      setState(() {
+        avaliacoes.removeAt(index); 
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Avaliação excluída!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao excluir avaliação: $e')),
+      );
+    }
+  }
+
+
+  Future<void> _checkIfFavorited() async {
+    final localController =
+        Provider.of<LocalController>(context, listen: false);
+    bool favoritado = await localController.favoritosService
+        .checkIfFavoritoExists(widget.local.id);
+    setState(() {
+      isFavorited = favoritado;
+    });
   }
 
   void _toggleFavorite() async {
@@ -310,8 +234,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                   const SizedBox(height: 24),
                   _buildDescription(),
                   const SizedBox(height: 24),
-
-                  // Seção de avaliações
                   const Text(
                     'Avaliações',
                     style: TextStyle(
@@ -336,13 +258,13 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                       itemCount: avaliacoes.length,
                       itemBuilder: (context, index) {
                         final avaliacao = avaliacoes[index];
+                        final podeExcluir = FirebaseAuth.instance.currentUser?.uid == avaliacao['userId'];
+
                         return Dismissible(
-                          key: Key(avaliacao[
-                              "comentario"]), // Chave única para cada avaliação
-                          direction: DismissDirection
-                              .endToStart, // Deslize da direita para a esquerda
+                          key: Key(avaliacao['id']),
+                          direction: DismissDirection.endToStart,
                           background: Container(
-                            color: Colors.red, // Fundo vermelho
+                            color: Colors.red,
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: const Icon(
@@ -350,115 +272,47 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                               color: Colors.white,
                             ),
                           ),
-
-                          /// **Novo: confirmDismiss impede remoção indevida**
                           confirmDismiss: (direction) async {
-                            if (nomeUsuario == null) {
+                            if (!podeExcluir) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Erro: Nome do usuário não encontrado.')),
+                                const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
                               );
-                              return false; // Impede a remoção
+                              return false;
                             }
-
-                            final nomeUsuarioAvaliacao = avaliacao["local"];
-
-                            if (nomeUsuario != nomeUsuarioAvaliacao) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Você não tem permissão para excluir esta avaliação.')),
-                              );
-                              return false; // Impede a remoção
-                            }
-
-                            return true; // Permite a remoção
+                            return true;
                           },
-
-                          /// **onDismissed só será chamado se confirmDismiss retornar true**
                           onDismissed: (direction) async {
-                            setState(() {
-                              avaliacoes.removeAt(index);
-                            });
-
-                            final localId = widget.local.id;
-                            final avaliacoesRef = FirebaseFirestore.instance
-                                .collection('locais')
-                                .doc(localId)
-                                .collection('avaliacoes');
-
-                            try {
-                              final querySnapshot = await avaliacoesRef
-                                  .where('comentario',
-                                      isEqualTo: avaliacao["comentario"])
-                                  .where('nomeUsuario',
-                                      isEqualTo: avaliacao["local"])
-                                  .get();
-
-                              if (querySnapshot.docs.isNotEmpty) {
-                                await querySnapshot.docs.first.reference
-                                    .delete();
-                              }
-
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Avaliação excluída.'),
-                                  action: SnackBarAction(
-                                    label: 'Desfazer',
-                                    onPressed: () async {
-                                      setState(() {
-                                        avaliacoes.insert(index, avaliacao);
-                                      });
-
-                                      await avaliacoesRef.add({
-                                        'userId': FirebaseAuth
-                                            .instance.currentUser!.uid,
-                                        'nomeUsuario': avaliacao["local"],
-                                        'comentario': avaliacao["comentario"],
-                                        'estrelas': avaliacao["estrelas"],
-                                        'data': FieldValue.serverTimestamp(),
-                                      });
-                                    },
-                                  ),
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content:
-                                        Text('Erro ao excluir avaliação: $e')),
-                              );
-                            }
+                            await _excluirAvaliacao(index);
                           },
-
                           child: Card(
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             child: ListTile(
                               onTap: () => abrirTelaAvaliacao(index: index),
                               title: Text(
-                                avaliacao["local"],
+                                avaliacao['nomeUsuario'],
                                 style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.bold),
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    avaliacao["comentario"],
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
                                   Row(
                                     children: List.generate(5, (starIndex) {
                                       return Icon(
-                                        starIndex < avaliacao["estrelas"]
+                                        starIndex < avaliacao['estrelas']
                                             ? Icons.star
                                             : Icons.star_border,
                                         color: Colors.amber,
-                                        size: 20,
+                                        size: 10,
                                       );
                                     }),
+                                  ),                                  
+                                  Text(
+                                    avaliacao['comentario'],
+                                    style: TextStyle(fontFamily: 'Poppins',
+                                    fontSize: 15),
                                   ),
                                 ],
                               ),
@@ -467,9 +321,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                         );
                       },
                     ),
-
-                  const SizedBox(height: 16),
-                  // Botão para adicionar avaliação
                 ],
               ),
             ),
@@ -642,7 +493,7 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
 class AvaliacaoFormPage extends StatefulWidget {
   final int? index;
   final Map<String, dynamic>? avaliacao;
-  final String nomeUsuario; // Nome do usuário
+  final String nomeUsuario; 
   final Function(Map<String, dynamic>) onSave;
 
   const AvaliacaoFormPage({
@@ -673,7 +524,7 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
   void salvarAvaliacao() {
     if (comentarioController.text.isNotEmpty && estrelasSelecionadas > 0) {
       widget.onSave({
-        "local": widget.nomeUsuario, // Usar o nome do usuário
+        "local": widget.nomeUsuario, 
         "comentario": comentarioController.text,
         "estrelas": estrelasSelecionadas,
       });
