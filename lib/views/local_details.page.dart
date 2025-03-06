@@ -10,6 +10,7 @@ import '../services/firestore/user.service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore/avaliacoes.service.dart';
+import '../widgets/avaliacao_chart.dart';
 
 class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
@@ -218,124 +219,145 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLocalHeader(),
-                  const SizedBox(height: 24),
-                  _buildDescription(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Avaliações',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (avaliacoes.isEmpty)
-                    const Text(
-                      'Nenhuma avaliação ainda. Adicione uma!',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        color: Colors.grey,
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: avaliacoes.length,
-                      itemBuilder: (context, index) {
-                        final avaliacao = avaliacoes[index];
-                        final podeExcluir = FirebaseAuth.instance.currentUser?.uid == avaliacao['userId'];
+List<int> _calcularDistribuicaoEstrelas(List<Map<String, dynamic>> avaliacoes) {
+  List<int> estrelasCount = List.filled(5, 0); 
 
-                        return Dismissible(
-                          key: Key(avaliacao['id']),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          confirmDismiss: (direction) async {
-                            if (!podeExcluir) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
-                              );
-                              return false;
-                            }
-                            return true;
-                          },
-                          onDismissed: (direction) async {
-                            await _excluirAvaliacao(index);
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              onTap: () => abrirTelaAvaliacao(index: index),
-                              title: Text(
-                                avaliacao['nomeUsuario'],
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: List.generate(5, (starIndex) {
-                                      return Icon(
-                                        starIndex < avaliacao['estrelas']
-                                            ? Icons.star
-                                            : Icons.star_border,
-                                        color: Colors.amber,
-                                        size: 10,
-                                      );
-                                    }),
-                                  ),                                  
-                                  Text(
-                                    avaliacao['comentario'],
-                                    style: TextStyle(fontFamily: 'Poppins',
-                                    fontSize: 15),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => abrirTelaAvaliacao(),
-        backgroundColor: const Color(0xFF01A897),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    );
+  for (var avaliacao in avaliacoes) {
+    int estrelas = avaliacao['estrelas'];
+    if (estrelas >= 1 && estrelas <= 5) {
+      estrelasCount[estrelas - 1]++;
+    }
   }
 
+  return estrelasCount;
+}
+@override
+Widget build(BuildContext context) {
+  final distribuicaoEstrelas = _calcularDistribuicaoEstrelas(avaliacoes);
+
+  return Scaffold(
+    body: CustomScrollView(
+      slivers: [
+        _buildSliverAppBar(),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLocalHeader(),
+                const SizedBox(height: 24),
+                _buildDescription(),
+                const SizedBox(height: 24),
+                const Text(
+                  'Avaliações',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  child: AvaliacoesChart(estrelasCount: distribuicaoEstrelas),
+                ),
+                const SizedBox(height: 8),
+                if (avaliacoes.isEmpty)
+                  const Text(
+                    'Nenhuma avaliação ainda. Adicione uma!',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.grey,
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: avaliacoes.length,
+                    itemBuilder: (context, index) {
+                      final avaliacao = avaliacoes[index];
+                      final podeExcluir = FirebaseAuth.instance.currentUser?.uid == avaliacao['userId'];
+
+                      return Dismissible(
+                        key: Key(avaliacao['id']),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                        ),
+                        confirmDismiss: (direction) async {
+                          if (!podeExcluir) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
+                            );
+                            return false;
+                          }
+                          return true;
+                        },
+                        onDismissed: (direction) async {
+                          await _excluirAvaliacao(index);
+                        },
+                        child: Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            onTap: () => abrirTelaAvaliacao(index: index),
+                            title: Text(
+                              avaliacao['nomeUsuario'],
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: List.generate(5, (starIndex) {
+                                    return Icon(
+                                      starIndex < avaliacao['estrelas']
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: Colors.amber,
+                                      size: 15,
+                                    );
+                                  }),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                ),                                 
+                                Text(
+                                  avaliacao['comentario'],
+                                  style: TextStyle(fontFamily: 'Poppins'),
+                                ),
+
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => abrirTelaAvaliacao(),
+      backgroundColor: const Color(0xFF01A897),
+      child: const Icon(Icons.add, color: Colors.white),
+    ),
+    bottomNavigationBar: _buildBottomNavigationBar(),
+  );
+}
   SliverAppBar _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 300,
