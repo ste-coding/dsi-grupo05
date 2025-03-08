@@ -405,6 +405,41 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 10), 
                   if (!_isEditing) _buildDashboard(),
                   const SizedBox(height: 10), 
+
+                  if (!_isEditing) ...[
+                    const SizedBox(height: 20),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/meus_estabelecimentos');
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Card(
+                        elevation: 2,
+                        color: Color(0xFF266B70),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.list, color: Colors.white), // Ícone de lista
+                              SizedBox(width: 16),
+                              Text(
+                                'Meus Estabelecimentos',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ],
               ),
             ),
@@ -666,5 +701,4 @@ class _PerfilPageState extends State<PerfilPage> {
       child: const Text('Redefinir Senha', style: TextStyle(fontSize: 16)),
     );
   }
-
 }

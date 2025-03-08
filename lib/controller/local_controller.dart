@@ -10,6 +10,7 @@ import '../repositories/local_repository.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../services/firestore/itinerarios.service.dart';
 import '../models/itinerario_model.dart';
+import '../services/firestore/local_user.service.dart';
 
 class LocalController with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -23,6 +24,7 @@ class LocalController with ChangeNotifier {
   final List<LocalModel> _featuredLocations = [];
   final List<LocalModel> _locaisProximos = [];
   final List<LocalModel> _searchResults = [];
+  final List<LocalModel> _locais = [];
   int _page = 0;
 
   Position? _userPosition;
@@ -224,6 +226,20 @@ class LocalController with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Erro ao remover favorito: $e';
+      notifyListeners();
+    }
+  }
+
+  final LocalUserService _localUserService = LocalUserService();
+
+  Future<void> fetchLocaisUsuario() async {
+    try {
+      final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+      final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+      _locais.addAll(locaisConvertidos);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Erro ao buscar locais do usuário: $e';
       notifyListeners();
     }
   }

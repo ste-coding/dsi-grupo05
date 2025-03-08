@@ -85,7 +85,7 @@ class _ItineraryBottomSheetState extends State<ItineraryBottomSheet> {
 
               if (pickedDate != selectedDate) {
                 setState(() {
-                  selectedDate = pickedDate!;
+                  selectedDate = pickedDate ?? selectedDate;
                 });
               }
             },
