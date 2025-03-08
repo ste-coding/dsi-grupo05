@@ -32,7 +32,6 @@ class LocalUserService {
     }
   }
 
-  // Buscar locais cadastrados apenas pelo usuário autenticado
   Future<List<LocalUserModel>> fetchLocaisUsuario() async {
     final usuario = FirebaseAuth.instance.currentUser;
     if (usuario == null) return [];

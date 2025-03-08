@@ -6,12 +6,17 @@ class LocalUserModel {
   final String descricao;
   final String imagem;
   final String categoria;
+  final String logradouro;
+  final String numero;
+  final String bairro;
   final String cidade;
   final String estado;
   final double latitude;
   final double longitude;
   final String usuarioId;
   final DateTime dataCriacao;
+  final double mediaEstrelas;
+  final int totalAvaliacoes;
 
   LocalUserModel({
     required this.id,
@@ -19,12 +24,17 @@ class LocalUserModel {
     required this.descricao,
     required this.imagem,
     required this.categoria,
+    required this.logradouro,
+    required this.numero,
+    required this.bairro,
     required this.cidade,
     required this.estado,
     required this.latitude,
     required this.longitude,
     required this.usuarioId,
     required this.dataCriacao,
+    this.mediaEstrelas = 0.0,
+    this.totalAvaliacoes = 0,
   });
 
   Map<String, dynamic> toJson() {
@@ -34,28 +44,40 @@ class LocalUserModel {
       "descricao": descricao,
       "imagem": imagem,
       "categoria": categoria,
+      "logradouro": logradouro,
+      "numero": numero,
+      "bairro": bairro,
       "cidade": cidade,
       "estado": estado,
       "latitude": latitude,
       "longitude": longitude,
       "usuarioId": usuarioId,
       "dataCriacao": dataCriacao.toIso8601String(),
+      "mediaEstrelas": mediaEstrelas,
+      "totalAvaliacoes": totalAvaliacoes,
     };
   }
 
   factory LocalUserModel.fromJson(Map<String, dynamic> json) {
     return LocalUserModel(
-      id: json['id'],
-      nome: json['nome'],
-      descricao: json['descricao'],
-      imagem: json['imagem'],
-      categoria: json['categoria'],
-      cidade: json['cidade'],
-      estado: json['estado'],
-      latitude: json['latitude'].toDouble(),
-      longitude: json['longitude'].toDouble(),
-      usuarioId: json['usuarioId'],
-      dataCriacao: DateTime.parse(json['dataCriacao']),
+      id: json['id'] ?? '', 
+      nome: json['nome'] ?? '', 
+      descricao: json['descricao'] ?? '', 
+      imagem: json['imagem'] ?? '', 
+      categoria: json['categoria'] ?? '', 
+      logradouro: json['logradouro'] ?? '', 
+      numero: json['numero'] ?? '', 
+      bairro: json['bairro'] ?? '', 
+      cidade: json['cidade'] ?? '', 
+      estado: json['estado'] ?? '', 
+      latitude: json['latitude']?.toDouble() ?? 0.0, 
+      longitude: json['longitude']?.toDouble() ?? 0.0, 
+      usuarioId: json['usuarioId'] ?? '',
+      dataCriacao: json['dataCriacao'] != null
+          ? DateTime.parse(json['dataCriacao'])
+          : DateTime.now(), 
+      mediaEstrelas: json['mediaEstrelas']?.toDouble() ?? 0.0, 
+      totalAvaliacoes: json['totalAvaliacoes'] ?? 0, 
     );
   }
 
@@ -71,8 +93,8 @@ class LocalUserModel {
       estado: estado,
       latitude: latitude,
       longitude: longitude,
-      mediaEstrelas: 0.0, // Valor padrão
-      totalAvaliacoes: 0, // Valor padrão
+      mediaEstrelas: mediaEstrelas,
+      totalAvaliacoes: totalAvaliacoes,
     );
   }
 }

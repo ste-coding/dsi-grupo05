@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
 import '../models/local_user_model.dart';
 import '../services/firestore/local_user.service.dart';
 import '../views/menu.page.dart';
@@ -22,6 +23,9 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _categoriaController = TextEditingController();
+  final _logradouroController = TextEditingController();
+  final _numeroController = TextEditingController();
+  final _bairroController = TextEditingController();
   final _cidadeController = TextEditingController();
   final _estadoController = TextEditingController();
   final _latitudeController = TextEditingController();
@@ -38,6 +42,9 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
       _nomeController.text = widget.local!.nome;
       _descricaoController.text = widget.local!.descricao;
       _categoriaController.text = widget.local!.categoria;
+      _logradouroController.text = widget.local!.logradouro;
+      _numeroController.text = widget.local!.numero;
+      _bairroController.text = widget.local!.bairro;
       _cidadeController.text = widget.local!.cidade;
       _estadoController.text = widget.local!.estado;
       _latitudeController.text = widget.local!.latitude.toString();
@@ -58,6 +65,36 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
     }
   }
 
+  Future<void> _preencherCoordenadas() async {
+    final endereco = '${_logradouroController.text}, ${_numeroController.text}, ${_bairroController.text}, ${_cidadeController.text}, ${_estadoController.text}';
+    try {
+      final coordenadas = await getLatLongFromAddress(endereco);
+      setState(() {
+        _latitudeController.text = coordenadas['latitude'].toString();
+        _longitudeController.text = coordenadas['longitude'].toString();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao buscar coordenadas: $e')),
+      );
+    }
+  }
+
+  Future<Map<String, double>> getLatLongFromAddress(String address) async {
+    final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=$address');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        final lat = double.parse(data[0]['lat']);
+        final lon = double.parse(data[0]['lon']);
+        return {'latitude': lat, 'longitude': lon};
+      }
+    }
+    throw Exception('Não foi possível obter as coordenadas para o endereço fornecido.');
+  }
+
   Future<void> _salvarLocal() async {
     if (_formKey.currentState!.validate()) {
       final usuario = FirebaseAuth.instance.currentUser;
@@ -76,6 +113,9 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
           descricao: _descricaoController.text,
           imagem: _imagemBase64 ?? '',
           categoria: _categoriaController.text,
+          logradouro: _logradouroController.text,
+          numero: _numeroController.text,
+          bairro: _bairroController.text,
           cidade: _cidadeController.text,
           estado: _estadoController.text,
           latitude: latitude,
@@ -121,17 +161,17 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
         title: Text(
           widget.local == null ? 'Cadastrar Novo Local' : 'Editar Local',
           style: TextStyle(
-            fontFamily: 'Poppins', // Fonte Poppins
-            fontWeight: FontWeight.bold, // Negrito
-            fontSize: 24, // Tamanho 24
-            color: Colors.black, // Cor preta
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.black,
           ),
         ),
-        backgroundColor: Colors.transparent, // Fundo transparente
-        elevation: 0, // Sem sombra
-        centerTitle: true, // Título centralizado
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black), // Ícone preto
+          icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -184,9 +224,20 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                 SizedBox(height: 16),
                 _buildTextField(_categoriaController, "Categoria"),
                 SizedBox(height: 16),
+                _buildTextField(_logradouroController, "Logradouro"),
+                SizedBox(height: 16),
+                _buildTextField(_numeroController, "Número"),
+                SizedBox(height: 16),
+                _buildTextField(_bairroController, "Bairro"),
+                SizedBox(height: 16),
                 _buildTextField(_cidadeController, "Cidade"),
                 SizedBox(height: 16),
                 _buildTextField(_estadoController, "Estado"),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _preencherCoordenadas,
+                  child: Text('Preencher Coordenadas'),
+                ),
                 SizedBox(height: 16),
                 _buildTextField(_latitudeController, "Latitude", keyboardType: TextInputType.number),
                 SizedBox(height: 16),
@@ -195,7 +246,7 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                 ElevatedButton(
                   onPressed: _salvarLocal,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF266B70), // Cor verde água
+                    backgroundColor: Color(0xFF266B70),
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
