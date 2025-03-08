@@ -23,6 +23,9 @@ import 'package:flutter_application_1/views/itinerario.page.dart';
 import 'package:flutter_application_1/views/favoritos.page.dart';
 import 'package:flutter_application_1/views/perfil.page.dart';
 import 'package:flutter_application_1/views/open_street_map.page.dart';
+import '../views/cadastro_local.page.dart';
+import '../views/meus_estabelecimentos.page.dart';
+
 
 void main() {
   runZonedGuarded(() async {
@@ -89,6 +92,8 @@ class MyApp extends StatelessWidget {
           '/favoritos': (context) => const FavoritesPage(),
           '/perfil': (context) => const PerfilPage(),
           '/mapa': (context) => const OpenStreetMapPage(),
+          '/cadastrarlocal': (context) => CadastroLocalPage(),
+          '/meus_estabelecimentos': (context) => MeusEstabelecimentosPage()
         },
       ),
     );
