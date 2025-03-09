@@ -9,6 +9,8 @@ class MeusEstabelecimentosPage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  MeusEstabelecimentosPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,6 +51,7 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
+                  fontFamily: 'Poppins',
                 ),
               ),
             );
@@ -81,16 +84,16 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                   return await showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Excluir Estabelecimento'),
-                      content: Text('Tem certeza que deseja excluir este estabelecimento?'),
+                      title: Text('Excluir Estabelecimento', style: TextStyle(fontFamily: 'Poppins')),
+                      content: Text('Tem certeza que deseja excluir este estabelecimento?', style: TextStyle(fontFamily: 'Poppins')),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: Text('Cancelar'),
+                          child: Text('Cancelar', style: TextStyle(fontFamily: 'Poppins')),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text('Excluir', style: TextStyle(color: Colors.red)),
+                          child: Text('Excluir', style: TextStyle(color: Colors.red, fontFamily: 'Poppins')),
                         ),
                       ],
                     ),
@@ -101,11 +104,11 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                   try {
                     await _firestore.collection('locais_usuario').doc(local.id).delete();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Estabelecimento excluído com sucesso!')),
+                      SnackBar(content: Text('Estabelecimento excluído com sucesso!', style: TextStyle(fontFamily: 'Poppins'))),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro ao excluir estabelecimento: $e')),
+                      SnackBar(content: Text('Erro ao excluir estabelecimento: $e', style: TextStyle(fontFamily: 'Poppins'))),
                     );
                   }
                 },
@@ -160,6 +163,7 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
+                                    fontFamily: 'Poppins',
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -168,6 +172,7 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
+                                    fontFamily: 'Poppins',
                                   ),
                                 ),
                               ],

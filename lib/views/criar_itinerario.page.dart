@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'dart:convert'; // Para conversão de Base64
 import 'package:image_picker/image_picker.dart'; // Para pegar a imagem
 import 'dart:typed_data'; // Para manipular dados binários
-import 'dart:io'; // Para manipular arquivos de imagem
+import 'dart:io'; 
 
 class CreateItinerarioPage extends StatefulWidget {
   final String userId;
@@ -24,17 +24,6 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   DateTime? _endDate;
   late ItinerariosService itinerariosService;
   String? _selectedImage;
-
-  final List<String> _availableImages = [
-    'assets/images/inverno.jpg',
-    'assets/images/acampamento.jpg',
-    'assets/images/festivais.jpg',
-    'assets/images/cidades_antigas.jpg',
-    'assets/images/praia.jpg',
-    'assets/images/por_do_sol.jpg',
-    'assets/images/trabalho.jpg',
-    'assets/images/trilha.jpg',
-  ];
 
   @override
   void initState() {
@@ -108,20 +97,16 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                 const SizedBox(height: 16),
                 _buildDateSelection(),
                 const SizedBox(height: 16),
-                _buildImageSelection(),
+                _buildImagePicker(),
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton(
                     onPressed: _saveItinerario,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF266B70),
-                      textStyle: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      textStyle: const TextStyle(fontFamily: 'Poppins'),
                     ),
                     child: const Text(
                       'Salvar Itinerário',
@@ -147,7 +132,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF266B70)),
+        labelStyle: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
@@ -159,6 +144,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
           ? (value) =>
               value == null || value.isEmpty ? 'Insira um $label' : null
           : null,
+      style: const TextStyle(fontFamily: 'Poppins'),
     );
   }
 
@@ -173,7 +159,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         child: Column(
           children: [
             const Text('Selecione as Datas',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -191,69 +177,56 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   Widget _buildDateButton(String label, DateTime? date, bool isStartDate) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Color(0xFF266B70))),
+        Text(label, style: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins')),
         TextButton(
           onPressed: () => _selectDate(context, isStartDate),
           child: Text(
             date == null ? 'Selecione' : DateFormat('dd/MM/yyyy').format(date),
-            style: const TextStyle(color: Color(0xFF266B70)),
+            style: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins'),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildImageSelection() {
+  Widget _buildImagePicker() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Escolha uma imagem:',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _availableImages.length + 1,
-            itemBuilder: (context, index) {
-              if (index == _availableImages.length) {
-                return GestureDetector(
-                  onTap: _pickImage,
-                  child: Card(
-                    color: Colors.grey[200],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.add,
-                        size: 60, color: Color(0xFF266B70)),
-                  ),
-                );
-              }
-              final image = _availableImages[index];
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedImage = image;
-                  });
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: _selectedImage == image
-                          ? Color(0xFF266B70)
-                          : Colors.transparent,
-                      width: 3,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(image, fit: BoxFit.cover),
-                  ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 150,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
                 ),
-              );
-            },
+              ],
+            ),
+            child: _selectedImage != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(_selectedImage!),
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Center(
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 50,
+                      color: Colors.grey[600],
+                    ),
+                  ),
           ),
         ),
       ],
@@ -275,20 +248,8 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         _startDate != null &&
         _endDate != null &&
         _selectedImage != null) {
-      String? imageBase64; // Agora a variável é String? (pode ser null)
-
-      // Se a imagem for uma imagem do assets, não precisa converter
-      if (_selectedImage!.startsWith('assets/')) {
-        imageBase64 = _selectedImage;
-      } else {
-        imageBase64 = await _getImageBase64(_selectedImage!);
-        if (imageBase64 == null) {
-          // Se a conversão para base64 falhar, você pode lidar com isso aqui
-          // Exemplo: atribuir uma imagem padrão ou mostrar um erro
-          imageBase64 =
-              'assets/images/default_image.jpg'; // ou algum valor padrão
-        }
-      }
+      String? imageBase64 = await _getImageBase64(_selectedImage!);
+      imageBase64 ??= 'assets/images/mock_image.jpg';
 
       final itinerario = ItinerarioModel(
         id: DateTime.now().toString(),
@@ -297,7 +258,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         startDate: _startDate!,
         endDate: _endDate!,
         observations: _observationsController.text,
-        imageUrl: imageBase64, // Armazena a imagem Base64 no Firestore
+        imageUrl: imageBase64,
         locais: [],
       );
 

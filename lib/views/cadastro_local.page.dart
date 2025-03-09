@@ -199,22 +199,13 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                         ),
                       ],
                     ),
-                    child: _imagemBase64 != null && _imagemBase64!.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.memory(
-                              base64Decode(_imagemBase64!),
-                              height: 150,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Center(
-                            child: Icon(
-                              Icons.camera_alt,
-                              size: 50,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                    child: Center(
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 50,
+                        color: Colors.grey[600],
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -236,7 +227,16 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _preencherCoordenadas,
-                  child: Text('Preencher Coordenadas'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF266B70),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    textStyle: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  child: const Text(
+                    'Preencher Coordenadas',
+                    style: TextStyle(fontFamily: 'Poppins', color: Colors.white),
+                  ),
                 ),
                 SizedBox(height: 16),
                 _buildTextField(_latitudeController, "Latitude", keyboardType: TextInputType.number),
@@ -246,12 +246,10 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                 ElevatedButton(
                   onPressed: _salvarLocal,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF266B70),
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
+                    backgroundColor: const Color(0xFF266B70),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    textStyle: const TextStyle(fontFamily: 'Poppins'),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -262,8 +260,9 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                         widget.local == null ? "Salvar Local" : "Atualizar Local",
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.normal,
                           color: Colors.white,
+                          fontFamily: 'Poppins',
                         ),
                       ),
                     ],
@@ -283,7 +282,7 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey[600]),
+        labelStyle: TextStyle(color: Colors.grey[600], fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
@@ -292,6 +291,7 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
         ),
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
+      style: TextStyle(fontFamily: 'Poppins'),
     );
   }
 }
