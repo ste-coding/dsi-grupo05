@@ -62,15 +62,76 @@ class _MenuPageState extends State<MenuPage> {
               // Nearby locations section
               _buildNearbyLocationsSection(userId),
 
-              // Bottom navigation
-              _buildBottomNavigation(),
+              const SizedBox(height: 100),
             ],
           ),
         ),
       ),
+
+      // Adding the BottomNavigationBar here
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
+  // Add the BottomNavigationBar function here
+  BottomNavigationBar _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: 2, // Modify this to set the selected index dynamically
+      selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
+      unselectedItemColor: Colors.grey,
+      showUnselectedLabels: true,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+          tooltip: 'Home',
+          backgroundColor: Colors.white,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.map),
+          label: 'Itinerários',
+          tooltip: 'Itinerários',
+          backgroundColor: Colors.white,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.search),
+          label: 'Buscar',
+          tooltip: 'Buscar',
+          backgroundColor: Colors.white,
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.gps_fixed),
+          label: 'Mapa',
+          tooltip: 'Mapa',
+          backgroundColor: Colors.white,
+        ),
+      ],
+      selectedLabelStyle: TextStyle(fontFamily: 'Poppins'),
+      unselectedLabelStyle: TextStyle(fontFamily: 'Poppins'),
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            Navigator.pushNamed(context, '/menu');
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/itinerario');
+            break;
+          case 2:
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ExplorePage(onSelectedLocal: (local) {
+                        print("Local selecionado: ${local.nome}");
+                      })),
+            );
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/mapa');
+            break;
+        }
+      },
+    );
+  }
   Widget _buildHeader(UserService userService, String userId) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -220,7 +281,7 @@ class _MenuPageState extends State<MenuPage> {
           ),
         ),
         SizedBox(
-          height: 320,
+          height: 370,
           child: Consumer<LocalController>(
             builder: (context, controller, child) {
               if (controller.isLoading) {
@@ -289,7 +350,7 @@ class _MenuPageState extends State<MenuPage> {
           ),
         ),
         SizedBox(
-          height: 320,
+          height: 370,
           child: Consumer<LocalController>(
             builder: (context, controller, child) {
               if (controller.isLoading) {
@@ -334,80 +395,6 @@ class _MenuPageState extends State<MenuPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home, 'Home', true),
-            _buildNavItem(Icons.map, 'Itinerários', false),
-            _buildNavItem(Icons.search, 'Buscar', false),
-            _buildNavItem(Icons.gps_fixed, 'Mapa', false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-    return InkWell(
-      onTap: () {
-        switch (label) {
-          case 'Home':
-            Navigator.pushNamed(context, '/menu');
-            break;
-          case 'Itinerários':
-            Navigator.pushNamed(context, '/itinerario');
-            break;
-          case 'Buscar':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ExplorePage(
-                  onSelectedLocal: (local) {
-                    print("Local selecionado: ${local.nome}");
-                  },
-                ),
-              ),
-            );
-            break;
-          case 'Mapa':
-            Navigator.pushNamed(context, '/mapa');
-            break;
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? const Color(0xFF266B70) : Colors.grey,
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 12,
-              color: isSelected ? const Color(0xFF266B70) : Colors.grey,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
