@@ -10,7 +10,7 @@ import '../services/firestore/user.service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore/avaliacoes.service.dart';
-import '../widgets/avaliacao_chart.dart';
+import '../widgets/avaliacao_widget.dart';
 import 'dart:convert';
 
 class LocalDetailsPage extends StatefulWidget {
@@ -259,10 +259,6 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  height: 200,
-                  child: AvaliacoesChart(estrelasCount: distribuicaoEstrelas),
-                ),
                 const SizedBox(height: 8),
                 if (avaliacoes.isEmpty)
                   const Text(
