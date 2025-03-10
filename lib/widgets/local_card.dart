@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/local_model.dart';
 import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
 import 'package:flutter_application_1/views/local_details.page.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
 
 class LocalCard extends StatefulWidget {
   final LocalModel local;
@@ -24,6 +26,17 @@ class _LocalCardState extends State<LocalCard> {
   void initState() {
     super.initState();
     _checkIfFavorito();
+    widget.favoritosService.addListener(_favoritosListener);
+  }
+
+  @override
+  void dispose() {
+    widget.favoritosService.removeListener(_favoritosListener);
+    super.dispose();
+  }
+
+  void _favoritosListener() {
+    _checkIfFavorito();
   }
 
   Future<void> _checkIfFavorito() async {
@@ -34,7 +47,6 @@ class _LocalCardState extends State<LocalCard> {
         isFavorito = favorito;
       });
     }
-
   }
 
   Future<void> _toggleFavorito() async {
@@ -84,12 +96,27 @@ class _LocalCardState extends State<LocalCard> {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: widget.local.imagem.isNotEmpty
-                      ? Image.network(
-                          widget.local.imagem,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
+                      ? (widget.local.imagem.startsWith('http')
+                          ? Image.network(
+                              widget.local.imagem,
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image,
+                                    size: 50, color: Colors.grey[700]);
+                              },
+                            )
+                          : Image.memory(
+                              base64Decode(widget.local.imagem),
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image,
+                                    size: 50, color: Colors.grey[700]);
+                              },
+                            ))
                       : Container(
                           height: 180,
                           width: double.infinity,

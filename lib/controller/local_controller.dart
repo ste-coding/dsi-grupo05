@@ -53,12 +53,10 @@ class LocalController with ChangeNotifier {
   Future<void> fetchLocais(String query, String location) async {
     if (_isLoading) return;
 
-    // Clear results for new searches
+
     if (_page == 0) {
       _searchResults.clear();
     }
-
-    // Set default location to Brazil only when there's no query
     if (query.isEmpty) {
       location = 'Brasil';
     }
@@ -78,13 +76,12 @@ class LocalController with ChangeNotifier {
         (error) {
           _errorMessage = error;
           _isLoading = false;
-          // Only mark as finished loading if it's a real error
           if (error != 'Nenhum local encontrado') {
             _finishLoading = true;
           }
           notifyListeners();
         },
-        (response) {
+        (response) async {
           if (response.locais.isEmpty) {
             _finishLoading = true;
           } else {
@@ -107,6 +104,14 @@ class LocalController with ChangeNotifier {
             
             _page++;
           }
+
+          // Adicione locais do usuário à pesquisa
+          final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+          final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+          _searchResults.addAll(locaisConvertidos.where((local) => 
+            local.latitude != 0.0 && local.longitude != 0.0
+          ).toList());
+
           _isLoading = false;
           notifyListeners();
         },
@@ -141,9 +146,16 @@ class LocalController with ChangeNotifier {
         '${_userPosition!.latitude},${_userPosition!.longitude}',
       );
 
+      final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+      final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+
       _locaisProximos.clear();
       _locaisProximos.addAll(places.where((place) => 
         place.latitude != 0.0 && place.longitude != 0.0
+      ).toList());
+
+      _locaisProximos.addAll(locaisConvertidos.where((local) => 
+        local.latitude != 0.0 && local.longitude != 0.0
       ).toList());
 
       _isLoading = false;

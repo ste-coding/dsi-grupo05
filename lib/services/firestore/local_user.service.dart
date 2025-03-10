@@ -48,4 +48,28 @@ class LocalUserService {
       return [];
     }
   }
+
+  Future<double> getMediaEstrelas(String localId) async {
+    try {
+      final snapshot = await _db.collection('locais_usuario').doc(localId).get();
+      if (snapshot.exists) {
+        return (snapshot.data()?['mediaEstrelas'] ?? 0).toDouble();
+      }
+    } catch (e) {
+      print("Erro ao buscar média de estrelas: $e");
+    }
+    return 0.0;
+  }
+
+  Future<int> getTotalAvaliacoes(String localId) async {
+    try {
+      final snapshot = await _db.collection('locais_usuario').doc(localId).get();
+      if (snapshot.exists) {
+        return snapshot.data()?['totalAvaliacoes'] ?? 0;
+      }
+    } catch (e) {
+      print("Erro ao buscar total de avaliações: $e");
+    }
+    return 0;
+  }
 }

@@ -53,7 +53,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
           if (activities.containsKey(activityDate)) {
             activities[activityDate]?.add({
               'name': activity['name'],
-              'time': activity['time'], // A hora agora é uma string
+              'time': activity['time'], 
               'id': activity['id'],
             });
           }
@@ -83,7 +83,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
           await roteiroService.saveActivities(
             widget.roteiroId,
             date,
-            [newActivity], // Salvar a nova atividade
+            [newActivity], 
           );
         } catch (e) {
           print('Erro ao salvar a atividade: $e');
@@ -126,7 +126,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
     setState(() {
       activities[date]?.removeAt(index);
     });
-    // Excluir no Firestore
+    
     roteiroService.deleteActivity(widget.roteiroId, activity['id']);
   }
 
@@ -136,7 +136,7 @@ class _RoteiroPageState extends State<RoteiroPage> {
       body: Column(
         children: [
           SizedBox(height: 10),
-          Container(
+          SizedBox(
             height: 60,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -252,14 +252,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
     nameController =
         TextEditingController(text: widget.activity?["name"] ?? "");
     timeController = TextEditingController(
-        text: widget.activity?["time"] ?? "09:00"); // Valor default
+        text: widget.activity?["time"] ?? "09:00"); 
   }
 
   void _saveActivity() {
     if (nameController.text.isNotEmpty && timeController.text.isNotEmpty) {
       final newActivity = {
         "name": nameController.text,
-        "time": timeController.text, // Agora o horário é uma string
+        "time": timeController.text, 
       };
 
       Navigator.pop(context, newActivity);
@@ -269,7 +269,14 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Criar Atividade")),
+      appBar: AppBar(
+        title: const Center(
+          child: Text(
+        "Criar Atividade",
+        style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

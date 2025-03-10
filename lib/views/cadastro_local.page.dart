@@ -12,7 +12,7 @@ import '../views/menu.page.dart';
 class CadastroLocalPage extends StatefulWidget {
   final LocalUserModel? local;
 
-  CadastroLocalPage({this.local});
+  const CadastroLocalPage({super.key, this.local});
 
   @override
   _CadastroLocalPageState createState() => _CadastroLocalPageState();
@@ -200,11 +200,20 @@ class _CadastroLocalPageState extends State<CadastroLocalPage> {
                       ],
                     ),
                     child: Center(
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 50,
-                        color: Colors.grey[600],
-                      ),
+                      child: _imagemBase64 != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.memory(
+                                base64Decode(_imagemBase64!),
+                                height: 150,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Icon(
+                              Icons.camera_alt,
+                              size: 50,
+                              color: Colors.grey[600],
+                            ),
                     ),
                   ),
                 ),

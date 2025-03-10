@@ -142,164 +142,169 @@ class _ExplorePageState extends State<ExplorePage> {
       );
     }
 
-    final favoritosService = FavoritosService(userId);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Explorar Locais',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Digite o nome do local...',
-                      hintStyle: const TextStyle(fontFamily: 'Poppins'),
-                      filled: true,
-                      fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey[600],
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.clear,
-                                color: Colors.grey[600],
-                              ),
-                              onPressed: () {
-                                _searchController.clear();
-                                _loadLocais('');
-                              },
-                            )
-                          : null,
-                    ),
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                    ),
-                    onChanged: (value) {
-                      _loadLocais(value); // Filtrar os locais com base no termo de busca
-                    },
-                    onSubmitted: (value) {
-                      _searchFocusNode.unfocus();
-                      _loadLocais(value);
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        'Filtrar por Média de Estrelas:',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Slider(
-                          value: _mediaEstrelasFilter,
-                          activeColor: Color(0xFF266B70),
-                          min: 0,
-                          max: 10,
-                          divisions: 10,
-                          label: _mediaEstrelasFilter.round().toString(),
-                          onChanged: _onMediaEstrelasChanged,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    return ChangeNotifierProvider(
+      create: (_) => FavoritosService(userId),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Explorar Locais',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
             ),
-            Expanded(
-              child: Consumer<LocalController>(
-                builder: (context, controller, child) {
-                  if (controller.isLoading && _filteredLocais.isEmpty) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-
-                  if (controller.errorMessage != null && _filteredLocais.isEmpty) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Digite o nome do local...',
+                        hintStyle: const TextStyle(fontFamily: 'Poppins'),
+                        filled: true,
+                        fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.grey[600],
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: Colors.grey[600],
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _loadLocais('');
+                                },
+                              )
+                            : null,
+                      ),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                      ),
+                      onChanged: (value) {
+                        _loadLocais(value); // Filtrar os locais com base no termo de busca
+                      },
+                      onSubmitted: (value) {
+                        _searchFocusNode.unfocus();
+                        _loadLocais(value);
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Row(
                       children: [
-                        Text(controller.errorMessage!),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _loadLocais(_searchController.text.trim()),
-                          child: Text('Tentar novamente'),
+                        Text(
+                          'Filtrar por Média de Estrelas:',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Slider(
+                            value: _mediaEstrelasFilter,
+                            activeColor: Color(0xFF266B70),
+                            min: 0,
+                            max: 10,
+                            divisions: 10,
+                            label: _mediaEstrelasFilter.round().toString(),
+                            onChanged: _onMediaEstrelasChanged,
+                          ),
                         ),
                       ],
-                    );
-                  }
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Consumer<LocalController>(
+                  builder: (context, controller, child) {
+                    if (controller.isLoading && _filteredLocais.isEmpty) {
+                      return Center(child: CircularProgressIndicator());
+                    }
 
-                  if (_filteredLocais.isEmpty && _searchController.text.isNotEmpty) {
-                    return Center(
-                      child: Column(
+                    if (controller.errorMessage != null && _filteredLocais.isEmpty) {
+                      return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Nenhum local encontrado',
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                          Text(controller.errorMessage!),
                           SizedBox(height: 16),
                           ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF266B70),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              textStyle: const TextStyle(fontFamily: 'Poppins'),
-                            ),
                             onPressed: () => _loadLocais(_searchController.text.trim()),
-                            child: Text('Tentar novamente', style: const TextStyle(fontSize: 16)),
+                            child: Text('Tentar novamente'),
                           ),
                         ],
-                      ),
-                    );
-                  }
+                      );
+                    }
 
-                  return ListView.builder(
-                    controller: _scrollController,
-                    itemCount: _filteredLocais.length + (_isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _filteredLocais.length) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      final local = _filteredLocais[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: LocalCard(
-                          local: local,
-                          favoritosService: favoritosService,
+                    if (_filteredLocais.isEmpty && _searchController.text.isNotEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Nenhum local encontrado',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            SizedBox(height: 16),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF266B70),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                textStyle: const TextStyle(fontFamily: 'Poppins'),
+                              ),
+                              onPressed: () => _loadLocais(_searchController.text.trim()),
+                              child: Text('Tentar novamente', style: const TextStyle(fontSize: 16)),
+                            ),
+                          ],
                         ),
                       );
-                    },
-                  );
-                },
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: _filteredLocais.length + (_isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _filteredLocais.length) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        final local = _filteredLocais[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Consumer<FavoritosService>(
+                            builder: (context, favoritosService, child) {
+                              return LocalCard(
+                                local: local,
+                                favoritosService: favoritosService,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

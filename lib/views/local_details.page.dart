@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore/avaliacoes.service.dart';
 import '../widgets/avaliacao_chart.dart';
+import 'dart:convert';
 
 class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
@@ -363,13 +364,29 @@ Widget build(BuildContext context) {
       expandedHeight: 300,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.network(
-          widget.local.imagem,
-          fit: BoxFit.cover,
-        ),
+        background: widget.local.imagem.isNotEmpty
+            ? (widget.local.imagem.startsWith('http')
+                ? Image.network(
+                    widget.local.imagem,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image, size: 50, color: Colors.grey[700]);
+                    },
+                  )
+                : Image.memory(
+                    base64Decode(widget.local.imagem),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image, size: 50, color: Colors.grey[700]);
+                    },
+                  ))
+            : Container(
+                color: Colors.grey[300],
+                child: Icon(Icons.image, size: 50, color: Colors.grey[700]),
+              ),
       ),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
@@ -389,7 +406,11 @@ Widget build(BuildContext context) {
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: NetworkImage(widget.local.imagem),
+          backgroundImage: widget.local.imagem.isNotEmpty
+              ? (widget.local.imagem.startsWith('http')
+                  ? NetworkImage(widget.local.imagem)
+                  : MemoryImage(base64Decode(widget.local.imagem)) as ImageProvider)
+              : AssetImage('assets/placeholder.png'),
         ),
         const SizedBox(width: 12),
         Expanded(

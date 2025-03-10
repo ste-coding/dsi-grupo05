@@ -141,15 +141,31 @@ class MeusEstabelecimentosPage extends StatelessWidget {
                               color: Colors.grey[300],
                             ),
                             child: local.imagem.isNotEmpty
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.memory(
-                                      base64Decode(local.imagem),
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
+                                ? (local.imagem.startsWith('http')
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          local.imagem,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(Icons.broken_image, size: 40, color: Colors.grey);
+                                          },
+                                        ),
+                                      )
+                                    : ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.memory(
+                                          base64Decode(local.imagem),
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(Icons.broken_image, size: 40, color: Colors.grey);
+                                          },
+                                        ),
+                                      ))
                                 : Icon(Icons.place, size: 40, color: Colors.grey),
                           ),
                           SizedBox(width: 16),

@@ -11,6 +11,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_application_1/models/local_model.dart'; 
 import 'package:flutter_application_1/services/foursquare_service.dart'; 
+import 'package:flutter_application_1/services/firestore/local_user.service.dart';
 
 class OpenStreetMapPage extends StatefulWidget {
   const OpenStreetMapPage({super.key});
@@ -30,6 +31,7 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
   List<LocalModel> _places = [];
   final bool _showPlaces = true;
   LocalModel? _selectedPlace;
+  final LocalUserService _localUserService = LocalUserService();
 
   @override
   void initState() {
@@ -55,12 +57,10 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
       await _fetchNearbyPlaces();
 
       Geolocator.getPositionStream().listen((position) {
-        if (position.longitude != null) {
-          setState(() {
-            _currentLocation = LatLng(position.latitude, position.longitude);
-          });
-        }
-      });
+        setState(() {
+          _currentLocation = LatLng(position.latitude, position.longitude);
+        });
+            });
     } catch (e) {
       setState(() => isLoading = false);
       errorMessage('Erro ao obter localização');
@@ -76,13 +76,20 @@ class _OpenStreetMapPageState extends State<OpenStreetMapPage> {
         '${_currentLocation!.latitude},${_currentLocation!.longitude}',
       );
 
+      final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+      final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+
       setState(() {
         _places = places.where((place) => 
           place.latitude != 0.0 && place.longitude != 0.0
         ).toList();
+
+        _places.addAll(locaisConvertidos.where((local) => 
+          local.latitude != 0.0 && local.longitude != 0.0
+        ).toList());
       });
     } catch (e) {
-      errorMessage('Erro ao carregar locais próximos');
+      errorMessage('Erro ao carregar locais próximos: $e');
     }
   }
 

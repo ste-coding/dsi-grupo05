@@ -10,6 +10,8 @@ import 'package:flutter_application_1/services/firestore/user.service.dart' as u
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_application_1/services/firestore/checklist.service.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_application_1/services/firestore/viajante.service.dart';
+import 'package:flutter_application_1/services/firestore/avaliacoes.service.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -22,6 +24,8 @@ class _PerfilPageState extends State<PerfilPage> {
   String? _profileImageBase64;
   final user_service.UserService _userService = user_service.UserService();
   final AuthController _authController = AuthController();
+  final ViajanteService _viajanteService = ViajanteService(FirebaseAuth.instance.currentUser!.uid);
+  final AvaliacoesService _avaliacoesService = AvaliacoesService();
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -34,6 +38,11 @@ class _PerfilPageState extends State<PerfilPage> {
   int _completedTasks = 0;
   int _totalItinerarios = 0;
   List<int> monthlyItineraries = List.filled(12, 0);
+  List<int> monthlyReviews = List.filled(12, 0);
+  final int _totalRoteiros = 0;
+  final int _totalViajantes = 0;
+  final double _percentile = 0.0;
+  final String _travelGroup = '';
 
   @override
   void initState() {
@@ -42,6 +51,8 @@ class _PerfilPageState extends State<PerfilPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadItinerarioId();
       _loadInsightsData();
+      _loadReviewData();
+      _loadViajanteData();
     });
   }
 
@@ -103,7 +114,7 @@ class _PerfilPageState extends State<PerfilPage> {
 
       List<int> monthlyCounts = List.filled(12, 0);
       for (var doc in itinerariosSnapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
+        var data = doc.data();
         DateTime startDate = (data['startDate'] as Timestamp).toDate();
         DateTime endDate = (data['endDate'] as Timestamp).toDate();
         
@@ -119,6 +130,31 @@ class _PerfilPageState extends State<PerfilPage> {
       setState(() {
         _totalItinerarios = itinerariosSnapshot.docs.length;
         monthlyItineraries = monthlyCounts;
+      });
+    }
+  }
+
+  Future<void> _loadReviewData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final reviewsSnapshot = await FirebaseFirestore.instance
+          .collection('viajantes')
+          .doc(user.uid)
+          .collection('avaliacoes')
+          .get();
+
+      List<int> monthlyCounts = List.filled(12, 0);
+      for (var doc in reviewsSnapshot.docs) {
+        var data = doc.data();
+        DateTime reviewDate = (data['data'] as Timestamp).toDate();
+
+        if (reviewDate.year == DateTime.now().year) {
+          monthlyCounts[reviewDate.month - 1]++;
+        }
+      }
+
+      setState(() {
+        monthlyReviews = monthlyCounts;
       });
     }
   }
@@ -198,6 +234,13 @@ class _PerfilPageState extends State<PerfilPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao excluir conta. Tente novamente.')),
       );
+    }
+  }
+
+  Future<void> _loadViajanteData() async {
+    final viajante = await _viajanteService.getViajante();
+    if (viajante != null) {
+      // Processar dados do viajante se necessário
     }
   }
 
@@ -561,7 +604,7 @@ class _PerfilPageState extends State<PerfilPage> {
       color: const Color(0xFF266B70), // Verde água
       elevation: 4,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.45, // Aproximadamente metade da tela
+        width: MediaQuery.of(context).size.width * 0.45, 
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,7 +615,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 fontFamily: 'Poppins',
                 fontSize: 15,
                 fontWeight: FontWeight.normal,
-                color: Colors.white, // Texto em branco para contraste
+                color: Colors.white, 
               ),
             ),
             const SizedBox(height: 50),
@@ -583,7 +626,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   fontFamily: 'Poppins',
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Texto em branco para contraste
+                  color: Colors.white, 
                 ),
               ),
             ),
@@ -615,19 +658,19 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Widget _buildInfoText(String value) {
-  return SizedBox(
-    width: 300,
-    child: Text(
-      value, 
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 18, 
-        fontFamily: 'Poppins',
-        fontWeight: FontWeight.bold, 
+    return SizedBox(
+      width: 300,
+      child: Text(
+        value, 
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 18, 
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.bold, 
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildElevatedButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
@@ -672,7 +715,7 @@ class _PerfilPageState extends State<PerfilPage> {
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
   }
-  
+
   Widget _buildOutlinedButton(String text, VoidCallback onPressed) {
     return OutlinedButton(
       onPressed: onPressed,
@@ -686,6 +729,7 @@ class _PerfilPageState extends State<PerfilPage> {
           style: const TextStyle(fontSize: 16, color: Color(0xFF266B70))),
     );
   }
+
   Widget _buildPasswordResetButton() {
     return ElevatedButton(
       onPressed: () {

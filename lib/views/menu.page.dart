@@ -45,38 +45,41 @@ class _MenuPageState extends State<MenuPage> {
       return const Center(child: Text("Usuário não autenticado."));
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header section
-              _buildHeader(userService, userId),
-              
-              // Featured locations section
-              _buildFeaturedLocationsSection(userId),
+    return ChangeNotifierProvider(
+      create: (_) => FavoritosService(userId),
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header section
+                _buildHeader(userService, userId),
+                
+                // Featured locations section
+                _buildFeaturedLocationsSection(userId),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Nearby locations section
-              _buildNearbyLocationsSection(userId),
+                // Nearby locations section
+                _buildNearbyLocationsSection(userId),
 
-              const SizedBox(height: 100),
-            ],
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         ),
-      ),
 
-      // Adding the BottomNavigationBar here
-      bottomNavigationBar: _buildBottomNavigationBar(),
+        // Adding the BottomNavigationBar here
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      ),
     );
   }
 
   // Add the BottomNavigationBar function here
   BottomNavigationBar _buildBottomNavigationBar() {
     return BottomNavigationBar(
-      currentIndex: 2, // Modify this to set the selected index dynamically
+      currentIndex: 0, // Modify this to set the selected index dynamically
       selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
       unselectedItemColor: Colors.grey,
       showUnselectedLabels: true,
@@ -314,9 +317,13 @@ class _MenuPageState extends State<MenuPage> {
                     padding: const EdgeInsets.only(right: 16),
                     child: SizedBox(
                       width: 280,
-                      child: LocalCard(
-                        local: local,
-                        favoritosService: FavoritosService(userId),
+                      child: Consumer<FavoritosService>(
+                        builder: (context, favoritosService, child) {
+                          return LocalCard(
+                            local: local,
+                            favoritosService: favoritosService,
+                          );
+                        },
                       ),
                     ),
                   );
@@ -383,9 +390,13 @@ class _MenuPageState extends State<MenuPage> {
                     padding: const EdgeInsets.only(right: 16),
                     child: SizedBox(
                       width: 280,
-                      child: LocalCard(
-                        local: local,
-                        favoritosService: FavoritosService(userId),
+                      child: Consumer<FavoritosService>(
+                        builder: (context, favoritosService, child) {
+                          return LocalCard(
+                            local: local,
+                            favoritosService: favoritosService,
+                          );
+                        },
                       ),
                     ),
                   );

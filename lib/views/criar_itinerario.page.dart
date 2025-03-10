@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import 'dart:convert'; // Para conversão de Base64
 import 'package:image_picker/image_picker.dart'; // Para pegar a imagem
 import 'dart:typed_data'; // Para manipular dados binários
-import 'dart:io'; 
+import 'dart:io'; // Para manipular arquivos
+import 'package:flutter/foundation.dart'; // Para kIsWeb
 
 class CreateItinerarioPage extends StatefulWidget {
   final String userId;
@@ -104,8 +105,10 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
                     onPressed: _saveItinerario,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF266B70),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 30),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                       textStyle: const TextStyle(fontFamily: 'Poppins'),
                     ),
                     child: const Text(
@@ -132,7 +135,8 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins'),
+        labelStyle:
+            const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins'),
         filled: true,
         fillColor: Colors.grey[200],
         border: OutlineInputBorder(
@@ -159,7 +163,10 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         child: Column(
           children: [
             const Text('Selecione as Datas',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins')),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -177,12 +184,15 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
   Widget _buildDateButton(String label, DateTime? date, bool isStartDate) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins')),
+        Text(label,
+            style: const TextStyle(
+                color: Color(0xFF266B70), fontFamily: 'Poppins')),
         TextButton(
           onPressed: () => _selectDate(context, isStartDate),
           child: Text(
             date == null ? 'Selecione' : DateFormat('dd/MM/yyyy').format(date),
-            style: const TextStyle(color: Color(0xFF266B70), fontFamily: 'Poppins'),
+            style: const TextStyle(
+                color: Color(0xFF266B70), fontFamily: 'Poppins'),
           ),
         ),
       ],
@@ -194,8 +204,9 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Escolha uma imagem:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-        SizedBox(height: 8),
+            style:
+                TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+        const SizedBox(height: 8),
         GestureDetector(
           onTap: _pickImage,
           child: Container(
@@ -203,7 +214,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
             decoration: BoxDecoration(
               color: Colors.grey[300],
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 6,
@@ -214,11 +225,23 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
             child: _selectedImage != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(_selectedImage!),
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
+                    child: kIsWeb
+                        ? Image.memory(
+                            base64Decode(_selectedImage!.replaceAll('\n', '')),
+                            height: 150,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.broken_image, size: 150, color: Colors.red);
+                            },
+                          )
+                        : Image.memory(
+                            base64Decode(_selectedImage!.replaceAll('\n', '')),
+                            height: 150,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.broken_image, size: 150, color: Colors.red);
+                            },
+                          ),
                   )
                 : Center(
                     child: Icon(
@@ -237,9 +260,12 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() {
-        _selectedImage = pickedFile.path;
-      });
+      final bytes = await pickedFile.readAsBytes();
+      if (mounted) {
+        setState(() {
+          _selectedImage = base64Encode(bytes).replaceAll('\n', '');
+        });
+      }
     }
   }
 
@@ -248,8 +274,7 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
         _startDate != null &&
         _endDate != null &&
         _selectedImage != null) {
-      String? imageBase64 = await _getImageBase64(_selectedImage!);
-      imageBase64 ??= 'assets/images/mock_image.jpg';
+      String? imageBase64 = _selectedImage;
 
       final itinerario = ItinerarioModel(
         id: DateTime.now().toString(),
@@ -263,7 +288,9 @@ class _CreateItinerarioPageState extends State<CreateItinerarioPage> {
       );
 
       await itinerariosService.addItinerario(itinerario.toFirestore());
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 }
