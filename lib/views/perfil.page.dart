@@ -6,10 +6,13 @@ import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_1/controller/auth_controller.dart';
-import 'package:flutter_application_1/services/firestore/user.service.dart' as user_service;
+import 'package:flutter_application_1/services/firestore/user.service.dart'
+    as user_service;
 import 'package:brasil_fields/brasil_fields.dart';
 import 'package:flutter_application_1/services/firestore/checklist.service.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_application_1/services/firestore/viajante.service.dart';
+import 'package:flutter_application_1/services/firestore/avaliacoes.service.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -22,6 +25,9 @@ class _PerfilPageState extends State<PerfilPage> {
   String? _profileImageBase64;
   final user_service.UserService _userService = user_service.UserService();
   final AuthController _authController = AuthController();
+  final ViajanteService _viajanteService =
+      ViajanteService(FirebaseAuth.instance.currentUser!.uid);
+  final AvaliacoesService _avaliacoesService = AvaliacoesService();
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -34,6 +40,11 @@ class _PerfilPageState extends State<PerfilPage> {
   int _completedTasks = 0;
   int _totalItinerarios = 0;
   List<int> monthlyItineraries = List.filled(12, 0);
+  List<int> monthlyReviews = List.filled(12, 0);
+  final int _totalRoteiros = 0;
+  final int _totalViajantes = 0;
+  final double _percentile = 0.0;
+  final String _travelGroup = '';
 
   @override
   void initState() {
@@ -42,6 +53,8 @@ class _PerfilPageState extends State<PerfilPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadItinerarioId();
       _loadInsightsData();
+      _loadReviewData();
+      _loadViajanteData();
     });
   }
 
@@ -80,7 +93,8 @@ class _PerfilPageState extends State<PerfilPage> {
 
     for (var itinerario in itinerarios) {
       int itineraryTotalTasks = await _userService.getTotalTasks(itinerario.id);
-      int itineraryCompletedTasks = await _userService.getCompletedTasks(itinerario.id);
+      int itineraryCompletedTasks =
+          await _userService.getCompletedTasks(itinerario.id);
 
       totalTasks += itineraryTotalTasks;
       completedTasks += itineraryCompletedTasks;
@@ -103,15 +117,16 @@ class _PerfilPageState extends State<PerfilPage> {
 
       List<int> monthlyCounts = List.filled(12, 0);
       for (var doc in itinerariosSnapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
+        var data = doc.data();
         DateTime startDate = (data['startDate'] as Timestamp).toDate();
         DateTime endDate = (data['endDate'] as Timestamp).toDate();
-        
+
         if (startDate.year == DateTime.now().year) {
           monthlyCounts[startDate.month - 1]++;
         }
-        
-        if (endDate.year == DateTime.now().year && endDate.month != startDate.month) {
+
+        if (endDate.year == DateTime.now().year &&
+            endDate.month != startDate.month) {
           monthlyCounts[endDate.month - 1]++;
         }
       }
@@ -119,6 +134,31 @@ class _PerfilPageState extends State<PerfilPage> {
       setState(() {
         _totalItinerarios = itinerariosSnapshot.docs.length;
         monthlyItineraries = monthlyCounts;
+      });
+    }
+  }
+
+  Future<void> _loadReviewData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final reviewsSnapshot = await FirebaseFirestore.instance
+          .collection('viajantes')
+          .doc(user.uid)
+          .collection('avaliacoes')
+          .get();
+
+      List<int> monthlyCounts = List.filled(12, 0);
+      for (var doc in reviewsSnapshot.docs) {
+        var data = doc.data();
+        DateTime reviewDate = (data['data'] as Timestamp).toDate();
+
+        if (reviewDate.year == DateTime.now().year) {
+          monthlyCounts[reviewDate.month - 1]++;
+        }
+      }
+
+      setState(() {
+        monthlyReviews = monthlyCounts;
       });
     }
   }
@@ -201,14 +241,23 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  Future<void> _loadViajanteData() async {
+    final viajante = await _viajanteService.getViajante();
+    if (viajante != null) {
+      // Processar dados do viajante se necessário
+    }
+  }
+
   Widget _buildLineChart() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          color: const Color(0xFF266B70),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: const Color(0xFFE0F2F1), // Verde-água bem clarinho
           elevation: 4,
+          shadowColor: Colors.grey.withOpacity(0.5), // Sombra suave
           child: Container(
             padding: const EdgeInsets.all(16),
             height: 240,
@@ -221,7 +270,7 @@ class _PerfilPageState extends State<PerfilPage> {
                     fontFamily: 'Poppins',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: const Color(0xFF266B70), // Verde água
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -234,12 +283,25 @@ class _PerfilPageState extends State<PerfilPage> {
                           sideTitles: SideTitles(
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
-                              const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                              const months = [
+                                'Jan',
+                                'Fev',
+                                'Mar',
+                                'Abr',
+                                'Mai',
+                                'Jun',
+                                'Jul',
+                                'Ago',
+                                'Set',
+                                'Out',
+                                'Nov',
+                                'Dez'
+                              ];
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(months[value.toInt()],
                                     style: const TextStyle(
-                                        color: Colors.white,
+                                        color: Color(0xFF266B70), // Verde água
                                         fontSize: 10,
                                         fontFamily: 'Poppins')),
                               );
@@ -253,32 +315,39 @@ class _PerfilPageState extends State<PerfilPage> {
                             getTitlesWidget: (value, meta) {
                               return Text(value.toInt().toString(),
                                   style: const TextStyle(
-                                      color: Colors.white,
+                                      color: Color(0xFF266B70), // Verde água
                                       fontSize: 10,
                                       fontFamily: 'Poppins'));
                             },
                             interval: 1,
                           ),
                         ),
-                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
                       ),
                       borderData: FlBorderData(show: false),
                       minX: 0,
                       maxX: 11,
                       minY: 0,
-                      maxY: (monthlyItineraries.reduce((a, b) => a > b ? a : b)).toDouble() + 1,
+                      maxY: (monthlyItineraries.reduce((a, b) => a > b ? a : b))
+                              .toDouble() +
+                          1,
                       lineBarsData: [
                         LineChartBarData(
-                          spots: monthlyItineraries.asMap().entries.map((entry) {
-                            return FlSpot(entry.key.toDouble(), entry.value.toDouble());
+                          spots:
+                              monthlyItineraries.asMap().entries.map((entry) {
+                            return FlSpot(
+                                entry.key.toDouble(), entry.value.toDouble());
                           }).toList(),
                           isCurved: true,
-                          color: Colors.white,
+                          color: const Color(0xFF266B70), // Verde água
                           barWidth: 2,
                           belowBarData: BarAreaData(
                             show: true,
-                            color: Colors.white.withOpacity(0.2),
+                            color: const Color(0xFF266B70)
+                                .withOpacity(0.2), // Verde água com opacidade
                           ),
                           dotData: FlDotData(show: false),
                         ),
@@ -303,7 +372,8 @@ class _PerfilPageState extends State<PerfilPage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildTaskDashboard(),
-              _buildInsightCard('Total de Itinerários', _totalItinerarios.toString()),
+              _buildInsightCard(
+                  'Total de Itinerários', _totalItinerarios.toString()),
             ],
           ),
         ),
@@ -318,7 +388,10 @@ class _PerfilPageState extends State<PerfilPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meu Perfil',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Poppins')),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -362,7 +435,7 @@ class _PerfilPageState extends State<PerfilPage> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 20), // Reduced height from 30 to 20
+                  const SizedBox(height: 20),
                   _isEditing
                       ? _buildTextField(_firstNameController, 'Nome')
                       : _buildInfoText(_firstNameController.text),
@@ -402,10 +475,9 @@ class _PerfilPageState extends State<PerfilPage> {
                         ),
                       ],
                     ),
-                  const SizedBox(height: 10), 
+                  const SizedBox(height: 10),
                   if (!_isEditing) _buildDashboard(),
-                  const SizedBox(height: 10), 
-
+                  const SizedBox(height: 10),
                   if (!_isEditing) ...[
                     const SizedBox(height: 20),
                     InkWell(
@@ -414,8 +486,11 @@ class _PerfilPageState extends State<PerfilPage> {
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Card(
-                        elevation: 2,
-                        color: Color(0xFF266B70),
+                        elevation: 4,
+                        color:
+                            const Color(0xFFE0F2F1), // Verde-água bem clarinho
+                        shadowColor:
+                            Colors.grey.withOpacity(0.5), // Sombra suave
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -423,14 +498,17 @@ class _PerfilPageState extends State<PerfilPage> {
                           padding: const EdgeInsets.all(16),
                           child: Row(
                             children: [
-                              Icon(Icons.list, color: Colors.white), // Ícone de lista
+                              Icon(Icons.list,
+                                  color: const Color(
+                                      0xFF266B70)), // Ícone verde-água
                               SizedBox(width: 16),
                               Text(
                                 'Meus Estabelecimentos',
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 16,
-                                  color: Colors.white,
+                                  color: const Color(
+                                      0xFF266B70), // Texto verde-água
                                 ),
                               ),
                             ],
@@ -462,16 +540,18 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Widget _buildTaskDashboard() {
-    double completedPercentage = _totalTasks > 0 ? (_completedTasks / _totalTasks) * 100 : 0;
+    double completedPercentage =
+        _totalTasks > 0 ? (_completedTasks / _totalTasks) * 100 : 0;
     double remainingPercentage = 100 - completedPercentage;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: const Color(0xFF266B70), // Verde água
+      color: const Color(0xFFE0F2F1), // Verde-água bem clarinho
       elevation: 4,
+      shadowColor: Colors.grey.withOpacity(0.5), // Sombra suave
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.45, 
+        width: MediaQuery.of(context).size.width * 0.45,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +562,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 fontFamily: 'Poppins',
                 fontSize: 15,
                 fontWeight: FontWeight.normal,
-                color: Colors.white, // Texto em branco para contraste
+                color: const Color(0xFF266B70), // Verde água
               ),
             ),
             const SizedBox(height: 3),
@@ -498,26 +578,29 @@ class _PerfilPageState extends State<PerfilPage> {
                         PieChartData(
                           sections: [
                             PieChartSectionData(
-                              color: Colors.white, // Parte concluída em branco
+                              color: const Color(
+                                  0xFF266B70), // Parte concluída em verde água
                               value: completedPercentage,
-                              title: '${completedPercentage.toStringAsFixed(1)}%',
+                              title:
+                                  '${completedPercentage.toStringAsFixed(1)}%',
                               radius: 25,
                               titleStyle: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF266B70), // Verde água
+                                color: Colors.white, // Texto em branco
                                 fontFamily: 'Poppins',
                               ),
                             ),
                             PieChartSectionData(
-                              color: const Color(0xFF266B70), // Parte restante em verde água
+                              color: Colors.white, // Parte restante em branco
                               value: remainingPercentage,
-                              title: '${remainingPercentage.toStringAsFixed(1)}%',
+                              title:
+                                  '${remainingPercentage.toStringAsFixed(1)}%',
                               radius: 25,
                               titleStyle: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: const Color(0xFF266B70), // Verde água
                                 fontFamily: 'Poppins',
                               ),
                             ),
@@ -532,14 +615,18 @@ class _PerfilPageState extends State<PerfilPage> {
                           height: 60,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                                color: const Color(0xFF266B70),
+                                width: 2), // Contorno verde água
                           ),
                         ),
                       ),
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                              color: const Color(0xFF266B70),
+                              width: 2), // Contorno verde água
                         ),
                       ),
                     ],
@@ -558,10 +645,11 @@ class _PerfilPageState extends State<PerfilPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: const Color(0xFF266B70), // Verde água
+      color: const Color(0xFFE0F2F1), // Verde-água bem clarinho
       elevation: 4,
+      shadowColor: Colors.grey.withOpacity(0.5), // Sombra suave
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.45, // Aproximadamente metade da tela
+        width: MediaQuery.of(context).size.width * 0.45,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,7 +660,7 @@ class _PerfilPageState extends State<PerfilPage> {
                 fontFamily: 'Poppins',
                 fontSize: 15,
                 fontWeight: FontWeight.normal,
-                color: Colors.white, // Texto em branco para contraste
+                color: const Color(0xFF266B70), // Verde água
               ),
             ),
             const SizedBox(height: 50),
@@ -583,7 +671,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   fontFamily: 'Poppins',
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Texto em branco para contraste
+                  color: const Color(0xFF266B70), // Verde água
                 ),
               ),
             ),
@@ -615,19 +703,19 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Widget _buildInfoText(String value) {
-  return SizedBox(
-    width: 300,
-    child: Text(
-      value, 
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 18, 
-        fontFamily: 'Poppins',
-        fontWeight: FontWeight.bold, 
+    return SizedBox(
+      width: 300,
+      child: Text(
+        value,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 18,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildElevatedButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
@@ -672,7 +760,7 @@ class _PerfilPageState extends State<PerfilPage> {
       child: Text(text, style: const TextStyle(fontSize: 16)),
     );
   }
-  
+
   Widget _buildOutlinedButton(String text, VoidCallback onPressed) {
     return OutlinedButton(
       onPressed: onPressed,
@@ -686,6 +774,7 @@ class _PerfilPageState extends State<PerfilPage> {
           style: const TextStyle(fontSize: 16, color: Color(0xFF266B70))),
     );
   }
+
   Widget _buildPasswordResetButton() {
     return ElevatedButton(
       onPressed: () {

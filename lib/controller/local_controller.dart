@@ -36,7 +36,8 @@ class LocalController with ChangeNotifier {
   List<LocalModel> get locaisProximos => _locaisProximos;
   List<LocalModel> get searchResults => _searchResults;
 
-  LocalController(this.repository, this.favoritosService, this.itinerariosService);
+  LocalController(
+      this.repository, this.favoritosService, this.itinerariosService);
 
   void resetLocais() {
     _searchResults.clear();
@@ -53,12 +54,9 @@ class LocalController with ChangeNotifier {
   Future<void> fetchLocais(String query, String location) async {
     if (_isLoading) return;
 
-    // Clear results for new searches
     if (_page == 0) {
       _searchResults.clear();
     }
-
-    // Set default location to Brazil only when there's no query
     if (query.isEmpty) {
       location = 'Brasil';
     }
@@ -71,27 +69,28 @@ class LocalController with ChangeNotifier {
     try {
       await _initializeLocation();
 
-      final result = await repository.fetchLocais(query, location, offset: _page * 10)
+      final result = await repository
+          .fetchLocais(query, location, offset: _page * 10)
           .timeout(const Duration(seconds: 10));
 
       result.fold(
         (error) {
           _errorMessage = error;
           _isLoading = false;
-          // Only mark as finished loading if it's a real error
           if (error != 'Nenhum local encontrado') {
             _finishLoading = true;
           }
           notifyListeners();
         },
-        (response) {
+        (response) async {
           if (response.locais.isEmpty) {
             _finishLoading = true;
           } else {
-            final validLocais = response.locais.where((local) => 
-              local.latitude != 0.0 && local.longitude != 0.0
-            ).toList();
-            
+            final validLocais = response.locais
+                .where(
+                    (local) => local.latitude != 0.0 && local.longitude != 0.0)
+                .toList();
+
             if (validLocais.isEmpty) {
               _errorMessage = 'Nenhum local válido encontrado';
               _finishLoading = true;
@@ -104,9 +103,18 @@ class LocalController with ChangeNotifier {
             } else {
               _searchResults.addAll(validLocais);
             }
-            
+
             _page++;
           }
+
+          // Adicione locais do usuário à pesquisa
+          final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+          final locaisConvertidos =
+              locaisUsuario.map((local) => local.toLocalModel()).toList();
+          _searchResults.addAll(locaisConvertidos
+              .where((local) => local.latitude != 0.0 && local.longitude != 0.0)
+              .toList());
+
           _isLoading = false;
           notifyListeners();
         },
@@ -141,10 +149,18 @@ class LocalController with ChangeNotifier {
         '${_userPosition!.latitude},${_userPosition!.longitude}',
       );
 
+      final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+      final locaisConvertidos =
+          locaisUsuario.map((local) => local.toLocalModel()).toList();
+
       _locaisProximos.clear();
-      _locaisProximos.addAll(places.where((place) => 
-        place.latitude != 0.0 && place.longitude != 0.0
-      ).toList());
+      _locaisProximos.addAll(places
+          .where((place) => place.latitude != 0.0 && place.longitude != 0.0)
+          .toList());
+
+      _locaisProximos.addAll(locaisConvertidos
+          .where((local) => local.latitude != 0.0 && local.longitude != 0.0)
+          .toList());
 
       _isLoading = false;
       notifyListeners();
@@ -235,7 +251,8 @@ class LocalController with ChangeNotifier {
   Future<void> fetchLocaisUsuario() async {
     try {
       final locaisUsuario = await _localUserService.fetchLocaisUsuario();
-      final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+      final locaisConvertidos =
+          locaisUsuario.map((local) => local.toLocalModel()).toList();
       _locais.addAll(locaisConvertidos);
       notifyListeners();
     } catch (e) {

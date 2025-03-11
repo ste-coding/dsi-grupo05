@@ -319,8 +319,27 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               },
             ),
             const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Color(0xFF266B70), width: 2),
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    color: Color(0xFF266B70),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8),
+              ElevatedButton(
                 onPressed: _saveActivity,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF266B70),
@@ -333,7 +352,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                   ),
                 ),
                 child: const Text(
-                  'Salvar Atividade',
+                  ' Adicionar ',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.normal,
@@ -341,7 +360,7 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                   ),
                 ),
               ),
-            ),
+            ])
           ],
         ),
       ),

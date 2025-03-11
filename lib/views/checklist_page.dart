@@ -8,7 +8,8 @@ class ChecklistPage extends StatefulWidget {
   final String? docID;
   final String? currentTask;
 
-  const ChecklistPage({super.key, required this.itinerarioId, this.docID, this.currentTask});
+  const ChecklistPage(
+      {super.key, required this.itinerarioId, this.docID, this.currentTask});
 
   @override
   _ChecklistPageState createState() => _ChecklistPageState();
@@ -102,55 +103,51 @@ class _ChecklistPageState extends State<ChecklistPage> {
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Color(0xFF266B70), width: 2),
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Color(0xFF266B70), width: 2),
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      "Cancelar",
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        color: Color(0xFF266B70),
-                      ),
+                  ),
+                  child: Text(
+                    "Cancelar",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      color: Color(0xFF266B70),
                     ),
                   ),
                 ),
                 SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final task = _taskController.text;
-                      if (task.isNotEmpty) {
-                        if (widget.docID == null) {
-                          _addTask(task);
-                        } else {
-                          _editTask(widget.docID!, task);
-                        }
+                ElevatedButton(
+                  onPressed: () {
+                    final task = _taskController.text;
+                    if (task.isNotEmpty) {
+                      if (widget.docID == null) {
+                        _addTask(task);
+                      } else {
+                        _editTask(widget.docID!, task);
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF266B70),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF266B70),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      widget.docID == null ? 'Adicionar' : 'Salvar',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                      ),
+                  ),
+                  child: Text(
+                    widget.docID == null ? 'Adicionar' : 'Salvar',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
                     ),
                   ),
                 ),

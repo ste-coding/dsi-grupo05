@@ -48,7 +48,8 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
 
   Future<void> _carregarAvaliacoes() async {
     try {
-      final avaliacoesCarregadas = await avaliacoesService.carregarAvaliacoes(widget.local.id);
+      final avaliacoesCarregadas =
+          await avaliacoesService.carregarAvaliacoes(widget.local.id);
       setState(() {
         avaliacoes = avaliacoesCarregadas;
       });
@@ -70,7 +71,8 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final localId = widget.local.id;
 
-    final usuarioJaAvaliou = await avaliacoesService.usuarioJaAvaliou(localId, userId);
+    final usuarioJaAvaliou =
+        await avaliacoesService.usuarioJaAvaliou(localId, userId);
 
     if (usuarioJaAvaliou && index == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -83,7 +85,9 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
       final avaliacao = avaliacoes[index];
       if (userId != avaliacao['userId']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Você não tem permissão para editar esta avaliação.')),
+          const SnackBar(
+              content:
+                  Text('Você não tem permissão para editar esta avaliação.')),
         );
         return;
       }
@@ -113,7 +117,7 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
                 } else {
                   await avaliacoesService.salvarAvaliacao(localId, avaliacao);
                 }
-                await _carregarAvaliacoes(); 
+                await _carregarAvaliacoes();
                 Navigator.pop(context);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -139,15 +143,18 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     final avaliacao = avaliacoes[index];
     if (avaliacao['userId'] != userId) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
+        const SnackBar(
+            content:
+                Text('Você não tem permissão para excluir esta avaliação.')),
       );
       return;
     }
 
     try {
-      await avaliacoesService.excluirAvaliacao(widget.local.id, avaliacao['id']);
+      await avaliacoesService.excluirAvaliacao(
+          widget.local.id, avaliacao['id']);
       setState(() {
-        avaliacoes.removeAt(index); 
+        avaliacoes.removeAt(index);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Avaliação excluída!')),
@@ -158,7 +165,6 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
       );
     }
   }
-
 
   Future<void> _checkIfFavorited() async {
     final localController =
@@ -219,145 +225,151 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     }
   }
 
-List<int> _calcularDistribuicaoEstrelas(List<Map<String, dynamic>> avaliacoes) {
-  List<int> estrelasCount = List.filled(5, 0); 
+  List<int> _calcularDistribuicaoEstrelas(
+      List<Map<String, dynamic>> avaliacoes) {
+    List<int> estrelasCount = List.filled(5, 0);
 
-  for (var avaliacao in avaliacoes) {
-    int estrelas = avaliacao['estrelas'];
-    if (estrelas >= 1 && estrelas <= 5) {
-      estrelasCount[estrelas - 1]++;
+    for (var avaliacao in avaliacoes) {
+      int estrelas = avaliacao['estrelas'];
+      if (estrelas >= 1 && estrelas <= 5) {
+        estrelasCount[estrelas - 1]++;
+      }
     }
+
+    return estrelasCount;
   }
 
-  return estrelasCount;
-}
-@override
-Widget build(BuildContext context) {
-  final distribuicaoEstrelas = _calcularDistribuicaoEstrelas(avaliacoes);
+  @override
+  Widget build(BuildContext context) {
+    final distribuicaoEstrelas = _calcularDistribuicaoEstrelas(avaliacoes);
 
-  return Scaffold(
-    body: CustomScrollView(
-      slivers: [
-        _buildSliverAppBar(),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLocalHeader(),
-                const SizedBox(height: 24),
-                _buildDescription(),
-                const SizedBox(height: 24),
-                const Text(
-                  'Avaliações',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 200,
-                  child: AvaliacoesChart(estrelasCount: distribuicaoEstrelas),
-                ),
-                const SizedBox(height: 8),
-                if (avaliacoes.isEmpty)
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLocalHeader(),
+                  const SizedBox(height: 24),
+                  _buildDescription(),
+                  const SizedBox(height: 24),
                   const Text(
-                    'Nenhuma avaliação ainda. Adicione uma!',
+                    'Avaliações',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      color: Colors.grey,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: avaliacoes.length,
-                    itemBuilder: (context, index) {
-                      final avaliacao = avaliacoes[index];
-                      final podeExcluir = FirebaseAuth.instance.currentUser?.uid == avaliacao['userId'];
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 200,
+                    child: AvaliacoesChart(estrelasCount: distribuicaoEstrelas),
+                  ),
+                  const SizedBox(height: 8),
+                  if (avaliacoes.isEmpty)
+                    const Text(
+                      'Nenhuma avaliação ainda. Adicione uma!',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        color: Colors.grey,
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: avaliacoes.length,
+                      itemBuilder: (context, index) {
+                        final avaliacao = avaliacoes[index];
+                        final podeExcluir =
+                            FirebaseAuth.instance.currentUser?.uid ==
+                                avaliacao['userId'];
 
-                      return Dismissible(
-                        key: Key(avaliacao['id']),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(
-                            Icons.delete,
-                            color: Colors.white,
+                        return Dismissible(
+                          key: Key(avaliacao['id']),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        confirmDismiss: (direction) async {
-                          if (!podeExcluir) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Você não tem permissão para excluir esta avaliação.')),
-                            );
-                            return false;
-                          }
-                          return true;
-                        },
-                        onDismissed: (direction) async {
-                          await _excluirAvaliacao(index);
-                        },
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            onTap: () => abrirTelaAvaliacao(index: index),
-                            title: Text(
-                              avaliacao['nomeUsuario'],
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.bold,
+                          confirmDismiss: (direction) async {
+                            if (!podeExcluir) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Você não tem permissão para excluir esta avaliação.')),
+                              );
+                              return false;
+                            }
+                            return true;
+                          },
+                          onDismissed: (direction) async {
+                            await _excluirAvaliacao(index);
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              onTap: () => abrirTelaAvaliacao(index: index),
+                              title: Text(
+                                avaliacao['nomeUsuario'],
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: List.generate(5, (starIndex) {
+                                      return Icon(
+                                        starIndex < avaliacao['estrelas']
+                                            ? Icons.star
+                                            : Icons.star_border,
+                                        color: Colors.amber,
+                                        size: 15,
+                                      );
+                                    }),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                  ),
+                                  Text(
+                                    avaliacao['comentario'],
+                                    style: TextStyle(fontFamily: 'Poppins'),
+                                  ),
+                                ],
                               ),
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: List.generate(5, (starIndex) {
-                                    return Icon(
-                                      starIndex < avaliacao['estrelas']
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: Colors.amber,
-                                      size: 15,
-                                    );
-                                  }),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                ),                                 
-                                Text(
-                                  avaliacao['comentario'],
-                                  style: TextStyle(fontFamily: 'Poppins'),
-                                ),
-
-                              ],
-                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-              ],
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () => abrirTelaAvaliacao(),
-      backgroundColor: const Color(0xFF01A897),
-      child: const Icon(Icons.add, color: Colors.white),
-    ),
-    bottomNavigationBar: _buildBottomNavigationBar(),
-  );
-}
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => abrirTelaAvaliacao(),
+        backgroundColor: const Color(0xFF01A897),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
   SliverAppBar _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 300,
@@ -515,7 +527,7 @@ Widget build(BuildContext context) {
 class AvaliacaoFormPage extends StatefulWidget {
   final int? index;
   final Map<String, dynamic>? avaliacao;
-  final String nomeUsuario; 
+  final String nomeUsuario;
   final Function(Map<String, dynamic>) onSave;
 
   const AvaliacaoFormPage({
@@ -546,7 +558,7 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
   void salvarAvaliacao() {
     if (comentarioController.text.isNotEmpty && estrelasSelecionadas > 0) {
       widget.onSave({
-        "local": widget.nomeUsuario, 
+        "local": widget.nomeUsuario,
         "comentario": comentarioController.text,
         "estrelas": estrelasSelecionadas,
       });
@@ -646,7 +658,7 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
                     ),
                   ),
                   child: Text(
-                    "Salvar",
+                    "Adicionar",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,

@@ -79,8 +79,8 @@ class ItinerariosPage extends StatelessWidget {
               var itinerarioId = doc.id;
 
               List<ItinerarioItem> locais = [];
-              var locaisSnapshot =
-                  await itinerariosService.getLocaisByItinerarioId(itinerarioId);
+              var locaisSnapshot = await itinerariosService
+                  .getLocaisByItinerarioId(itinerarioId);
 
               for (var localDoc in locaisSnapshot.docs) {
                 var localData = localDoc.data() as Map<String, dynamic>;
@@ -162,14 +162,16 @@ class ItinerariosPage extends StatelessWidget {
                   );
                 }
 
-                final itinerarios = futureSnapshot.data as List<ItinerarioModel>;
+                final itinerarios =
+                    futureSnapshot.data as List<ItinerarioModel>;
 
                 return ListView.builder(
                   itemCount: itinerarios.length,
                   itemBuilder: (context, index) {
                     final itinerario = itinerarios[index];
 
-                    String itinerarioId = itinerario.id ?? 'id_${index.toString()}';
+                    String itinerarioId =
+                        itinerario.id ?? 'id_${index.toString()}';
 
                     return Dismissible(
                       key: Key(itinerarioId),
@@ -181,7 +183,8 @@ class ItinerariosPage extends StatelessWidget {
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       onDismissed: (direction) async {
-                        await itinerariosService.deleteItinerario(itinerario.id!);
+                        await itinerariosService
+                            .deleteItinerario(itinerario.id!);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
