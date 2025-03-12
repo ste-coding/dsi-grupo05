@@ -7,11 +7,11 @@ class AvaliacoesWidget extends StatelessWidget {
   final Function(String id) onDelete;
 
   const AvaliacoesWidget({
-    Key? key,
+    super.key,
     required this.avaliacoes,
     required this.nomeUsuario,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

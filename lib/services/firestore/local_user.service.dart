@@ -48,4 +48,44 @@ class LocalUserService {
       return [];
     }
   }
+
+  Future<double> fetchMediaEstrelasFromFirestore(String localId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('locais_usuario')
+          .doc(localId)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        return doc.data()!['mediaEstrelas']?.toDouble() ?? 0.0;
+      }
+      return 0.0;
+    } catch (e) {
+      print("Erro ao buscar média de estrelas: $e");
+      return 0.0;
+    }
+  }
+
+  Future<void> updateMediaEstrelas(String localId, double novaEstrela) async {
+    try {
+      final doc = await _db.collection('locais_usuario').doc(localId).get();
+      if (doc.exists && doc.data() != null) {
+        final data = doc.data()!;
+        final totalAvaliacoes = data['totalAvaliacoes'] ?? 0;
+        final mediaEstrelas = data['mediaEstrelas'] ?? 0.0;
+
+        final novoTotalAvaliacoes = totalAvaliacoes + 1;
+        final novaMediaEstrelas = ((mediaEstrelas * totalAvaliacoes) + novaEstrela) / novoTotalAvaliacoes;
+
+        await _db.collection('locais_usuario').doc(localId).update({
+          'totalAvaliacoes': novoTotalAvaliacoes,
+          'mediaEstrelas': novaMediaEstrelas,
+        });
+
+        print("Média de estrelas atualizada com sucesso!");
+      }
+    } catch (e) {
+      print("Erro ao atualizar média de estrelas: $e");
+    }
+  }
 }

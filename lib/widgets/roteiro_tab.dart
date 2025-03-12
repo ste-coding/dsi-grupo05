@@ -262,14 +262,33 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
         "time": timeController.text, // Agora o horário é uma string
       };
 
-      Navigator.pop(context, newActivity);
+      // Se estiver editando, atualizará a atividade
+      if (widget.activityIndex == null) {
+        Navigator.pop(context, newActivity); // Criar nova atividade
+      } else {
+        // Caso contrário, faz a atualização
+        Navigator.pop(context, {
+          'updated': true,
+          'activity': newActivity, // Atualizar a atividade
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Criar Atividade")),
+      appBar: AppBar(
+        title: Text(
+          widget.activityIndex == null ? "Criar Atividade" : "Editar Atividade",
+          style: TextStyle(
+            fontFamily: "Poppins",
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            ),
+        ),
+        centerTitle: true, 
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -319,8 +338,27 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
               },
             ),
             const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Color(0xFF266B70), width: 2),
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    color: Color(0xFF266B70),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8),
+              ElevatedButton(
                 onPressed: _saveActivity,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF266B70),
@@ -332,16 +370,16 @@ class _CreateActivityPageState extends State<CreateActivityPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Salvar Atividade',
-                  style: TextStyle(
+                child: Text(
+                  widget.activityIndex == null ? 'Adicionar' : 'Salvar',
+                  style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.normal,
                     color: Colors.white,
                   ),
                 ),
               ),
-            ),
+            ])
           ],
         ),
       ),

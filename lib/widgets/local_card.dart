@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/local_model.dart';
 import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
 import 'package:flutter_application_1/views/local_details.page.dart';
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LocalCard extends StatefulWidget {
   final LocalModel local;
@@ -19,10 +21,23 @@ class LocalCard extends StatefulWidget {
 
 class _LocalCardState extends State<LocalCard> {
   bool isFavorito = false;
+  double mediaEstrelas = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _checkIfFavorito();
+    _fetchMediaEstrelas();
+    widget.favoritosService.addListener(_favoritosListener);
+  }
+
+  @override
+  void dispose() {
+    widget.favoritosService.removeListener(_favoritosListener);
+    super.dispose();
+  }
+
+  void _favoritosListener() {
     _checkIfFavorito();
   }
 
@@ -34,7 +49,23 @@ class _LocalCardState extends State<LocalCard> {
         isFavorito = favorito;
       });
     }
+  }
 
+  Future<void> _fetchMediaEstrelas() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('locais')
+          .doc(widget.local.id)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        setState(() {
+          mediaEstrelas = doc.data()!['mediaEstrelas']?.toDouble() ?? 0.0;
+        });
+      }
+    } catch (e) {
+      print("Erro ao buscar média de estrelas: $e");
+    }
   }
 
   Future<void> _toggleFavorito() async {
@@ -84,12 +115,27 @@ class _LocalCardState extends State<LocalCard> {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: widget.local.imagem.isNotEmpty
-                      ? Image.network(
-                          widget.local.imagem,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
+                      ? (widget.local.imagem.startsWith('http')
+                          ? Image.network(
+                              widget.local.imagem,
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image,
+                                    size: 50, color: Colors.grey[700]);
+                              },
+                            )
+                          : Image.memory(
+                              base64Decode(widget.local.imagem),
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image,
+                                    size: 50, color: Colors.grey[700]);
+                              },
+                            ))
                       : Container(
                           height: 180,
                           width: double.infinity,
@@ -149,7 +195,7 @@ class _LocalCardState extends State<LocalCard> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          widget.local.mediaEstrelas.toStringAsFixed(1),
+                          mediaEstrelas.toStringAsFixed(1),
                           style: const TextStyle(
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.bold,

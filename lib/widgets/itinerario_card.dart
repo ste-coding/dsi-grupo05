@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../models/itinerario_model.dart';
 import '../views/itinerario_detalhes.page.dart';
 
@@ -33,11 +34,10 @@ class ItineraryCard extends StatelessWidget {
                 height: 180, // Limita a altura da imagem
                 child: itinerario.imageUrl != null &&
                         itinerario.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        itinerario.imageUrl!,
+                    ? Image.memory(
+                        base64Decode(itinerario.imageUrl!),
                         fit: BoxFit.cover,
-                        width: double
-                            .infinity, // Para garantir que a imagem ocupe toda a largura
+                        width: double.infinity, // Para garantir que a imagem ocupe toda a largura
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: Colors.grey[300],
                           child:

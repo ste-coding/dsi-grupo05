@@ -84,7 +84,7 @@ class LocalController with ChangeNotifier {
           }
           notifyListeners();
         },
-        (response) {
+        (response) async {
           if (response.locais.isEmpty) {
             _finishLoading = true;
           } else {
@@ -107,6 +107,14 @@ class LocalController with ChangeNotifier {
             
             _page++;
           }
+
+          // Add user-specific locations to the search results
+          final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+          final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+          _searchResults.addAll(locaisConvertidos.where((local) => 
+            local.latitude != 0.0 && local.longitude != 0.0
+          ).toList());
+
           _isLoading = false;
           notifyListeners();
         },
@@ -141,9 +149,16 @@ class LocalController with ChangeNotifier {
         '${_userPosition!.latitude},${_userPosition!.longitude}',
       );
 
+      final locaisUsuario = await _localUserService.fetchLocaisUsuario();
+      final locaisConvertidos = locaisUsuario.map((local) => local.toLocalModel()).toList();
+
       _locaisProximos.clear();
       _locaisProximos.addAll(places.where((place) => 
         place.latitude != 0.0 && place.longitude != 0.0
+      ).toList());
+
+      _locaisProximos.addAll(locaisConvertidos.where((local) => 
+        local.latitude != 0.0 && local.longitude != 0.0
       ).toList());
 
       _isLoading = false;
@@ -317,6 +332,33 @@ class LocalController with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("Erro ao adicionar local ao roteiro: $e");
+    }
+  }
+
+  Future<double> fetchMediaEstrelasFromFirestore(String localId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('locais_usuario')
+          .doc(localId)
+          .get();
+
+      if (doc.exists && doc.data() != null) {
+        return doc.data()!['mediaEstrelas']?.toDouble() ?? 0.0;
+      }
+      return 0.0;
+    } catch (e) {
+      print("Erro ao buscar média de estrelas: $e");
+      return 0.0;
+    }
+  }
+
+  Future<void> updateMediaEstrelas(String localId, double novaEstrela) async {
+    try {
+      await _localUserService.updateMediaEstrelas(localId, novaEstrela);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Erro ao atualizar média de estrelas: $e';
+      notifyListeners();
     }
   }
 }

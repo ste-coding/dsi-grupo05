@@ -11,6 +11,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/firestore/avaliacoes.service.dart';
 import '../widgets/avaliacao_chart.dart';
+import '../widgets/avaliacao_widget.dart';
+import 'dart:convert';
 
 class LocalDetailsPage extends StatefulWidget {
   final LocalModel local;
@@ -59,73 +61,68 @@ class _LocalDetailsPageState extends State<LocalDetailsPage> {
     }
   }
 
-  Future<void> abrirTelaAvaliacao({int? index}) async {
-    if (nomeUsuario == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro: Nome do usuário não encontrado.')),
-      );
-      return;
-    }
-
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final localId = widget.local.id;
-
-    final usuarioJaAvaliou = await avaliacoesService.usuarioJaAvaliou(localId, userId);
-
-    if (usuarioJaAvaliou && index == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você já avaliou este local.')),
-      );
-      return;
-    }
-
-    if (index != null) {
-      final avaliacao = avaliacoes[index];
-      if (userId != avaliacao['userId']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Você não tem permissão para editar esta avaliação.')),
-        );
-        return;
-      }
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: AvaliacaoFormPage(
-            index: index,
-            avaliacao: index != null ? avaliacoes[index] : null,
-            nomeUsuario: nomeUsuario!,
-            onSave: (avaliacao) async {
-              try {
-                avaliacao['nomeUsuario'] = nomeUsuario;
-                if (index != null) {
-                  await avaliacoesService.salvarAvaliacao(
-                    localId,
-                    avaliacao,
-                    docId: avaliacoes[index]['id'],
-                  );
-                } else {
-                  await avaliacoesService.salvarAvaliacao(localId, avaliacao);
-                }
-                await _carregarAvaliacoes(); 
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erro ao salvar avaliação: $e')),
-                );
-              }
-            },
-          ),
-        );
-      },
+Future<void> abrirTelaAvaliacao({int? index}) async {
+  if (nomeUsuario == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Erro: Nome do usuário não encontrado.')),
     );
+    return;
   }
+
+  final userId = FirebaseAuth.instance.currentUser!.uid;
+  final localId = widget.local.id;
+
+  final usuarioJaAvaliou = await avaliacoesService.usuarioJaAvaliou(localId, userId);
+
+  if (usuarioJaAvaliou && index == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Você já avaliou este local.')),
+    );
+    return;
+  }
+
+  if (index != null) {
+    final avaliacao = avaliacoes[index];
+    if (userId != avaliacao['userId']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você não tem permissão para editar esta avaliação.')),
+      );
+      return;
+    }
+  }
+
+  // Navegação para a nova tela
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AvaliacaoFormPage(
+        index: index,
+        avaliacao: index != null ? avaliacoes[index] : null,
+        nomeUsuario: nomeUsuario!,
+        onSave: (avaliacao) async {
+          try {
+            avaliacao['nomeUsuario'] = nomeUsuario;
+            if (index != null) {
+              await avaliacoesService.salvarAvaliacao(
+                localId,
+                avaliacao,
+                docId: avaliacoes[index]['id'],
+              );
+            } else {
+              await avaliacoesService.salvarAvaliacao(localId, avaliacao);
+            }
+            await _carregarAvaliacoes();
+            Navigator.pop(context); // Fecha a tela de avaliação após salvar
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao salvar avaliação: $e')),
+            );
+          }
+        },
+      ),
+    ),
+  );
+}
 
   Future<void> _excluirAvaliacao(int index) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -363,13 +360,29 @@ Widget build(BuildContext context) {
       expandedHeight: 300,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.network(
-          widget.local.imagem,
-          fit: BoxFit.cover,
-        ),
+        background: widget.local.imagem.isNotEmpty
+            ? (widget.local.imagem.startsWith('http')
+                ? Image.network(
+                    widget.local.imagem,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image, size: 50, color: Colors.grey[700]);
+                    },
+                  )
+                : Image.memory(
+                    base64Decode(widget.local.imagem),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.broken_image, size: 50, color: Colors.grey[700]);
+                    },
+                  ))
+            : Container(
+                color: Colors.grey[300],
+                child: Icon(Icons.image, size: 50, color: Colors.grey[700]),
+              ),
       ),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
@@ -389,7 +402,11 @@ Widget build(BuildContext context) {
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: NetworkImage(widget.local.imagem),
+          backgroundImage: widget.local.imagem.isNotEmpty
+              ? (widget.local.imagem.startsWith('http')
+                  ? NetworkImage(widget.local.imagem)
+                  : MemoryImage(base64Decode(widget.local.imagem)) as ImageProvider)
+              : AssetImage('assets/placeholder.png'),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -558,9 +575,9 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            widget.index != null ? "Editar Avaliação" : "Nova Avaliação",
-            style:
-                TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
+          widget.index != null ? "Editar Avaliação" : "Nova Avaliação",
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -646,7 +663,7 @@ class _AvaliacaoFormPageState extends State<AvaliacaoFormPage> {
                     ),
                   ),
                   child: Text(
-                    "Salvar",
+                    widget.index == null ? "Adicionar" : "Salvar",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 16,

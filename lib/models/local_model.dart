@@ -44,4 +44,35 @@ class LocalModel {
       totalAvaliacoes: json['stats']?['total_ratings'] ?? 0,
     );
   }
+factory LocalModel.fromFirestore(Map<String, dynamic> json) {
+    return LocalModel(
+      id: json['id'] ?? '',
+      nome: json['nome'] ?? 'Nome não disponível',
+      descricao: json['descricao'] ?? 'Sem descrição',
+      imagem: json['imagem'] ?? 'https://via.placeholder.com/150',
+      categoria: json['categoria'] ?? 'Sem categoria',
+      cidade: json['cidade'] ?? 'Cidade não disponível',
+      estado: json['estado'] ?? 'Estado não disponível',
+      latitude: json['latitude']?.toDouble() ?? 0.0,
+      longitude: json['longitude']?.toDouble() ?? 0.0,
+      mediaEstrelas: (json['mediaEstrelas'] ?? 0).toDouble(),
+      totalAvaliacoes: json['totalAvaliacoes'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nome': nome,
+      'descricao': descricao,
+      'imagem': imagem,
+      'categoria': categoria,
+      'cidade': cidade,
+      'estado': estado,
+      'latitude': latitude,
+      'longitude': longitude,
+      'mediaEstrelas': mediaEstrelas,
+      'totalAvaliacoes': totalAvaliacoes,
+    };
+  }
 }

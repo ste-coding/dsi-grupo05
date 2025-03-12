@@ -9,6 +9,7 @@ import 'package:flutter_application_1/services/firestore/itinerarios.service.dar
 import 'package:flutter_application_1/services/firestore/favoritos.service.dart';
 import 'package:flutter_application_1/repositories/local_repository.dart';
 import 'package:flutter_application_1/widgets/checklist_tab.dart';
+import 'dart:convert';
 
 class ItinerarioDetalhesPage extends StatefulWidget {
   final ItinerarioModel itinerario;
@@ -116,6 +117,12 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
             floating: false,
             pinned: true,
             backgroundColor: Color(0xFF266B70),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
             flexibleSpace: FlexibleSpaceBar(
               title: Container(
                 padding:
@@ -147,13 +154,10 @@ class _ItinerarioDetalhesPageState extends State<ItinerarioDetalhesPage>
               ),
               background: widget.itinerario.imageUrl != null &&
                       widget.itinerario.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      widget.itinerario.imageUrl!,
+                  ? Image.memory(
+                      base64Decode(widget.itinerario.imageUrl!.replaceAll('\n', '')),
+                      height: 200,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported, size: 50),
-                      ),
                     )
                   : Image.asset(
                       'assets/images/placeholder_image.png',

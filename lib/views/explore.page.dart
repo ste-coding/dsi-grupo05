@@ -5,6 +5,8 @@ import '../widgets/local_card.dart';
 import '../services/firestore/favoritos.service.dart';
 import '../models/local_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/star_rating.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ExplorePage extends StatefulWidget {
   final Function(LocalModel local) onSelectedLocal;
@@ -20,15 +22,15 @@ class _ExplorePageState extends State<ExplorePage> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _searchFocusNode = FocusNode();
   bool _isLoadingMore = false;
-  List<LocalModel> _allLocais = []; // Lista para armazenar todos os locais
-  List<LocalModel> _filteredLocais = []; // Lista para armazenar os locais filtrados
-  double _mediaEstrelasFilter = 0; // Valor inicial do filtro de média de estrelas
+  List<LocalModel> _allLocais = [];
+  List<LocalModel> _filteredLocais = [];
+  double _mediaEstrelasFilter = 0;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadAllLocais(); // Carregar todos os locais quando a página for inicializada
+    _loadAllLocais();
   }
 
   @override
@@ -65,10 +67,10 @@ class _ExplorePageState extends State<ExplorePage> {
     final localController = Provider.of<LocalController>(context, listen: false);
 
     try {
-      await localController.fetchLocais('', ''); // Carregar todos os locais inicialmente
-      _allLocais = localController.locaisProximos; // Armazenar todos os locais
+      await localController.fetchLocais('', '');
+      _allLocais = localController.locaisProximos;
       setState(() {
-        _filteredLocais = _allLocais; // Exibir todos os locais inicialmente
+        _filteredLocais = _allLocais;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,15 +91,17 @@ class _ExplorePageState extends State<ExplorePage> {
     localController.clearErrorMessage();
 
     try {
-      final filteredResults = _allLocais.where((local) {
+      final filteredResults = await Future.wait(_allLocais.map((local) async {
+        final mediaEstrelas = await localController.fetchMediaEstrelasFromFirestore(local.id);
+
         final matchesSearch = searchTerm.isEmpty ||
             local.nome.toLowerCase().contains(searchTerm.toLowerCase());
-        final matchesRating = local.mediaEstrelas >= _mediaEstrelasFilter;
-        return matchesSearch && matchesRating;
-      }).toList();
+        final matchesRating = mediaEstrelas >= _mediaEstrelasFilter;
+        return matchesSearch && matchesRating ? local : null;
+      }).toList());
 
       setState(() {
-        _filteredLocais = filteredResults; // Exibir os locais filtrados
+        _filteredLocais = filteredResults.where((local) => local != null).cast<LocalModel>().toList();
       });
 
       if (_filteredLocais.isEmpty && localController.errorMessage == null) {
@@ -165,69 +169,55 @@ class _ExplorePageState extends State<ExplorePage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Digite o nome do local...',
-                      hintStyle: const TextStyle(fontFamily: 'Poppins'),
-                      filled: true,
-                      fillColor: const Color(0xFFD9D9D9).withOpacity(0.5),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey[600],
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.clear,
-                                color: Colors.grey[600],
-                              ),
-                              onPressed: () {
-                                _searchController.clear();
-                                _loadLocais('');
-                              },
-                            )
-                          : null,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              hintText: 'Digite o nome do local...',
+                              hintStyle: TextStyle(fontFamily: 'Poppins'),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 15),
+                            ),
+                            style: const TextStyle(fontFamily: 'Poppins'),
+                            onChanged: (value) {
+                              _loadLocais(value);
+                            },
+                            onSubmitted: (value) {
+                              _searchFocusNode.unfocus();
+                              _loadLocais(value);
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () async {
+                            final location = _searchController.text.trim();
+                            if (location.isNotEmpty) {
+                              await _loadLocais(location);
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                    onChanged: (value) {
-                      _loadLocais(value); // Filtrar os locais com base no termo de busca
-                    },
-                    onSubmitted: (value) {
-                      _searchFocusNode.unfocus();
-                      _loadLocais(value);
-                    },
                   ),
                   SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        'Filtrar por Média de Estrelas:',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: Slider(
-                          value: _mediaEstrelasFilter,
-                          activeColor: Color(0xFF266B70),
-                          min: 0,
-                          max: 10,
-                          divisions: 10,
-                          label: _mediaEstrelasFilter.round().toString(),
-                          onChanged: _onMediaEstrelasChanged,
-                        ),
-                      ),
-                    ],
+                  StarRatingSlider(
+                    rating: _mediaEstrelasFilter,
+                    onChanged: _onMediaEstrelasChanged,
                   ),
                 ],
               ),
@@ -250,32 +240,6 @@ class _ExplorePageState extends State<ExplorePage> {
                           child: Text('Tentar novamente'),
                         ),
                       ],
-                    );
-                  }
-
-                  if (_filteredLocais.isEmpty && _searchController.text.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Nenhum local encontrado',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF266B70),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              textStyle: const TextStyle(fontFamily: 'Poppins'),
-                            ),
-                            onPressed: () => _loadLocais(_searchController.text.trim()),
-                            child: Text('Tentar novamente', style: const TextStyle(fontSize: 16)),
-                          ),
-                        ],
-                      ),
                     );
                   }
 

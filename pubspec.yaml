@@ -81,15 +81,6 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/images/inverno.jpg
-    - assets/images/acampamento.jpg
-    - assets/images/festivais.jpg
-    - assets/images/cidades_antigas.jpg
-    - assets/images/praia.jpg
-    - assets/images/por_do_sol.jpg
-    - assets/images/trabalho.jpg
-    - assets/images/trilha.jpg
-    - assets/images/mock_image.jpg
     - assets/images/logo2.png
     - assets/.env
 

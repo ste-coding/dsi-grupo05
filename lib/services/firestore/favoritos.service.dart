@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../../models/favoritos_model.dart';
 import '../../models/local_model.dart';
 
-class FavoritosService {
+class FavoritosService with ChangeNotifier {
   final CollectionReference favoritos;
 
   FavoritosService(String userId)
@@ -29,6 +30,7 @@ class FavoritosService {
       };
 
       await favoritos.doc(local.id).set(favorito);
+      notifyListeners(); // Notificar sobre a mudança
     } catch (e) {
       throw Exception("Erro ao adicionar favorito: $e");
     }
@@ -37,6 +39,7 @@ class FavoritosService {
   Future<void> removeFavorito(String localId) async {
     try {
       await favoritos.doc(localId).update({'favorito': false});
+      notifyListeners(); // Notificar sobre a mudança
     } catch (e) {
       throw Exception("Erro ao remover favorito: $e");
     }

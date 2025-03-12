@@ -73,10 +73,10 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  // Add the BottomNavigationBar function here
+  
   BottomNavigationBar _buildBottomNavigationBar() {
     return BottomNavigationBar(
-      currentIndex: 2, // Modify this to set the selected index dynamically
+      currentIndex: 0, 
       selectedItemColor: const Color.fromARGB(255, 1, 168, 151),
       unselectedItemColor: Colors.grey,
       showUnselectedLabels: true,
@@ -138,92 +138,106 @@ class _MenuPageState extends State<MenuPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FutureBuilder<Map<String, dynamic>?>(
-                future: userService.getUserData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.grey,
-                    );
-                  }
+              Row(
+                children: [
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: userService.getUserData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.grey,
+                        );
+                      }
 
-                  if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-                    return const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Colors.grey,
-                    );
-                  }
+                      if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                        return const CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.grey,
+                        );
+                      }
 
-                  final userData = snapshot.data!;
-                  final profilePictureBase64 = userData['profilePicture'];
-                  final profileImage = profilePictureBase64 != null
-                      ? Image.memory(base64Decode(profilePictureBase64)).image
-                      : null;
+                      final userData = snapshot.data!;
+                      final profilePictureBase64 = userData['profilePicture'];
+                      final profileImage = profilePictureBase64 != null
+                          ? Image.memory(base64Decode(profilePictureBase64)).image
+                          : null;
 
-                  return InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/perfil');
+                      return InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/perfil');
+                        },
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage: profileImage,
+                        ),
+                      );
                     },
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundImage: profileImage,
-                    ),
-                  );
-                },
+                  ),
+                  const SizedBox(width: 8),
+                  FutureBuilder<Map<String, dynamic>?>(
+                    future: userService.getUserData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Text(
+                          'Carregando...',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return const Text(
+                          'Erro ao carregar nome',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return const Text(
+                          'Nome não encontrado',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }
+
+                      final nome = snapshot.data!['nome'] ?? '';
+                      final primeiroNome = nome.split(' ').first;
+
+                      return Text(
+                        'Olá, $primeiroNome',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              FutureBuilder<Map<String, dynamic>?>(
-                future: userService.getUserData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Text(
-                      'Carregando...',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    );
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Text(
-                      'Erro ao carregar nome',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    );
-                  }
-
-                  if (!snapshot.hasData || snapshot.data == null) {
-                    return const Text(
-                      'Nome não encontrado',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    );
-                  }
-
-                  final nome = snapshot.data!['nome'] ?? '';
-                  final primeiroNome = nome.split(' ').first;
-
-                  return Text(
-                    'Olá, $primeiroNome',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  );
-                },
+              const SizedBox(height: 8),
+              const Text(
+                'Explore novos locais \nBora lá?',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
