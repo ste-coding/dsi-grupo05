@@ -112,6 +112,7 @@ Future<void> abrirTelaAvaliacao({int? index}) async {
               await avaliacoesService.salvarAvaliacao(localId, avaliacao);
             }
             await _carregarAvaliacoes();
+            await _fetchMediaEstrelas(); // Atualiza a média de estrelas
             Navigator.pop(context); // Fecha a tela de avaliação após salvar
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -146,6 +147,7 @@ Future<void> abrirTelaAvaliacao({int? index}) async {
       setState(() {
         avaliacoes.removeAt(index); 
       });
+      await _fetchMediaEstrelas(); // Atualiza a média de estrelas após excluir
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Avaliação excluída!')),
       );
@@ -156,6 +158,22 @@ Future<void> abrirTelaAvaliacao({int? index}) async {
     }
   }
 
+Future<void> _fetchMediaEstrelas() async {
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('locais')
+        .doc(widget.local.id)
+        .get();
+
+    if (doc.exists && doc.data() != null) {
+      setState(() {
+        widget.local.mediaEstrelas = doc.data()!['mediaEstrelas']?.toDouble() ?? 0.0;
+      });
+    }
+  } catch (e) {
+    print("Erro ao buscar média de estrelas: $e");
+  }
+}
 
   Future<void> _checkIfFavorited() async {
     final localController =

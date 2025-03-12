@@ -475,6 +475,7 @@ class _PerfilPageState extends State<PerfilPage> {
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                   color: const Color(0xFF266B70), // Texto verde-água
                                 ),
                               ),
@@ -527,7 +528,7 @@ class _PerfilPageState extends State<PerfilPage> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 15,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.bold,
                 color: const Color(0xFF266B70), // Verde água
               ),
             ),
@@ -572,23 +573,7 @@ class _PerfilPageState extends State<PerfilPage> {
                           centerSpaceRadius: 30,
                         ),
                       ),
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF266B70), width: 2), // Contorno verde água
-                          ),
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF266B70), width: 2), // Contorno verde água
-                        ),
-                      ),
-                    ],
+                                        ],
                   ),
                 ),
               ],
@@ -618,7 +603,7 @@ class _PerfilPageState extends State<PerfilPage> {
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 15,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.bold,
                 color: const Color(0xFF266B70), // Verde água
               ),
             ),

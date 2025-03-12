@@ -161,6 +161,11 @@ class LocalController with ChangeNotifier {
         local.latitude != 0.0 && local.longitude != 0.0
       ).toList());
 
+      // Atualiza a média de estrelas para locais próximos
+      for (var local in _locaisProximos) {
+        local.mediaEstrelas = await fetchMediaEstrelasFromFirestore(local.id);
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -338,7 +343,7 @@ class LocalController with ChangeNotifier {
   Future<double> fetchMediaEstrelasFromFirestore(String localId) async {
     try {
       final doc = await FirebaseFirestore.instance
-          .collection('locais_usuario')
+          .collection('locais')
           .doc(localId)
           .get();
 
@@ -349,16 +354,6 @@ class LocalController with ChangeNotifier {
     } catch (e) {
       print("Erro ao buscar média de estrelas: $e");
       return 0.0;
-    }
-  }
-
-  Future<void> updateMediaEstrelas(String localId, double novaEstrela) async {
-    try {
-      await _localUserService.updateMediaEstrelas(localId, novaEstrela);
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = 'Erro ao atualizar média de estrelas: $e';
-      notifyListeners();
     }
   }
 }

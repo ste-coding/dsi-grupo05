@@ -35,9 +35,10 @@ class AvaliacoesService {
     } else {
       await avaliacoesRef.add(data);
     }
+
+    _calcularEMediaEstrelas(localId);
   }
 
-  /// Carrega as avaliações de um local
   Future<List<Map<String, dynamic>>> carregarAvaliacoes(String localId) async {
     final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
     final querySnapshot = await avaliacoesRef.get();
@@ -53,18 +54,36 @@ class AvaliacoesService {
     }).toList();
   }
 
-
   Future<void> excluirAvaliacao(String localId, String docId) async {
     final user = await _verificarUsuarioAutenticado();
     if (user == null) return;
 
     final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
     await avaliacoesRef.doc(docId).delete();
+
+    _calcularEMediaEstrelas(localId);
   }
 
   Future<bool> usuarioJaAvaliou(String localId, String userId) async {
     final avaliacoesRef = _obterReferenciasAvaliacoes(localId);
     final querySnapshot = await avaliacoesRef.where('userId', isEqualTo: userId).get();
     return querySnapshot.docs.isNotEmpty;
+  }
+
+  void _calcularEMediaEstrelas(String localId) {
+    _obterReferenciasAvaliacoes(localId).get().then((querySnapshot) {
+      double mediaEstrelas = 0.0;
+      if (querySnapshot.docs.isNotEmpty) {
+        final totalEstrelas = querySnapshot.docs.fold<int>(
+          0,
+          (sum, doc) => sum + (doc.data()['estrelas'] as int),
+        );
+        mediaEstrelas = totalEstrelas / querySnapshot.docs.length;
+      }
+
+      _firestore.collection('locais').doc(localId).set({
+        'mediaEstrelas': mediaEstrelas,
+      }, SetOptions(merge: true));
+    });
   }
 }

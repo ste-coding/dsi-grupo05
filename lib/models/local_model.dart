@@ -8,7 +8,7 @@ class LocalModel {
   final String estado;
   final double latitude;
   final double longitude;
-  final double mediaEstrelas;
+  double mediaEstrelas; // Tornar mutável para permitir atualização
   final int totalAvaliacoes;
 
   LocalModel({
@@ -21,7 +21,7 @@ class LocalModel {
     required this.estado,
     required this.latitude,
     required this.longitude,
-    required this.mediaEstrelas,
+    this.mediaEstrelas = 0.0, // Inicializa com 0
     required this.totalAvaliacoes,
   });
 
@@ -44,7 +44,8 @@ class LocalModel {
       totalAvaliacoes: json['stats']?['total_ratings'] ?? 0,
     );
   }
-factory LocalModel.fromFirestore(Map<String, dynamic> json) {
+
+  factory LocalModel.fromFirestore(Map<String, dynamic> json) {
     return LocalModel(
       id: json['id'] ?? '',
       nome: json['nome'] ?? 'Nome não disponível',

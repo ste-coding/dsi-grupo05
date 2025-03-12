@@ -23,7 +23,7 @@ class StarRatingSlider extends StatelessWidget {
           activeColor: Color(0xFF01A897),
           inactiveColor: Colors.grey.withOpacity(0.4),
           min: 0,
-          max: 10,
+          max: 5,
           divisions: 10,
           label: rating.round().toString(),
           onChanged: onChanged,
